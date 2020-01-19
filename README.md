@@ -1,0 +1,2 @@
+# ElectionFighter
+Election Fighter game.
