@@ -1,13 +1,13 @@
 
-local composer = require( "composer" )
+local composer = require("composer")
 
 local scene = composer.newScene()
 
 local function gotoSelect()
-  composer.gotoScene( "select", {effect = "fade", time = 500} )
+  composer.gotoScene("Source.Scenes.select", {effect = "fade", time = 500})
 end
 
-local ScrollingText = require("scrolling_text")
+local ScrollingText = require("Source.Utilities.scrollingText")
 
 local scroll
 

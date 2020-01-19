@@ -1,5 +1,5 @@
 
-local composer = require( "composer" )
+local composer = require("composer")
 
 local scene = composer.newScene()
 
@@ -71,7 +71,7 @@ local screenCrawl
 -- speeches["warren"] = {"I'M NOT AFRAID OF ANYONE...", "", "PARTICULARLY NOT DONALD TRUMP!", "", ""}
 
 local function gotoPrefight()
-  composer.gotoScene("prefight")
+  composer.gotoScene("Source.Scenes.prefight")
 end
 
 local video

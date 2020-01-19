@@ -1,18 +1,17 @@
 
-local composer = require( "composer" )
+local composer = require("composer")
 
 local scene = composer.newScene()
 
--- -----------------------------------------------------------------------------------
--- Code outside of the scene event functions below will only be executed ONCE unless
--- the scene is removed entirely (not recycled) via "composer.removeScene()"
--- -----------------------------------------------------------------------------------
-
 local function gotoTitle()
-  composer.gotoScene( "title", {effect = "fade", time = 1000} )
+  composer.gotoScene("Source.Scenes.title", {effect = "fade", time = 3000})
 end
 
-local credits
+local good
+local game
+local lab
+
+local background
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -24,8 +23,20 @@ function scene:create( event )
   local sceneGroup = self.view
   -- Code here runs when the scene is first created but has not yet appeared on screen
 
-  credits = display.newText(sceneGroup, "BY MATTHEW CARLIN", display.contentCenterX, display.contentCenterY - 60, "Georgia-Bold", 40)
-  credits:setTextColor(0.9, 0.9, 0.9)
+  background = display.newImageRect( sceneGroup, "Art/goodgamelab.png", display.contentWidth, display.contentHeight)
+  background.x = display.contentCenterX
+  background.y = display.contentCenterY
+  background.alpha = 0.8
+
+
+  good = display.newEmbossedText(sceneGroup, "GOOD", display.contentCenterX - 106, display.contentCenterY, "Georgia-Bold", 30)
+  good:setTextColor(0.72, 0.18, 0.18)
+
+  game = display.newEmbossedText(sceneGroup, "GAME", display.contentCenterX, display.contentCenterY, "Georgia-Bold", 30)
+  game:setTextColor(0.9, 0.9, 0.9)
+
+  lab = display.newEmbossedText(sceneGroup, "LAB", display.contentCenterX + 93, display.contentCenterY, "Georgia-Bold", 30)
+  lab:setTextColor(0.18, 0.18, 0.72)
 end
 
 
@@ -56,7 +67,7 @@ function scene:hide( event )
 
   elseif ( phase == "did" ) then
     -- Code here runs immediately after the scene goes entirely off screen
-
+    composer.removeScene("intro")
   end
 end
 

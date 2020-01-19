@@ -1,5 +1,5 @@
 
-local composer = require( "composer" )
+local composer = require("composer")
 
 local scene = composer.newScene()
 
@@ -20,7 +20,7 @@ local animationCounter = 0
 local punch_sound
 
 local function gotoGame()
-  composer.gotoScene( "game", {effect = "crossFade", time = 1500} )
+  composer.gotoScene("Source.Scenes.game", {effect = "crossFade", time = 1500})
 end
 
 local function animation()

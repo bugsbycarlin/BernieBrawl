@@ -1,10 +1,10 @@
 
-local composer = require( "composer" )
+local composer = require("composer")
 
 local scene = composer.newScene()
 
 local function gotoAnnounce()
-  composer.gotoScene( "announce", {effect = "fade", time = 1000} )
+  composer.gotoScene("Source.Scenes.announce", {effect = "fade", time = 1000})
 end
 
 local big_faces = {}

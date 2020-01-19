@@ -1,19 +1,13 @@
 
-local composer = require( "composer" )
+local composer = require("composer")
 
 local scene = composer.newScene()
 
-local function gotoPrefight()
-  composer.gotoScene("prefight", {effect = "fade", time = 1000})
+local function gotoCutscene()
+  composer.gotoScene("Source.Scenes.cutscene", {effect = "fade", time = 1000})
 end
 
-local function gotoTitle()
-  composer.gotoScene( "title", {effect = "fade", time = 1000} )
-end
-
-local gameoverText
-local tryAgainText
-local returnToTitleText
+local postfight_placeholder
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -25,15 +19,18 @@ function scene:create( event )
   local sceneGroup = self.view
   -- Code here runs when the scene is first created but has not yet appeared on screen
 
-  gameoverText = display.newText(sceneGroup, "GAME OVER", display.contentCenterX, display.contentCenterY - 60, "Georgia-Bold", 40)
-  gameoverText:setTextColor(0.72, 0.18, 0.18)
+  candidate = composer.getVariable( "candidate" )
+  opponent = composer.getVariable("opponent")
+  location = composer.getVariable("location")
+  content = string.upper(candidate .. " defeats " .. opponent .. " in " .. location .. "!")
+  local remaining_locations = composer.getVariable("remaining_locations")
+  if #remaining_locations < 1 then
+    content = string.upper(candidate .. " WINS THE WHITEHOUSE!")
+  end
+  postfight_placeholder = display.newText(sceneGroup, content, display.contentCenterX, display.contentCenterY, "Georgia-Bold", 20)
+  postfight_placeholder:setTextColor(0.18, 0.18, 0.72)
 
-  tryAgainText = display.newText(sceneGroup, "TRY AGAIN", display.contentCenterX, display.contentCenterY + 20, "Georgia-Bold", 30)
-  tryAgainText:setTextColor(0.9, 0.9, 0.9)
-
-  returnToTitleText = display.newText(sceneGroup, "RETURN TO TITLE", display.contentCenterX, display.contentCenterY + 60, "Georgia-Bold", 30)
-  returnToTitleText:setTextColor(0.18, 0.18, 0.72)
-
+  timer.performWithDelay(3000, gotoCutscene, 1)
 end
 
 
@@ -45,8 +42,7 @@ function scene:show( event )
 
   if ( phase == "will" ) then
     -- Code here runs when the scene is still off screen (but is about to come on screen)
-    tryAgainText:addEventListener("touch", gotoPrefight)
-    returnToTitleText:addEventListener("touch", gotoTitle)
+
   elseif ( phase == "did" ) then
     -- Code here runs when the scene is entirely on screen
 
@@ -65,7 +61,7 @@ function scene:hide( event )
 
   elseif ( phase == "did" ) then
     -- Code here runs immediately after the scene goes entirely off screen
-    composer.removeScene("gameover")
+    composer.removeScene("postfight")
   end
 end
 

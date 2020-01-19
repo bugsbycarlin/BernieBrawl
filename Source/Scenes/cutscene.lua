@@ -1,5 +1,5 @@
 
-local composer = require( "composer" )
+local composer = require("composer")
 
 local scene = composer.newScene()
 
@@ -9,11 +9,11 @@ local scene = composer.newScene()
 -- -----------------------------------------------------------------------------------
 
 local function gotoPrefight()
-  composer.gotoScene("prefight", {effect = "fade", time = 1000})
+  composer.gotoScene("Source.Scenes.prefight", {effect = "fade", time = 1000})
 end
 
 local function gotoCredits()
-  composer.gotoScene("credits", {effect = "fade", time = 1000})
+  composer.gotoScene("Source.Scenes.credits", {effect = "fade", time = 1000})
 end
 
 local function choose_player(event)

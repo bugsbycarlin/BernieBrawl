@@ -24,7 +24,7 @@ stage_music = audio.loadStream("Sound/test_music.mp3")
 -- audio.play( stage_music, { channel=1, loops=-1 } )
 
 -- -- Go to the menu screen
--- composer.gotoScene("title", {effect = "fade", time = 3000})
-composer.gotoScene("intro", {effect = "fade", time = 3000})
--- composer.gotoScene("select", {effect = "fade", time = 1000})
--- composer.gotoScene("game")
+-- composer.gotoScene("Source.Scenes.title", {effect = "fade", time = 3000})
+composer.gotoScene("Source.Scenes.intro", {effect = "fade", time = 3000})
+-- composer.gotoScene("Source.Scenes.select", {effect = "fade", time = 1000})
+-- composer.gotoScene("Source.Scenes.game")

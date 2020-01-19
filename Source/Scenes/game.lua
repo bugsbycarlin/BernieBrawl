@@ -1,30 +1,30 @@
 
-local composer = require( "composer" )
+local composer = require("composer")
 
 local scene = composer.newScene()
 
 local function gotoPostfight()
-  composer.gotoScene( "postfight", {effect = "fade", time = 1000} )
+  composer.gotoScene("Source.Scenes.postfight", {effect = "fade", time = 1000})
 end
 
 local function gotoGameover()
-  composer.gotoScene( "gameover", {effect = "fade", time = 1000} )
+  composer.gotoScene("Source.Scenes.gameover", {effect = "fade", time = 1000})
 end
 
-local ButtigiegSpriteInfo = require("buttigieg_sprite")
+local ButtigiegSpriteInfo = require("Source.Sprites.buttigiegSprite")
 local ButtigiegSheet = graphics.newImageSheet("Art/buttigieg.png", ButtigiegSpriteInfo:getSheet())
 
-local TrumpSpriteInfo = require("trump_sprite")
+local TrumpSpriteInfo = require("Source.Sprites.trumpSprite")
 local TrumpSheet = graphics.newImageSheet("Art/trump.png", TrumpSpriteInfo:getSheet())
 
-local WarrenSpriteInfo = require("warren_sprite")
+local WarrenSpriteInfo = require("Source.Sprites.warrenSprite")
 local WarrenSheet = graphics.newImageSheet("Art/warren_sprite.png", WarrenSpriteInfo:getSheet())
 
-local WhipSpriteInfo = require("whip_sprite")
+local WhipSpriteInfo = require("Source.Sprites.whipSprite")
 local WhipSheet = graphics.newImageSheet("Art/whip_sprite.png", WhipSpriteInfo:getSheet())
 
 
-local HealthBar = require("health_bar")
+local HealthBar = require("Source.Utilities.healthBar")
 
 local fighters = {}
 
