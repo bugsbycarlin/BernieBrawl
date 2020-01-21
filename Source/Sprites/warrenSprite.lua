@@ -3,7 +3,6 @@ local WarrenSpriteInfo = {}
 WarrenSpriteInfo.sheet =
 {
     frames = {
-    
         {
             x=0,
             y=0,
