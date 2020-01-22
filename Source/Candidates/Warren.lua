@@ -12,26 +12,34 @@ local gravity = 4
 local max_x_velocity = 20
 local max_y_velocity = 35
 
+local function distance(x1, y1, x2, y2)
+  return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
+end
+
 function Warren:create(x, y, group)
   local warren = display.newGroup()
 
-  frames = {}
+  warren.frames = {}
   for i = 1, #WarrenSpriteInfo.sheet.frames do
-    table.insert(frames, i)
+    table.insert(warren.frames, i)
   end
 
   warren.name = "Elizabeth Warren"
 
   group:insert(warren)
-  warren.sprite = display.newSprite(warren, WarrenSprite, {frames=frames})
+  warren.sprite = display.newSprite(warren, WarrenSprite, {frames=warren.frames})
   warren.frameIndex = WarrenSpriteInfo.frameIndex
+  warren.hitIndex = WarrenSpriteInfo.hitIndex
+  -- for i = 1, #warren.hitIndex do
+  --   print(i .. ": " .. #warren.hitIndex[i])
+  -- end
   warren.x = x
   warren.y_offset = 60
   warren.x_vel = 0
   warren.y_vel = 0
   warren.y = y + warren.y_offset
 
-  warren.after_image = display.newSprite(warren, WarrenSprite, {frames=frames})
+  warren.after_image = display.newSprite(warren, WarrenSprite, {frames=warren.frames})
   warren.after_image.frameIndex = WarrenSpriteInfo.frameIndex
   warren.after_image.alpha = 0.5
   warren.after_image.isVisible = false
@@ -139,10 +147,13 @@ function Warren:create(x, y, group)
     end
   end
 
-  function warren:damageAction(actor)
+  function warren:damageAction(actor, extra_vel)
     self.sprite:setFrame(self.frameIndex["damage"])
     self.after_image.isVisible = false
     self.x_vel = -15 * self.xScale
+    if extra_vel ~= nil then
+      self.x_vel = self.x_vel + extra_vel * self.xScale
+    end
     self.y_vel = -5
     self.rotation = 15 * self.xScale
     self.damage_timer = 4
@@ -382,36 +393,81 @@ function Warren:create(x, y, group)
     self:hitDetection()
   end
 
+  -- function warren:hitDetection()
+  --   if self.other_fighters == nil then
+  --     return
+  --   end
+  --   for i = 1, #self.other_fighters do
+  --     victim = self.other_fighters[i]
+      
+  --     if victim.action ~= "damaged" and victim.action ~= "ko" then
+  --       if self.action == "punching" then
+  --         if self.frame == 3 or self.frame == 7 or self.frame == 13 then
+  --           if (self.xScale == 1 and self.x - 10 < victim.x and self.x + 105 > victim.x) or
+  --             (self.xScale == -1 and self.x + 10 > victim.x and self.x - 105 < victim.x) then
+  --             victim:damageAction(self)
+  --           end
+  --         end
+  --       elseif self.action == "kicking" then
+  --         if self.frame == 3 or self.frame == 9 then
+  --           if (self.xScale == 1 and self.x - 10 < victim.x and self.x + 105 > victim.x) or
+  --             (self.xScale == -1 and self.x + 10 > victim.x and self.x - 105 < victim.x) then
+  --             victim:damageAction(self)
+  --           end
+  --         end
+  --       elseif self.action == "whipping" then
+  --         if (self.frame == 6) then
+  --           if math.abs(self.x - victim.x) < 200 then
+  --             victim:damageAction(self)
+  --             victim.damage_timer = 50
+  --           end
+  --           -- audio.play(punch_sound)
+  --         end
+  --       end
+  --     end
+  --   end
+  -- end
+
   function warren:hitDetection()
     if self.other_fighters == nil then
       return
     end
+
+    frame = self.sprite.frame
+    hitIndex = self.hitIndex[frame]
+
     for i = 1, #self.other_fighters do
-      victim = self.other_fighters[i]
+      opponent = self.other_fighters[i]
+
       
-      if victim.action ~= "damaged" and victim.action ~= "ko" then
-        if self.action == "punching" then
-          if self.frame == 3 or self.frame == 7 or self.frame == 13 then
-            if (self.xScale == 1 and self.x - 10 < victim.x and self.x + 105 > victim.x) or
-              (self.xScale == -1 and self.x + 10 > victim.x and self.x - 105 < victim.x) then
-              victim:damageAction(self)
+      if opponent.action ~= "damaged" and opponent.action ~= "ko" then
+
+        opponent_frame = opponent.sprite.frame
+        opponent_hitIndex = opponent.hitIndex[opponent_frame]
+
+        collision = nil
+
+        for j = 1, #hitIndex do
+          if hitIndex[j].purpose ~= "vulnerability" then
+            for k = 1, #opponent_hitIndex do
+              x1, y1 = self:localToContent(hitIndex[j].x, hitIndex[j].y)
+              x2, y2 = opponent:localToContent(opponent_hitIndex[k].x, opponent_hitIndex[k].y)
+              if distance(x1, y1, x2, y2) < hitIndex[j].radius + opponent_hitIndex[k].radius then
+                if hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" then
+                  collision = "damage"
+                elseif collision == nil then
+                  collision = "reflect"
+                end
+              end
             end
           end
-        elseif self.action == "kicking" then
-          if self.frame == 3 or self.frame == 9 then
-            if (self.xScale == 1 and self.x - 10 < victim.x and self.x + 105 > victim.x) or
-              (self.xScale == -1 and self.x + 10 > victim.x and self.x - 105 < victim.x) then
-              victim:damageAction(self)
-            end
-          end
-        elseif self.action == "whipping" then
-          if (self.frame == 6) then
-            if math.abs(self.x - victim.x) < 200 then
-              victim:damageAction(self)
-              victim.damage_timer = 50
-            end
-            -- audio.play(punch_sound)
-          end
+        end
+
+        if collision == "reflect" then
+          self:moveAction(-15 * self.xScale, -5)
+          opponent:moveAction(-15 * opponent.xScale, -5)
+        elseif collision == "damage" then
+          opponent:damageAction(self, 15 * self.xScale)
         end
       end
     end

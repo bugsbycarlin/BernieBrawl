@@ -20,10 +20,13 @@ local state
 
 local camera = {x = 0, y = 0, move = true, speed = 0.4}
 
+local show_hitboxes
+
 local sceneGroup
 local bgGroup
 local mainGroup
 local uiGroup
+local hitBoxGroup
 
 local parallax_background
 local background_1
@@ -59,6 +62,38 @@ local function checkPlayerActions()
   end
 end
 
+local function showHitBoxes()
+  for i = hitBoxGroup.numChildren, 1, -1 do
+    hitBoxGroup[i]:removeSelf()
+    hitBoxGroup[1] = nil
+  end
+  for i = 1,2,1 do
+    frame = fighters[i].sprite.frame
+    -- if frame > #fighters[i].frames then
+    --   frame = 1
+    -- end
+    local hitIndex = fighters[i].hitIndex[frame]
+    if i == 2 then
+      print(frame)
+    end
+    if hitIndex ~= nil and #hitIndex > 0 then
+      for j = 1, #hitIndex do
+        x,y = fighters[i]:localToContent(hitIndex[j].x, hitIndex[j].y)
+        local circle = display.newCircle(hitBoxGroup, x, y, hitIndex[j].radius)
+        circle.alpha = 0.5
+        purpose = hitIndex[j].purpose
+        if purpose == "attack" then
+          circle:setFillColor( 0.8, 0.5, 0.5 )
+        elseif purpose == "defense" then
+          circle:setFillColor( 0.5, 0.5, 0.8 )
+        elseif purpose == "vulnerability" then
+          circle:setFillColor( 0.5, 0.8, 0.5 )
+        end
+      end
+    end
+  end
+end
+
 local function gameLoop()
   if state == "active" then
     if fighters[1].health <= 0 or fighters[2].health <= 0 then
@@ -90,6 +125,8 @@ local function gameLoop()
     parallaxBackgroundGroup.y = camera.y
     mainGroup.x = camera.x
     mainGroup.y = camera.y
+    -- hitBoxGroup.x = camera.x
+    -- hitBoxGroup.y = camera.y
     bgGroup.x = camera.x
     bgGroup.y = camera.y
     foregroundGroup.x = camera.x
@@ -105,6 +142,10 @@ local function gameLoop()
   end
 
   checkPlayerActions()
+
+  if show_hitboxes == true then
+    showHitBoxes()
+  end
 end
 
 local function player_2_button(event)
@@ -129,8 +170,19 @@ local function debugKeyboard(event)
   if event.keyName == "l" then
     player_2_button(event)
   end
-end
 
+  if event.keyName == "h" then
+    if show_hitboxes == true then
+      show_hitboxes = false
+      hitBoxGroup.isVisible = false
+    else
+      show_hitboxes = true
+      hitBoxGroup.isVisible = true
+    end
+  end
+
+  return true
+end
 
 local swipe_event = {}
 local function swipe(event)
@@ -195,6 +247,10 @@ function scene:create( event )
   foregroundGroup = display.newGroup()
   sceneGroup:insert(foregroundGroup)
 
+  hitBoxGroup = display.newGroup()
+  sceneGroup:insert(hitBoxGroup)
+  show_hitboxes = true
+
   uiGroup = display.newGroup()
   sceneGroup:insert(uiGroup)
 
@@ -225,7 +281,6 @@ function scene:create( event )
 
   fighters[2] = Warren:create(184, display.contentCenterY, mainGroup)
   fighters[2].healthbar = HealthBar:create(10, 10, uiGroup)
-
 
   fighters[1].target = fighters[2]
   fighters[1].other_fighters = {fighters[2]}
@@ -296,7 +351,6 @@ function scene:hide( event )
     composer.removeScene("game")
     timer.cancel(gameLoopTimer)
     timer.cancel(backgroundAnimationTimer)
-    
   end
 end
 

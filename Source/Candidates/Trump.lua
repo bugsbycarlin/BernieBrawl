@@ -9,12 +9,16 @@ local gravity = 4
 local max_x_velocity = 20
 local max_y_velocity = 35
 
+local function distance(x1, y1, x2, y2)
+  return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
+end
+
 function Trump:create(x, y, group)
   local trump = display.newGroup()
 
-  frames = {}
+  trump.frames = {}
   for i = 1, #TrumpSpriteInfo.sheet.frames do
-    table.insert(frames, i)
+    table.insert(trump.frames, i)
     print("Trump")
     print(i)
   end
@@ -22,15 +26,16 @@ function Trump:create(x, y, group)
   trump.name = "Donald Trump"
 
   group:insert(trump)
-  trump.sprite = display.newSprite(trump, TrumpSprite, {frames=frames})
+  trump.sprite = display.newSprite(trump, TrumpSprite, {frames=trump.frames})
   trump.frameIndex = TrumpSpriteInfo.frameIndex
+  trump.hitIndex = TrumpSpriteInfo.hitIndex
   trump.x = x
   trump.y_offset = 65
   trump.x_vel = 0
   trump.y_vel = 0
   trump.y = y + trump.y_offset
 
-  trump.after_image = display.newSprite(trump, TrumpSprite, {frames=frames})
+  trump.after_image = display.newSprite(trump, TrumpSprite, {frames=trump.frames})
   trump.after_image.frameIndex = TrumpSpriteInfo.frameIndex
   trump.after_image.alpha = 0.5
   trump.after_image.isVisible = false
@@ -155,10 +160,13 @@ function Trump:create(x, y, group)
     end
   end
 
-  function trump:damageAction(actor)
+  function trump:damageAction(actor, extra_vel)
     self.sprite:setFrame(self.frameIndex["damage"])
     self.after_image.isVisible = false
     self.x_vel = -15 * self.xScale
+    if extra_vel ~= nil then
+      self.x_vel = self.x_vel - extra_vel * self.xScale
+    end
     self.y_vel = -5
     self.rotation = 15 * self.xScale
     self.damage_timer = 4
@@ -314,16 +322,61 @@ function Trump:create(x, y, group)
     self:hitDetection()
   end
 
+  -- function trump:hitDetection()
+  --   if self.other_fighters == nil then
+  --     return
+  --   end
+  --   for i = 1, #self.other_fighters do
+  --     victim = self.other_fighters[i]
+  --     if victim.action ~= "damaged" and victim.action ~= "ko" and self.action == "punching" then
+  --       if (self.xScale == 1 and self.x -10 < victim.x and self.x + 105 > victim.x) or
+  --         (self.xScale == -1 and self.x + 10 > victim.x and self.x - 105 < victim.x) then
+  --         victim:damageAction(self)
+  --       end
+  --     end
+  --   end
+  -- end
+
   function trump:hitDetection()
     if self.other_fighters == nil then
       return
     end
+
+    frame = self.sprite.frame
+    hitIndex = self.hitIndex[frame]
+
     for i = 1, #self.other_fighters do
-      victim = self.other_fighters[i]
-      if victim.action ~= "damaged" and victim.action ~= "ko" and self.action == "punching" then
-        if (self.xScale == 1 and self.x -10 < victim.x and self.x + 105 > victim.x) or
-          (self.xScale == -1 and self.x + 10 > victim.x and self.x - 105 < victim.x) then
-          victim:damageAction(self)
+      opponent = self.other_fighters[i]
+
+      
+      if opponent.action ~= "damaged" and opponent.action ~= "ko" then
+
+        opponent_frame = opponent.sprite.frame
+        opponent_hitIndex = opponent.hitIndex[opponent_frame]
+
+        collision = nil
+
+        for j = 1, #hitIndex do
+          if hitIndex[j].purpose ~= "vulnerability" then
+            for k = 1, #opponent_hitIndex do
+              x1, y1 = self:localToContent(hitIndex[j].x, hitIndex[j].y)
+              x2, y2 = opponent:localToContent(opponent_hitIndex[k].x, opponent_hitIndex[k].y)
+              if distance(x1, y1, x2, y2) < hitIndex[j].radius + opponent_hitIndex[k].radius then
+                if hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" then
+                  collision = "damage"
+                elseif collision == nil then
+                  collision = "reflect"
+                end
+              end
+            end
+          end
+        end
+
+        if collision == "reflect" then
+          self:moveAction(-15 * self.xScale, -5)
+          opponent:moveAction(-15 * opponent.xScale, -5)
+        elseif collision == "damage" then
+          opponent:damageAction(self, 15 * self.xScale)
         end
       end
     end
