@@ -15,6 +15,7 @@ local HealthBar = require("Source.Utilities.healthBar")
 
 local Warren = require("Source.Candidates.Warren")
 local Trump = require("Source.Candidates.Trump")
+local Biden = require("Source.Candidates.Biden")
 
 local state
 
@@ -73,9 +74,9 @@ local function showHitBoxes()
     --   frame = 1
     -- end
     local hitIndex = fighters[i].hitIndex[frame]
-    if i == 2 then
-      print(frame)
-    end
+    -- if i == 2 then
+    --   print(frame)
+    -- end
     if hitIndex ~= nil and #hitIndex > 0 then
       for j = 1, #hitIndex do
         x,y = fighters[i]:localToContent(hitIndex[j].x, hitIndex[j].y)
@@ -275,7 +276,7 @@ function scene:create( event )
   -- foreground.y = display.contentHeight + 40
   -- foreground.anchorY = 1
 
-  fighters[1] = Trump:create(384, display.contentCenterY, mainGroup)
+  fighters[1] = Biden:create(384, display.contentCenterY, mainGroup)
   fighters[1].xScale = -1
   fighters[1].healthbar = HealthBar:create(display.contentWidth - 240 - 10, 10, uiGroup)
 
@@ -323,7 +324,6 @@ function scene:show( event )
   if ( phase == "will" ) then
     -- Code here runs when the scene is still off screen (but is about to come on screen)
     gameLoopTimer = timer.performWithDelay( 33, gameLoop, 0 )
-    -- trumpActionsTimer = timer.performWithDelay(600, trumpActions, 0)
     backgroundAnimationTimer = timer.performWithDelay(500, backgroundAnimation, 0)
     fighters[1]:enable()
     fighters[2]:enable()

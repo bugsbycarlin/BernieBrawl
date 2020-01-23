@@ -23,8 +23,11 @@ local frameText
 
 -- local WarrenSpriteInfo = require("Source.Sprites.warrenSprite")
 -- local WarrenSprite = graphics.newImageSheet("Art/warren_sprite.png", WarrenSpriteInfo:getSheet())
-local TrumpSpriteInfo = require("Source.Sprites.trumpSprite")
-local TrumpSprite = graphics.newImageSheet("Art/trump_sprite.png", TrumpSpriteInfo:getSheet())
+-- local TrumpSpriteInfo = require("Source.Sprites.trumpSprite")
+-- local TrumpSprite = graphics.newImageSheet("Art/trump_sprite.png", TrumpSpriteInfo:getSheet())
+local BidenSpriteInfo = require("Source.Sprites.bidenSprite")
+local BidenSprite = graphics.newImageSheet("Art/biden_sprite.png", BidenSpriteInfo:getSheet())
+
 
 
 local hitBoxes = {}
@@ -221,11 +224,11 @@ function scene:create( event )
   -- location = composer.getVariable("location")
 
   frames = {}
-  for i = 1, #TrumpSpriteInfo.sheet.frames do
+  for i = 1, #BidenSpriteInfo.sheet.frames do
     table.insert(frames, i)
   end
 
-  sprite = display.newSprite(mainGroup, TrumpSprite, {frames=frames})
+  sprite = display.newSprite(mainGroup, BidenSprite, {frames=frames})
   sprite.x = display.contentCenterX
   sprite.y = display.contentCenterY
   sprite.xScale = scale

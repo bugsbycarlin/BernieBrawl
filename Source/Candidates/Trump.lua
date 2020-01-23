@@ -344,6 +344,9 @@ function Trump:create(x, y, group)
 
     frame = self.sprite.frame
     hitIndex = self.hitIndex[frame]
+    if hitIndex == nil then
+      return
+    end
 
     for i = 1, #self.other_fighters do
       opponent = self.other_fighters[i]
@@ -357,12 +360,12 @@ function Trump:create(x, y, group)
         collision = nil
 
         for j = 1, #hitIndex do
-          if hitIndex[j].purpose ~= "vulnerability" then
+          if hitIndex[j].purpose ~= "vulnerability" and opponent_hitIndex ~= nil then
             for k = 1, #opponent_hitIndex do
               x1, y1 = self:localToContent(hitIndex[j].x, hitIndex[j].y)
               x2, y2 = opponent:localToContent(opponent_hitIndex[k].x, opponent_hitIndex[k].y)
               if distance(x1, y1, x2, y2) < hitIndex[j].radius + opponent_hitIndex[k].radius then
-                if hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" then
+                if hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" and collision ~= "reflect" then
                   collision = "damage"
                 elseif collision == nil then
                   collision = "reflect"
