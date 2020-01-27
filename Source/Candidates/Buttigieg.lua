@@ -1,16 +1,16 @@
 
-Buttigieg = {}
-Buttigieg.__index = Buttigieg
+buttigieg = {}
+buttigieg.__index = buttigieg
 
-function Buttigieg:create(x, y, group)
+function buttigieg:create(x, y, group)
   local candidate = {}
-  setmetatable(candidate, Buttigieg)
+  setmetatable(candidate, buttigieg)
   candidate.something = 5
   return candidate
 end
 
-function Buttigieg:setSomething(value)
+function buttigieg:setSomething(value)
   self.something = value
 end
 
-return Buttigieg
+return buttigieg

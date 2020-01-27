@@ -1,6 +1,6 @@
-local TrumpSpriteInfo = {}
+local trumpSpriteInfo = {}
 
-TrumpSpriteInfo.sheet =
+trumpSpriteInfo.sheet =
 {
     frames = {
     
@@ -34,14 +34,14 @@ TrumpSpriteInfo.sheet =
     sheetContentHeight = 256
 }
 
-TrumpSpriteInfo.frameIndex =
+trumpSpriteInfo.frameIndex =
 {
     ["normal"] = 1,
     ["punch"] = 3,
     ["damage"] = 2,
 }
 
-TrumpSpriteInfo.hitIndex = 
+trumpSpriteInfo.hitIndex = 
 {
     {
         {y=-47,x=-1.3333333333333,purpose="vulnerability",type="circle",radius=27},
@@ -69,12 +69,12 @@ TrumpSpriteInfo.hitIndex =
     }
 }
 
-function TrumpSpriteInfo:getSheet()
+function trumpSpriteInfo:getSheet()
     return self.sheet;
 end
 
-function TrumpSpriteInfo:getFrameIndex(name)
+function trumpSpriteInfo:getFrameIndex(name)
     return self.frameIndex[name];
 end
 
-return TrumpSpriteInfo
+return trumpSpriteInfo

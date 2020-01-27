@@ -1,16 +1,16 @@
 
-Pence = {}
-Pence.__index = Pence
+pence = {}
+pence.__index = pence
 
-function Pence:create(x, y, group)
+function pence:create(x, y, group)
   local candidate = {}
-  setmetatable(candidate, Pence)
+  setmetatable(candidate, pence)
   candidate.something = 5
   return candidate
 end
 
-function Pence:setSomething(value)
+function pence:setSomething(value)
   self.something = value
 end
 
-return Pence
+return pence

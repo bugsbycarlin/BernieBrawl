@@ -11,11 +11,11 @@ local function gotoGameover()
   composer.gotoScene("Source.Scenes.gameover", {effect = "fade", time = 1000})
 end
 
-local HealthBar = require("Source.Utilities.healthBar")
+local healthBar = require("Source.Utilities.healthBar")
 
-local Warren = require("Source.Candidates.Warren")
-local Trump = require("Source.Candidates.Trump")
-local Biden = require("Source.Candidates.Biden")
+local warren = require("Source.Candidates.warren")
+local trump = require("Source.Candidates.trump")
+local biden = require("Source.Candidates.biden")
 
 local state
 
@@ -284,12 +284,12 @@ function scene:create( event )
   -- background_2.anchorY = 1
   -- background_2.isVisible = false
 
-  fighters[1] = Biden:create(384, display.contentCenterY, mainGroup, min_x, max_x)
+  fighters[1] = biden:create(384, display.contentCenterY, mainGroup, min_x, max_x)
   fighters[1].xScale = -1
-  fighters[1].healthbar = HealthBar:create(display.contentWidth - 240 - 10, 10, uiGroup)
+  fighters[1].healthbar = healthBar:create(display.contentWidth - 240 - 10, 10, uiGroup)
 
-  fighters[2] = Warren:create(184, display.contentCenterY, mainGroup, min_x, max_x)
-  fighters[2].healthbar = HealthBar:create(10, 10, uiGroup)
+  fighters[2] = warren:create(184, display.contentCenterY, mainGroup, min_x, max_x)
+  fighters[2].healthbar = healthBar:create(10, 10, uiGroup)
 
   fighters[1].target = fighters[2]
   fighters[1].other_fighters = {fighters[2]}

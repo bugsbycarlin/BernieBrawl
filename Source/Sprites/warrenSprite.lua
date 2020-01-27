@@ -1,6 +1,6 @@
-local WarrenSpriteInfo = {}
+local warrenSpriteInfo = {}
 
-WarrenSpriteInfo.sheet =
+warrenSpriteInfo.sheet =
 {
     frames = {
         {
@@ -177,7 +177,7 @@ WarrenSpriteInfo.sheet =
     sheetContentHeight = 1024
 }
 
-WarrenSpriteInfo.frameIndex =
+warrenSpriteInfo.frameIndex =
 {
     -- resting frames: 1,2,3,4,5,6
     -- kicking frames: 7,8,9,10,11,12
@@ -191,7 +191,7 @@ WarrenSpriteInfo.frameIndex =
     -- ["damage"] = 2,
 }
 
-WarrenSpriteInfo.hitIndex = 
+warrenSpriteInfo.hitIndex = 
 {
     {
         {y=-58,type="circle",purpose="vulnerability",radius=28,x=-2},
@@ -374,12 +374,12 @@ WarrenSpriteInfo.hitIndex =
     },
 }
 
-function WarrenSpriteInfo:getSheet()
+function warrenSpriteInfo:getSheet()
     return self.sheet;
 end
 
-function WarrenSpriteInfo:getFrameIndex(name)
+function warrenSpriteInfo:getFrameIndex(name)
     return self.frameIndex[name];
 end
 
-return WarrenSpriteInfo
+return warrenSpriteInfo

@@ -7,7 +7,7 @@ local function gotoSelect()
   composer.gotoScene("Source.Scenes.select", {effect = "fade", time = 500})
 end
 
-local ScrollingText = require("Source.Utilities.scrollingText")
+local scrollingText = require("Source.Utilities.scrollingText")
 
 local opening_text_objects = {}
 
@@ -53,7 +53,7 @@ function scene:create( event )
   -- subTitleText = display.newEmbossedText(sceneGroup, "VOTE WITH FISTS", display.contentCenterX, display.contentCenterY + 40, "Georgia-Bold", 24)
   -- subTitleText:setTextColor(0.72, 0.18, 0.18)
 
-  opening_text_objects[1] = ScrollingText:create(
+  opening_text_objects[1] = scrollingText:create(
     40,
     display.contentCenterY - 60,
     0,
@@ -68,7 +68,7 @@ function scene:create( event )
     2000,
     {r=0.72, g=0.18, b=0.18})
 
-  opening_text_objects[2] = ScrollingText:create(
+  opening_text_objects[2] = scrollingText:create(
     40,
     display.contentCenterY - 60,
     0,
@@ -83,7 +83,7 @@ function scene:create( event )
     2000,
     {r=0.9, g=0.9, b=0.9})
 
-  opening_text_objects[3] = ScrollingText:create(
+  opening_text_objects[3] = scrollingText:create(
     display.contentCenterX,
     display.contentCenterY,
     0.5,

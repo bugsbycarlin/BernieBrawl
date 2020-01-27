@@ -1,6 +1,6 @@
-local BidenSpriteInfo = {}
+local bidenSpriteInfo = {}
 
-BidenSpriteInfo.sheet =
+bidenSpriteInfo.sheet =
 {
     frames = {
     
@@ -156,14 +156,14 @@ BidenSpriteInfo.sheet =
 
 -- 384, 768, 1152, 1536, 1920, 2304, 2688, 3072, 3456, 3840, 4224, 4608, 4992, 5376, 5760, 6144, 6528, 6912, 729
 
-BidenSpriteInfo.frameIndex =
+bidenSpriteInfo.frameIndex =
 {
     ["normal"] = 1,
     ["punch"] = 3,
     ["damage"] = 2,
 }
 
-BidenSpriteInfo.hitIndex = 
+bidenSpriteInfo.hitIndex = 
 {
   {
     {x=39.666666666667,y=-42.333333333333,type="circle",purpose="defense",radius=11},
@@ -454,12 +454,12 @@ BidenSpriteInfo.hitIndex =
   },
 }
 
-function BidenSpriteInfo:getSheet()
+function bidenSpriteInfo:getSheet()
     return self.sheet;
 end
 
-function BidenSpriteInfo:getFrameIndex(name)
+function bidenSpriteInfo:getFrameIndex(name)
     return self.frameIndex[name];
 end
 
-return BidenSpriteInfo
+return bidenSpriteInfo

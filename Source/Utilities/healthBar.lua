@@ -30,35 +30,35 @@ local frayingSpriteInfo =
     sheetContentHeight = 60
 }
 
-HealthBar = {}
-HealthBar.__index = HealthBar
+healthBar = {}
+healthBar.__index = healthBar
 
-function HealthBar:create(x, y, group)
-  local healthbar = {}
-  setmetatable(healthbar, HealthBar)
-  healthbar.background_bar = display.newImageRect(group, "Art/black_background_bar.png", 244, 24)
-  healthbar.background_bar.x = x - 2
-  healthbar.background_bar.y = y - 2
-  healthbar.background_bar.anchorX = 0
-  healthbar.background_bar.anchorY = 0
-  healthbar.foreground_bar = display.newImageRect(group, "Art/flag_health_bar.png", 240, 20)
-  healthbar.foreground_bar.x = x
-  healthbar.foreground_bar.y = y
-  healthbar.foreground_bar.anchorX = 0
-  healthbar.foreground_bar.anchorY = 0
+function healthBar:create(x, y, group)
+  local object = {}
+  setmetatable(object, healthBar)
+  object.background_bar = display.newImageRect(group, "Art/black_background_bar.png", 244, 24)
+  object.background_bar.x = x - 2
+  object.background_bar.y = y - 2
+  object.background_bar.anchorX = 0
+  object.background_bar.anchorY = 0
+  object.foreground_bar = display.newImageRect(group, "Art/flag_health_bar.png", 240, 20)
+  object.foreground_bar.x = x
+  object.foreground_bar.y = y
+  object.foreground_bar.anchorX = 0
+  object.foreground_bar.anchorY = 0
   local sheet = graphics.newImageSheet("Art/fray.png", frayingSpriteInfo)
-  healthbar.overlay_bar = display.newSprite(group, sheet, {frames={1,2,3}})
-  -- healthbar.overlay_bar = display.newImageRect(group, "Art/black_fraying_bar.png", 240, 20)
-  healthbar.overlay_bar.x = x + 240
-  healthbar.overlay_bar.y = y
-  healthbar.overlay_bar.anchorX = 1
-  healthbar.overlay_bar.anchorY = 0
-  healthbar.overlay_bar.isVisible = false
-  healthbar.health_percent = 100
-  return healthbar
+  object.overlay_bar = display.newSprite(group, sheet, {frames={1,2,3}})
+  -- object.overlay_bar = display.newImageRect(group, "Art/black_fraying_bar.png", 240, 20)
+  object.overlay_bar.x = x + 240
+  object.overlay_bar.y = y
+  object.overlay_bar.anchorX = 1
+  object.overlay_bar.anchorY = 0
+  object.overlay_bar.isVisible = false
+  object.health_percent = 100
+  return object
 end
 
-function HealthBar:setHealth(health_percent)
+function healthBar:setHealth(health_percent)
   self.health_percent = health_percent
   self.overlay_bar.isVisible = false
   self.foreground_bar.isVisible = true
@@ -73,4 +73,4 @@ function HealthBar:setHealth(health_percent)
   end
 end
 
-return HealthBar
+return healthBar

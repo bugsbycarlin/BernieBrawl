@@ -1,40 +1,42 @@
 
-local WarrenSpriteInfo = require("Source.Sprites.warrenSprite")
-local WarrenSprite = graphics.newImageSheet("Art/warren_sprite.png", WarrenSpriteInfo:getSheet())
+local warrenSpriteInfo = require("Source.Sprites.warrenSprite")
+local warrenSprite = graphics.newImageSheet("Art/warren_sprite.png", warrenSpriteInfo:getSheet())
 
 local WhipSpriteInfo = require("Source.Sprites.whipSprite")
 local WhipSprite = graphics.newImageSheet("Art/whip_sprite.png", WhipSpriteInfo:getSheet())
 
-Warren = {}
-Warren.__index = Warren
+warren = {}
+warren.__index = warren
 
 local gravity = 4
 local max_x_velocity = 20
 local max_y_velocity = 35
 
-local warren_offset = 50
+local resting_rate = 50
+local action_rate = 40
+local sprite_offset = 50
 
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
 
-function Warren:create(x, y, group, min_x, max_x)
+function warren:create(x, y, group, min_x, max_x)
   local candidate = display.newGroup()
 
   candidate.frames = {}
-  for i = 1, #WarrenSpriteInfo.sheet.frames do
+  for i = 1, #warrenSpriteInfo.sheet.frames do
     table.insert(candidate.frames, i)
   end
 
   candidate.name = "Elizabeth Warren"
 
   group:insert(candidate)
-  candidate.sprite = display.newSprite(candidate, WarrenSprite, {frames=candidate.frames})
-  candidate.frameIndex = WarrenSpriteInfo.frameIndex
-  candidate.hitIndex = WarrenSpriteInfo.hitIndex
+  candidate.sprite = display.newSprite(candidate, warrenSprite, {frames=candidate.frames})
+  candidate.frameIndex = warrenSpriteInfo.frameIndex
+  candidate.hitIndex = warrenSpriteInfo.hitIndex
 
   candidate.x = x
-  candidate.y_offset = warren_offset
+  candidate.y_offset = sprite_offset
   candidate.x_vel = 0
   candidate.y_vel = 0
   candidate.y = y + candidate.y_offset
@@ -42,8 +44,8 @@ function Warren:create(x, y, group, min_x, max_x)
   candidate.min_x = min_x
   candidate.max_x = max_x
 
-  candidate.after_image = display.newSprite(candidate, WarrenSprite, {frames=candidate.frames})
-  candidate.after_image.frameIndex = WarrenSpriteInfo.frameIndex
+  candidate.after_image = display.newSprite(candidate, warrenSprite, {frames=candidate.frames})
+  candidate.after_image.frameIndex = warrenSpriteInfo.frameIndex
   candidate.after_image.alpha = 0.5
   candidate.after_image.isVisible = false
 
@@ -71,7 +73,7 @@ function Warren:create(x, y, group, min_x, max_x)
 
   function candidate:enable()
     self.enabled = true
-    self.animationTimer = timer.performWithDelay(50, function() self:animationLoop() end, 0)
+    self.animationTimer = timer.performWithDelay(resting_rate, function() self:animationLoop() end, 0)
     self.physicsTimer = timer.performWithDelay(33, function() self:physicsLoop() end, 0)
   end
 
@@ -99,7 +101,7 @@ function Warren:create(x, y, group, min_x, max_x)
   function candidate:punchingAction()
     if self.action == nil then
       self.frame = 1
-      self.animationTimer._delay = 40
+      self.animationTimer._delay = action_rate
       self.action = "punching"
     end
   end
@@ -107,7 +109,7 @@ function Warren:create(x, y, group, min_x, max_x)
   function candidate:kickingAction()
     if self.action == nil then
       self.frame = 1
-      self.animationTimer._delay = 40
+      self.animationTimer._delay = action_rate
       self.action = "kicking"
     end
 
@@ -119,7 +121,7 @@ function Warren:create(x, y, group, min_x, max_x)
   function candidate:specialAction()
     if self.action == nil then
       self.frame = 1
-      self.animationTimer._delay = 40
+      self.animationTimer._delay = action_rate
       self.action = "whipping"
       self.whip_image.isVisible = true
     end
@@ -179,7 +181,7 @@ function Warren:create(x, y, group, min_x, max_x)
     self.frame = 1
     self.after_image.isVisible = false
     self.whip_image.isVisible = false
-    self.animationTimer._delay = 50
+    self.animationTimer._delay = resting_rate
     self.rotation = 0
     self.action = nil
   end
@@ -498,4 +500,4 @@ function Warren:create(x, y, group, min_x, max_x)
   return candidate
 end
 
-return Warren
+return warren

@@ -1,16 +1,16 @@
 
-Sanders = {}
-Sanders.__index = Sanders
+sanders = {}
+sanders.__index = sanders
 
-function Sanders:create(x, y, group)
+function sanders:create(x, y, group)
   local candidate = {}
-  setmetatable(candidate, Sanders)
+  setmetatable(candidate, sanders)
   candidate.something = 5
   return candidate
 end
 
-function Sanders:setSomething(value)
+function sanders:setSomething(value)
   self.something = value
 end
 
-return Sanders
+return sanders

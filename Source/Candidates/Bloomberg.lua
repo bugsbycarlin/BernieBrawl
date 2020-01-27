@@ -1,16 +1,16 @@
 
-Bloomberg = {}
-Bloomberg.__index = Bloomberg
+bloomberg = {}
+bloomberg.__index = bloomberg
 
-function Bloomberg:create(x, y, group)
+function bloomberg:create(x, y, group)
   local candidate = {}
-  setmetatable(candidate, Bloomberg)
+  setmetatable(candidate, bloomberg)
   candidate.something = 5
   return candidate
 end
 
-function Bloomberg:setSomething(value)
+function bloomberg:setSomething(value)
   self.something = value
 end
 
-return Bloomberg
+return bloomberg

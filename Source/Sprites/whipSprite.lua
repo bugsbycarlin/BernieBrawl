@@ -1,6 +1,6 @@
-local WhipSpriteInfo = {}
+local whipSpriteInfo = {}
 
-WhipSpriteInfo.sheet =
+whipSpriteInfo.sheet =
 {
     frames = {
     
@@ -45,16 +45,16 @@ WhipSpriteInfo.sheet =
     sheetContentHeight = 1280
 }
 
-WhipSpriteInfo.frameIndex =
+whipSpriteInfo.frameIndex =
 {
 }
 
-function WhipSpriteInfo:getSheet()
+function whipSpriteInfo:getSheet()
     return self.sheet;
 end
 
-function WhipSpriteInfo:getFrameIndex(name)
+function whipSpriteInfo:getFrameIndex(name)
     return self.frameIndex[name];
 end
 
-return WhipSpriteInfo
+return whipSpriteInfo

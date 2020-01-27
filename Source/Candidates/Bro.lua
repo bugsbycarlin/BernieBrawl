@@ -1,16 +1,16 @@
 
-Bro = {}
-Bro.__index = Bro
+bro = {}
+bro.__index = bro
 
-function Bro:create(x, y, group)
+function bro:create(x, y, group)
   local candidate = {}
-  setmetatable(candidate, Bro)
+  setmetatable(candidate, bro)
   candidate.something = 5
   return candidate
 end
 
-function Bro:setSomething(value)
+function bro:setSomething(value)
   self.something = value
 end
 
-return Bro
+return bro

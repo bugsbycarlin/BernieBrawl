@@ -1,16 +1,16 @@
 
-Clinton = {}
-Clinton.__index = Clinton
+clinton = {}
+clinton.__index = clinton
 
-function Clinton:create(x, y, group)
+function clinton:create(x, y, group)
   local candidate = {}
-  setmetatable(candidate, Clinton)
+  setmetatable(candidate, clinton)
   candidate.something = 5
   return candidate
 end
 
-function Clinton:setSomething(value)
+function clinton:setSomething(value)
   self.something = value
 end
 
-return Clinton
+return clinton

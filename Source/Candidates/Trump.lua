@@ -1,36 +1,36 @@
 
-local TrumpSpriteInfo = require("Source.Sprites.trumpSprite")
-local TrumpSprite = graphics.newImageSheet("Art/trump_sprite.png", TrumpSpriteInfo:getSheet())
+local trumpSpriteInfo = require("Source.Sprites.trumpSprite")
+local trumpSprite = graphics.newImageSheet("Art/trump_sprite.png", trumpSpriteInfo:getSheet())
 
-Trump = {}
-Trump.__index = Trump
+trump = {}
+trump.__index = trump
 
 local gravity = 4
 local max_x_velocity = 20
 local max_y_velocity = 35
 
-local trump_offset = 55
+local sprite_offset = 55
 
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
 
-function Trump:create(x, y, group, min_x, max_x)
+function trump:create(x, y, group, min_x, max_x)
   local candidate = display.newGroup()
 
   candidate.frames = {}
-  for i = 1, #TrumpSpriteInfo.sheet.frames do
+  for i = 1, #trumpSpriteInfo.sheet.frames do
     table.insert(candidate.frames, i)
   end
 
   candidate.name = "Donald Trump"
 
   group:insert(candidate)
-  candidate.sprite = display.newSprite(candidate, TrumpSprite, {frames=candidate.frames})
-  candidate.frameIndex = TrumpSpriteInfo.frameIndex
-  candidate.hitIndex = TrumpSpriteInfo.hitIndex
+  candidate.sprite = display.newSprite(candidate, trumpSprite, {frames=candidate.frames})
+  candidate.frameIndex = trumpSpriteInfo.frameIndex
+  candidate.hitIndex = trumpSpriteInfo.hitIndex
   candidate.x = x
-  candidate.y_offset = trump_offset
+  candidate.y_offset = sprite_offset
   candidate.x_vel = 0
   candidate.y_vel = 0
   candidate.y = y + candidate.y_offset
@@ -38,8 +38,8 @@ function Trump:create(x, y, group, min_x, max_x)
   candidate.min_x = min_x
   candidate.max_x = max_x
 
-  candidate.after_image = display.newSprite(candidate, TrumpSprite, {frames=candidate.frames})
-  candidate.after_image.frameIndex = TrumpSpriteInfo.frameIndex
+  candidate.after_image = display.newSprite(candidate, trumpSprite, {frames=candidate.frames})
+  candidate.after_image.frameIndex = trumpSpriteInfo.frameIndex
   candidate.after_image.alpha = 0.5
   candidate.after_image.isVisible = false
 
@@ -397,4 +397,4 @@ function Trump:create(x, y, group, min_x, max_x)
   return candidate
 end
 
-return Trump
+return trump

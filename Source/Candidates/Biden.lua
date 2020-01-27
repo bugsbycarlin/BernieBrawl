@@ -1,38 +1,38 @@
 
-local BidenSpriteInfo = require("Source.Sprites.bidenSprite")
-local BidenSprite = graphics.newImageSheet("Art/biden_sprite.png", BidenSpriteInfo:getSheet())
+local bidenSpriteInfo = require("Source.Sprites.bidenSprite")
+local bidenSprite = graphics.newImageSheet("Art/biden_sprite.png", bidenSpriteInfo:getSheet())
 
-Biden = {}
-Biden.__index = Biden
+biden = {}
+biden.__index = biden
 
 local gravity = 4
 local max_x_velocity = 20
 local max_y_velocity = 35
 
-local biden_resting_rate = 60
-local biden_action_rate = 40
-local biden_offset = 47
+local resting_rate = 60
+local action_rate = 40
+local sprite_offset = 47
 
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
 
-function Biden:create(x, y, group, min_x, max_x)
+function biden:create(x, y, group, min_x, max_x)
   local candidate = display.newGroup()
 
   candidate.frames = {}
-  for i = 1, #BidenSpriteInfo.sheet.frames do
+  for i = 1, #bidenSpriteInfo.sheet.frames do
     table.insert(candidate.frames, i)
   end
 
   candidate.name = "Joe Biden"
 
   group:insert(candidate)
-  candidate.sprite = display.newSprite(candidate, BidenSprite, {frames=candidate.frames})
-  candidate.frameIndex = BidenSpriteInfo.frameIndex
-  candidate.hitIndex = BidenSpriteInfo.hitIndex
+  candidate.sprite = display.newSprite(candidate, bidenSprite, {frames=candidate.frames})
+  candidate.frameIndex = bidenSpriteInfo.frameIndex
+  candidate.hitIndex = bidenSpriteInfo.hitIndex
   candidate.x = x
-  candidate.y_offset = biden_offset
+  candidate.y_offset = sprite_offset
   candidate.x_vel = 0
   candidate.y_vel = 0
   candidate.y = y + candidate.y_offset
@@ -40,8 +40,8 @@ function Biden:create(x, y, group, min_x, max_x)
   candidate.min_x = min_x
   candidate.max_x = max_x
 
-  candidate.after_image = display.newSprite(candidate, BidenSprite, {frames=candidate.frames})
-  candidate.after_image.frameIndex = BidenSpriteInfo.frameIndex
+  candidate.after_image = display.newSprite(candidate, bidenSprite, {frames=candidate.frames})
+  candidate.after_image.frameIndex = bidenSpriteInfo.frameIndex
   candidate.after_image.alpha = 0.5
   candidate.after_image.isVisible = false
 
@@ -66,7 +66,7 @@ function Biden:create(x, y, group, min_x, max_x)
 
   function candidate:enable()
     self.enabled = true
-    self.animationTimer = timer.performWithDelay(biden_resting_rate, function() self:animationLoop() end, 0)
+    self.animationTimer = timer.performWithDelay(resting_rate, function() self:animationLoop() end, 0)
     self.physicsTimer = timer.performWithDelay(33, function() self:physicsLoop() end, 0)
   end
 
@@ -119,7 +119,7 @@ function Biden:create(x, y, group, min_x, max_x)
   function candidate:punchingAction()
     if self.action == nil then
       self.frame = 1
-      self.animationTimer._delay = biden_action_rate
+      self.animationTimer._delay = action_rate
       self.action = "punching"
     end
   end
@@ -127,7 +127,7 @@ function Biden:create(x, y, group, min_x, max_x)
   function candidate:kickingAction()
     if self.action == nil then
       self.frame = 1
-      self.animationTimer._delay = biden_action_rate
+      self.animationTimer._delay = action_rate
       self.action = "kicking"
     end
 
@@ -193,7 +193,7 @@ function Biden:create(x, y, group, min_x, max_x)
     self.frame = 1
     self.frame = math.random(1, 32)
     self.after_image.isVisible = false
-    self.animationTimer._delay = biden_resting_rate
+    self.animationTimer._delay = resting_rate
     self.rotation = 0
     self.action = nil
   end
@@ -434,4 +434,4 @@ function Biden:create(x, y, group, min_x, max_x)
   return candidate
 end
 
-return Biden
+return biden

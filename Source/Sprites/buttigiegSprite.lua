@@ -1,6 +1,6 @@
-local ButtigiegSpriteInfo = {}
+local buttigiegSpriteInfo = {}
 
-ButtigiegSpriteInfo.sheet =
+buttigiegSpriteInfo.sheet =
 {
     frames = {
     
@@ -26,19 +26,19 @@ ButtigiegSpriteInfo.sheet =
     sheetContentHeight = 256
 }
 
-ButtigiegSpriteInfo.frameIndex =
+buttigiegSpriteInfo.frameIndex =
 {
     ["normal"] = 1,
     ["punch"] = 2,
     ["damage"] = 1,
 }
 
-function ButtigiegSpriteInfo:getSheet()
+function buttigiegSpriteInfo:getSheet()
     return self.sheet;
 end
 
-function ButtigiegSpriteInfo:getFrameIndex(name)
+function buttigiegSpriteInfo:getFrameIndex(name)
     return self.frameIndex[name];
 end
 
-return ButtigiegSpriteInfo
+return buttigiegSpriteInfo
