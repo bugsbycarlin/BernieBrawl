@@ -77,18 +77,25 @@ function warren:create(x, y, group, min_x, max_x)
     self.physicsTimer = timer.performWithDelay(33, function() self:physicsLoop() end, 0)
   end
 
+  function candidate:disable()
+    self.enabled = false
+    if self.animationTimer ~= nil then
+      timer.cancel(self.animationTimer)
+    end
+    if self.physicsTimer ~= nil then
+      timer.cancel(self.physicsTimer)
+    end
+    if self.automaticActionTimer ~= nil then
+      timer.cancel(self.automaticActionTimer)
+    end
+  end
+
   function candidate:enableAutomatic()
     self.automaticActionTimer = timer.performWithDelay(500, function() self:automaticAction() end, 0)
   end
 
-  function candidate:disable()
+  function candidate:disableAutomatic()
     self.enabled = false
-    -- if self.animationTimer ~= nil then
-    --   timer.cancel(self.animationTimer)
-    -- end
-    -- if self.physicsTimer ~= nil then
-    --   timer.cancel(self.physicsTimer)
-    -- end
     if self.automaticActionTimer ~= nil then
       timer.cancel(self.automaticActionTimer)
     end
@@ -352,10 +359,6 @@ function warren:create(x, y, group, min_x, max_x)
   end
 
   function candidate:physicsLoop()
-    print("Here in warren's physics")
-    print(self.x)
-    print(self.min_x)
-    print(self.max_x)
     if self.x + self.x_vel > self.min_x and self.x + self.x_vel < self.max_x then
       self.x = self.x + self.x_vel
     end
@@ -485,8 +488,13 @@ function warren:create(x, y, group, min_x, max_x)
         end
 
         if collision == "reflect" then
-          self:moveAction(-15 * self.xScale, -5)
-          opponent:moveAction(-15 * opponent.xScale, -5)
+          if self.action == nil then
+            self:moveAction(-15 * self.xScale, -5)
+            opponent:moveAction(-15 * opponent.xScale, -5)
+          else
+            self:moveAction(0, 0)
+            opponent:moveAction(0, 0)
+          end
         elseif collision == "stop" then
           -- self:moveAction(0, 0)
           -- opponent:moveAction(0,0)

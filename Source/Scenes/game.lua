@@ -5,21 +5,36 @@ local scene = composer.newScene()
 
 local function gotoPostfight()
   composer.gotoScene("Source.Scenes.postfight", {effect = "fade", time = 1000})
+  composer.removeScene("Source.Scenes.game")
 end
 
 local function gotoGameover()
   composer.gotoScene("Source.Scenes.gameover", {effect = "fade", time = 1000})
+  composer.removeScene("Source.Scenes.game")
+end
+
+local function pause(event)
+  composer.gotoScene("Source.Scenes.pause")
+  paused = true
+
+  return true
 end
 
 local healthBar = require("Source.Utilities.healthBar")
+local snow = require("Source.Utilities.snow")
 
-local warren = require("Source.Candidates.warren")
-local trump = require("Source.Candidates.trump")
-local biden = require("Source.Candidates.biden")
+candidates = {}
+candidates["warren"] = require("Source.Candidates.warren")
+candidates["trump"] = require("Source.Candidates.trump")
+candidates["biden"] = require("Source.Candidates.biden")
 
 local state
 
+local paused = false
+
 local camera = {x = 0, y = 0, move = true, speed = 0.4}
+
+local iowa_snow
 
 local show_hitboxes
 
@@ -36,6 +51,11 @@ local background
 local button_s
 local button_1
 local button_2
+local button_pause
+
+-- local button_p
+-- local button_k
+-- local button_b
 
 local fighters = {}
 
@@ -99,7 +119,7 @@ local function gameLoop()
     if fighters[1].health <= 0 or fighters[2].health <= 0 then
       state = "ending"
       for i = 1, #fighters do
-        fighters[i]:disable()
+        fighters[i]:disableAutomatic()
       end
       if (player.health > 0) then
         timer.performWithDelay(4000, gotoPostfight)
@@ -135,6 +155,7 @@ local function gameLoop()
     foregroundGroup.y = camera.y
   end
 
+  iowa_snow:update()
 
   for i = 1,2,1 do
     if (fighters[i].health < fighters[i].visibleHealth) then
@@ -278,18 +299,17 @@ function scene:create( event )
   background.y = display.contentHeight + 20
   background.anchorY = 1
 
-  -- background_2 = display.newImageRect(mainGroup, "Art/snow_bg_2_pixelated.png", 1704, 753)
-  -- background_2.x = display.contentCenterX
-  -- background_2.y = display.contentHeight + 60
-  -- background_2.anchorY = 1
-  -- background_2.isVisible = false
+  local candidate = composer.getVariable( "candidate" )
+  -- local opponent = composer.getVariable("opponent")
+  local opponent = "biden"
+  local location = composer.getVariable("location")
 
-  fighters[1] = biden:create(384, display.contentCenterY, mainGroup, min_x, max_x)
+  fighters[1] = candidates[opponent]:create(384, display.contentCenterY, mainGroup, min_x, max_x)
   fighters[1].xScale = -1
-  fighters[1].healthbar = healthBar:create(display.contentWidth - 240 - 10, 10, uiGroup)
+  fighters[1].healthbar = healthBar:create(display.contentWidth - 240 - 10, 10, 0.8, uiGroup)
 
-  fighters[2] = warren:create(184, display.contentCenterY, mainGroup, min_x, max_x)
-  fighters[2].healthbar = healthBar:create(10, 10, uiGroup)
+  fighters[2] = candidates[candidate]:create(184, display.contentCenterY, mainGroup, min_x, max_x)
+  fighters[2].healthbar = healthBar:create(60, 10, 0.8, uiGroup)
 
   fighters[1].target = fighters[2]
   fighters[1].other_fighters = {fighters[2]}
@@ -298,17 +318,43 @@ function scene:create( event )
 
   player = fighters[2]
 
-  button_2 = display.newImageRect(uiGroup, "Art/button_2.png", 48, 48)
-  button_2.x = display.contentWidth - 30
-  button_2.y = display.contentHeight - 30
+  iowa_snow = snow:create(foregroundGroup)
 
-  button_1 = display.newImageRect(uiGroup, "Art/button_1.png", 48, 48)
-  button_1.x = display.contentWidth - (30 + 50)
-  button_1.y = display.contentHeight - 30
+  player_headshot = display.newImageRect(uiGroup, "Art/" .. candidate .. "_face.png", 50, 50)
+  player_headshot.x = 27
+  player_headshot.y = 27
 
-  button_s = display.newImageRect(uiGroup, "Art/button_s.png", 48, 48)
-  button_s.x = display.contentWidth - (30 + 100)
-  button_s.y = display.contentHeight - 30
+  opponent_headshot = display.newImageRect(uiGroup, "Art/" .. opponent .. "_face.png", 50, 50)
+  opponent_headshot.x = display.contentWidth - 27
+  opponent_headshot.y = 27
+
+  -- button_2 = display.newImageRect(uiGroup, "Art/button_2.png", 48, 48)
+  -- button_2.x = display.contentWidth - 30
+  -- button_2.y = display.contentHeight - 30
+
+  -- button_1 = display.newImageRect(uiGroup, "Art/button_1.png", 48, 48)
+  -- button_1.x = display.contentWidth - (30 + 50)
+  -- button_1.y = display.contentHeight - 30
+
+  -- button_s = display.newImageRect(uiGroup, "Art/button_s.png", 48, 48)
+  -- button_s.x = display.contentWidth - (30 + 100)
+  -- button_s.y = display.contentHeight - 30
+
+  button_1 = display.newImageRect(uiGroup, "Art/button_p.png", 60, 60)
+  button_1.x = display.contentWidth - 94
+  button_1.y = display.contentHeight - 32
+
+  button_2 = display.newImageRect(uiGroup, "Art/button_k.png", 60, 60)
+  button_2.x = display.contentWidth - 32
+  button_2.y = display.contentHeight - 32
+
+  button_s = display.newImageRect(uiGroup, "Art/button_b.png", 60, 60)
+  button_s.x = 32
+  button_s.y = display.contentHeight - 32  
+
+  button_pause = display.newImageRect(uiGroup, "Art/button_pause.png", 48, 48)
+  button_pause.x = display.contentCenterX
+  button_pause.y = 24  
 
   punch_sound = audio.loadSound("Sound/punch.wav")
   -- stage_music = audio.loadStream("Sound/test_music.mp3")
@@ -316,6 +362,7 @@ function scene:create( event )
   button_2:addEventListener("tap", player_2_button)
   button_1:addEventListener("tap", player_1_button)
   button_s:addEventListener("tap", player_s_button)
+  button_pause:addEventListener("tap", pause)
   Runtime:addEventListener("touch", swipe)
   Runtime:addEventListener("key", debugKeyboard)
 
@@ -356,9 +403,10 @@ function scene:hide( event )
 
   elseif ( phase == "did" ) then
     -- Code here runs immediately after the scene goes entirely off screen
-    composer.removeScene("game")
     timer.cancel(gameLoopTimer)
-    -- timer.cancel(backgroundAnimationTimer)
+    for i = 1, #fighters do
+      fighters[i]:disable()
+    end
   end
 end
 
@@ -369,7 +417,6 @@ function scene:destroy( event )
   local sceneGroup = self.view
   -- Code here runs prior to the removal of scene's view
   audio.dispose(punch_sound)
-  -- audio.dispose(stage_music)
 end
 
 

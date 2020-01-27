@@ -1,85 +1,68 @@
 
 
-scrollingText = {}
-scrollingText.__index = scrollingText
 
-function scrollingText:create(
-  x,
-  y,
-  anchorX,
-  group,
-  font_name,
-  font_size,
-  text_strings,
-  margin_y,
-  delay_time,
-  fade_in_time,
-  display_time,
-  fade_out_time,
-  color)
+snow = {}
+snow.__index = snow
+
+local max_flakes = 100
+local reversing_rate = 30
+local min_radius = 1
+local max_radius = 3
+local floor_width = 60
+
+
+function snow:create(group)
 
   local object = {}
-  setmetatable(object, scrollingText)
+  setmetatable(object, snow)
 
-  object.text_strings = text_strings
-
-  object.delay_time = delay_time
-  object.fade_in_time = fade_in_time
-  object.display_time = display_time
-  object.fade_out_time = fade_out_time
-
-  object.time_elapsed = 0
-  object.start_time = 76
-
-  object.texts = {}
-  for i = 1, #text_strings do
-    print(text_strings[i])
-    textbox = display.newText(group, text_strings[i], x, y + (i - 1) * margin_y, font_name, font_size)
-    textbox:setTextColor(color.r, color.g, color.b)
-    textbox.anchorX = anchorX
-    textbox.alpha = 0.0
-    table.insert(object.texts, textbox)
-  end
+  object.flakes = {}
+  object.group = group
 
   return object
 end
 
-function scrollingText:animation()
-
-  if self.start_time == nil then
-    return
+function snow:update()
+  if #self.flakes < max_flakes then
+    self:create_flake()
   end
-  local elapsed = system.getTimer() - self.start_time
-  
-  for i = 1, #self.texts do
-    local fade_in_start = (i - 1) * self.delay_time
-    local fade_in_end = (i - 1) * self.delay_time + self.fade_in_time
-    local fade_out_start = (i - 1) * self.delay_time + self.fade_in_time + self.display_time
-    local fade_out_end = (i - 1) * self.delay_time + self.fade_in_time + self.display_time + self.fade_out_time
-    
-    if elapsed > fade_in_start and elapsed < fade_in_end then
-      local fade_in_portion = (elapsed - fade_in_start) / self.fade_in_time
-      self.texts[i].alpha = fade_in_portion
-    elseif elapsed > fade_out_start and elapsed < fade_out_end then
-      fade_out_portion = (elapsed - fade_out_start) / self.fade_out_time
-      self.texts[i].alpha = 1.0 - fade_out_portion
-    elseif elapsed < fade_in_start or elapsed > fade_out_end then
-      self.texts[i].alpha = 0
-    elseif elapsed > fade_in_end and elapsed < fade_out_start then
-      self.texts[i].alpha = 1
+
+  copy_flakes = {}
+  for i = 1, #self.flakes do
+    if math.random(1, 1000) < reversing_rate then
+      self.flakes[i].x_vel = -1 * self.flakes[i].x_vel
+    end
+    self.flakes[i].x = self.flakes[i].x + self.flakes[i].x_vel
+    self.flakes[i].y = self.flakes[i].y + self.flakes[i].y_vel
+
+    if self:finished(self.flakes[i]) ~= true then
+      table.insert(copy_flakes, self.flakes[i])
+    else
+      display.remove(self.flakes[i])
     end
   end
+  self.flakes = copy_flakes
 end
 
-function scrollingText:start()
-  self.time_elapsed = 0
-  self.start_time = system.getTimer()
-  self.animationTimer = timer.performWithDelay(30, function() self:animation() end, 0)
-  -- self.animationTimer = timer.performWithDelay(30, self.animation(), 0)
+function snow:finished(flake)
+  if flake.y > flake.target_y then
+    return true
+  else
+    return false
+  end
 end
 
-function scrollingText:dispose()
-  timer.cancel(self.animationTimer)
+function snow:create_flake()
+  local x = math.random(0, display.contentWidth) - self.group.x
+  local y = -1 * math.random(10, 20) - self.group.y
+  local radius = math.random(min_radius, max_radius)
+  local flake = display.newCircle(self.group, x, y, radius)
+  flake.alpha = math.random(50, 100) / 100.0
+  flake:setFillColor(1.0, 1.0, 1.0)
+  flake.target_y = display.contentHeight - math.random(1, floor_width)
+  flake.x_vel = math.random(3,6) / 5.0
+  flake.y_vel = math.random(0,10) / 8.0
+  table.insert(self.flakes, flake)
 end
 
-return scrollingText
+return snow

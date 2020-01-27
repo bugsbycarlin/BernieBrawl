@@ -52,7 +52,7 @@ function biden:create(x, y, group, min_x, max_x)
   candidate.damage_timer = 0
   candidate.damage_in_a_row = 0
 
-  candidate.power = 15
+  candidate.power = 35
 
   candidate.animationTimer = nil
   candidate.physicsTimer = nil
@@ -70,18 +70,25 @@ function biden:create(x, y, group, min_x, max_x)
     self.physicsTimer = timer.performWithDelay(33, function() self:physicsLoop() end, 0)
   end
 
+  function candidate:disable()
+    self.enabled = false
+    if self.animationTimer ~= nil then
+      timer.cancel(self.animationTimer)
+    end
+    if self.physicsTimer ~= nil then
+      timer.cancel(self.physicsTimer)
+    end
+    if self.automaticActionTimer ~= nil then
+      timer.cancel(self.automaticActionTimer)
+    end
+  end
+
   function candidate:enableAutomatic()
     self.automaticActionTimer = timer.performWithDelay(300, function() self:automaticAction() end, 0)
   end
 
-  function candidate:disable()
+  function candidate:disableAutomatic()
     self.enabled = false
-    -- if self.animationTimer ~= nil then
-    --   timer.cancel(self.animationTimer)
-    -- end
-    -- if self.physicsTimer ~= nil then
-    --   timer.cancel(self.physicsTimer)
-    -- end
     if self.automaticActionTimer ~= nil then
       timer.cancel(self.automaticActionTimer)
     end
@@ -199,7 +206,6 @@ function biden:create(x, y, group, min_x, max_x)
   end
 
   function candidate:animationLoop()
-    print("candidate " .. self.frame)
     if self.action == nil then
       self:restingAnimation()
     elseif self.action == "kicking" then
@@ -312,12 +318,7 @@ function biden:create(x, y, group, min_x, max_x)
   end
 
   function candidate:physicsLoop()
-    print("Here in biden's physics")
-    print(self.x)
-    print(self.min_x)
-    print(self.max_x)
     if self.x + self.x_vel > self.min_x and self.x + self.x_vel < self.max_x then
-      print("Updating x value")
       self.x = self.x + self.x_vel
     end
     self.y = self.y + self.y_vel
@@ -368,21 +369,6 @@ function biden:create(x, y, group, min_x, max_x)
     self:hitDetection()
   end
 
-  -- function candidate:hitDetection()
-  --   if self.other_fighters == nil then
-  --     return
-  --   end
-  --   for i = 1, #self.other_fighters do
-  --     victim = self.other_fighters[i]
-  --     if victim.action ~= "damaged" and victim.action ~= "ko" and self.action == "punching" then
-  --       if (self.xScale == 1 and self.x -10 < victim.x and self.x + 105 > victim.x) or
-  --         (self.xScale == -1 and self.x + 10 > victim.x and self.x - 105 < victim.x) then
-  --         victim:damageAction(self)
-  --       end
-  --     end
-  --   end
-  -- end
-
   function candidate:hitDetection()
     if self.other_fighters == nil then
       return
@@ -422,8 +408,13 @@ function biden:create(x, y, group, min_x, max_x)
         end
 
         if collision == "reflect" then
-          self:moveAction(-15 * self.xScale, -5)
-          opponent:moveAction(-15 * opponent.xScale, -5)
+          if self.action == nil then
+            self:moveAction(-15 * self.xScale, -5)
+            opponent:moveAction(-15 * opponent.xScale, -5)
+          else
+            self:moveAction(0, 0)
+            opponent:moveAction(0, 0)
+          end
         elseif collision == "damage" then
           opponent:damageAction(self, 15 * self.xScale)
         end

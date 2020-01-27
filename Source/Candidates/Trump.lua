@@ -68,18 +68,25 @@ function trump:create(x, y, group, min_x, max_x)
     self.physicsTimer = timer.performWithDelay(33, function() self:physicsLoop() end, 0)
   end
 
+  function candidate:disable()
+    self.enabled = false
+    if self.animationTimer ~= nil then
+      timer.cancel(self.animationTimer)
+    end
+    if self.physicsTimer ~= nil then
+      timer.cancel(self.physicsTimer)
+    end
+    if self.automaticActionTimer ~= nil then
+      timer.cancel(self.automaticActionTimer)
+    end
+  end
+
   function candidate:enableAutomatic()
     self.automaticActionTimer = timer.performWithDelay(500, function() self:automaticAction() end, 0)
   end
 
-  function candidate:disable()
+  function candidate:disableAutomatic()
     self.enabled = false
-    -- if self.animationTimer ~= nil then
-    --   timer.cancel(self.animationTimer)
-    -- end
-    -- if self.physicsTimer ~= nil then
-    --   timer.cancel(self.physicsTimer)
-    -- end
     if self.automaticActionTimer ~= nil then
       timer.cancel(self.automaticActionTimer)
     end
