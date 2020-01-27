@@ -9,67 +9,70 @@ local gravity = 4
 local max_x_velocity = 20
 local max_y_velocity = 35
 
+local trump_offset = 55
+
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
 
-function Trump:create(x, y, group)
-  local trump = display.newGroup()
+function Trump:create(x, y, group, min_x, max_x)
+  local candidate = display.newGroup()
 
-  trump.frames = {}
+  candidate.frames = {}
   for i = 1, #TrumpSpriteInfo.sheet.frames do
-    table.insert(trump.frames, i)
-    print("Trump")
-    print(i)
+    table.insert(candidate.frames, i)
   end
 
-  trump.name = "Donald Trump"
+  candidate.name = "Donald Trump"
 
-  group:insert(trump)
-  trump.sprite = display.newSprite(trump, TrumpSprite, {frames=trump.frames})
-  trump.frameIndex = TrumpSpriteInfo.frameIndex
-  trump.hitIndex = TrumpSpriteInfo.hitIndex
-  trump.x = x
-  trump.y_offset = 65
-  trump.x_vel = 0
-  trump.y_vel = 0
-  trump.y = y + trump.y_offset
+  group:insert(candidate)
+  candidate.sprite = display.newSprite(candidate, TrumpSprite, {frames=candidate.frames})
+  candidate.frameIndex = TrumpSpriteInfo.frameIndex
+  candidate.hitIndex = TrumpSpriteInfo.hitIndex
+  candidate.x = x
+  candidate.y_offset = trump_offset
+  candidate.x_vel = 0
+  candidate.y_vel = 0
+  candidate.y = y + candidate.y_offset
 
-  trump.after_image = display.newSprite(trump, TrumpSprite, {frames=trump.frames})
-  trump.after_image.frameIndex = TrumpSpriteInfo.frameIndex
-  trump.after_image.alpha = 0.5
-  trump.after_image.isVisible = false
+  candidate.min_x = min_x
+  candidate.max_x = max_x
 
-  trump.health = 100
-  trump.visibleHealth = 100
+  candidate.after_image = display.newSprite(candidate, TrumpSprite, {frames=candidate.frames})
+  candidate.after_image.frameIndex = TrumpSpriteInfo.frameIndex
+  candidate.after_image.alpha = 0.5
+  candidate.after_image.isVisible = false
 
-  trump.action = nil
-  trump.damage_timer = 0
-  trump.damage_in_a_row = 0
+  candidate.health = 100
+  candidate.visibleHealth = 100
 
-  trump.power = 15
+  candidate.action = nil
+  candidate.damage_timer = 0
+  candidate.damage_in_a_row = 0
 
-  trump.animationTimer = nil
-  trump.physicsTimer = nil
+  candidate.power = 15
 
-  trump.frame = 1
+  candidate.animationTimer = nil
+  candidate.physicsTimer = nil
 
-  trump.target = nil
-  trump.other_fighters = nil
+  candidate.frame = 1
 
-  trump.enabled = false
+  candidate.target = nil
+  candidate.other_fighters = nil
 
-  function trump:enable()
+  candidate.enabled = false
+
+  function candidate:enable()
     self.enabled = true
     self.animationTimer = timer.performWithDelay(50, function() self:animationLoop() end, 0)
     self.physicsTimer = timer.performWithDelay(33, function() self:physicsLoop() end, 0)
   end
 
-  function trump:enableAutomatic()
+  function candidate:enableAutomatic()
     self.automaticActionTimer = timer.performWithDelay(500, function() self:automaticAction() end, 0)
   end
 
-  function trump:disable()
+  function candidate:disable()
     self.enabled = false
     -- if self.animationTimer ~= nil then
     --   timer.cancel(self.animationTimer)
@@ -82,7 +85,7 @@ function Trump:create(x, y, group)
     end
   end
 
-  function trump:automaticAction()
+  function candidate:automaticAction()
     print("in here")
     -- do return end
     if self.target == nil then
@@ -112,7 +115,7 @@ function Trump:create(x, y, group)
     end
   end
 
-  function trump:punchingAction()
+  function candidate:punchingAction()
     if self.action == nil then
       self.frame = 1
       self.animationTimer._delay = 40
@@ -120,7 +123,7 @@ function Trump:create(x, y, group)
     end
   end
 
-  function trump:kickingAction()
+  function candidate:kickingAction()
     if self.action == nil then
       self.frame = 1
       self.animationTimer._delay = 40
@@ -132,10 +135,10 @@ function Trump:create(x, y, group)
     end
   end
 
-  function trump:specialAction()
+  function candidate:specialAction()
   end
 
-  function trump:moveAction(x_vel, y_vel)
+  function candidate:moveAction(x_vel, y_vel)
     if self.action ~= nil then
       return
     end
@@ -160,7 +163,7 @@ function Trump:create(x, y, group)
     end
   end
 
-  function trump:damageAction(actor, extra_vel)
+  function candidate:damageAction(actor, extra_vel)
     self.sprite:setFrame(self.frameIndex["damage"])
     self.after_image.isVisible = false
     self.x_vel = -15 * self.xScale
@@ -178,14 +181,14 @@ function Trump:create(x, y, group)
     end
   end
 
-  function trump:koAction()
+  function candidate:koAction()
     self.action = "ko"
     self.damage_timer = 55
     self.y_vel = -20
     self.x_vel = -23 * self.xScale
   end
 
-  function trump:restingAction()
+  function candidate:restingAction()
     self.frame = 1
     self.after_image.isVisible = false
     self.animationTimer._delay = 50
@@ -193,7 +196,7 @@ function Trump:create(x, y, group)
     self.action = nil
   end
 
-  function trump:animationLoop()
+  function candidate:animationLoop()
     if self.action == nil then
       self:restingAnimation()
     elseif self.action == "kicking" then
@@ -226,7 +229,7 @@ function Trump:create(x, y, group)
   local resting_frames = {
     1
   }
-  function trump:restingAnimation()
+  function candidate:restingAnimation()
     self.sprite:setFrame(resting_frames[self.frame])
     self.frame = self.frame + 1
     if (self.frame > #resting_frames) then
@@ -237,13 +240,13 @@ function Trump:create(x, y, group)
   local kicking_frames = {
     1
   }
-  function trump:kickingAnimation()
+  function candidate:kickingAnimation()
   end
 
   local punching_frames = {
     3, 3, 3, 3,
   }
-  function trump:punchingAnimation()
+  function candidate:punchingAnimation()
     self.sprite:setFrame(punching_frames[self.frame])
     self.frame = self.frame + 1
     if (self.frame > #punching_frames) then
@@ -251,7 +254,7 @@ function Trump:create(x, y, group)
     end
   end
 
-  function trump:jumpingAnimation()
+  function candidate:jumpingAnimation()
     -- if display.contentCenterY + self.y_offset - self.y > 60 then
     --   self.sprite:setFrame(20) -- flip
     -- elseif self.y_vel < 0 then
@@ -261,14 +264,14 @@ function Trump:create(x, y, group)
     -- end
   end
 
-  function trump:dizzyAnimation()
+  function candidate:dizzyAnimation()
     self.sprite:setFrame(2)
     if self.damage_timer % 9 == 0 then
       self.xScale = self.xScale * -1
     end
   end
 
-  function trump:koAnimation()
+  function candidate:koAnimation()
     if self.xScale == 1 and self.rotation > -90 and self.y_vel ~= 0 then
       self.rotation = self.rotation - 7
     elseif self.xScale == -1 and self.rotation < 90 and self.y_vel ~= 0 then
@@ -276,11 +279,17 @@ function Trump:create(x, y, group)
     end
   end
 
-  function trump:physicsLoop()
-    self.x = self.x + self.x_vel
+  function candidate:physicsLoop()
+    if self.x + self.x_vel > self.min_x and self.x + self.x_vel < self.max_x then
+      self.x = self.x + self.x_vel
+    end
     self.y = self.y + self.y_vel
 
-    self.x_vel = self.x_vel * 0.8
+    if math.abs(self.y_vel) < max_y_velocity / 4 then
+      self.x_vel = self.x_vel * 0.8
+    else
+      self.x_vel = self.x_vel * 0.9
+    end
 
     if (self.action == "jumping" or self.action == "jump_kicking") and math.abs(self.rotation_vel) > 0 then
       self.rotation = self.rotation + self.rotation_vel
@@ -322,7 +331,7 @@ function Trump:create(x, y, group)
     self:hitDetection()
   end
 
-  -- function trump:hitDetection()
+  -- function candidate:hitDetection()
   --   if self.other_fighters == nil then
   --     return
   --   end
@@ -337,7 +346,7 @@ function Trump:create(x, y, group)
   --   end
   -- end
 
-  function trump:hitDetection()
+  function candidate:hitDetection()
     if self.other_fighters == nil then
       return
     end
@@ -365,7 +374,7 @@ function Trump:create(x, y, group)
               x1, y1 = self:localToContent(hitIndex[j].x, hitIndex[j].y)
               x2, y2 = opponent:localToContent(opponent_hitIndex[k].x, opponent_hitIndex[k].y)
               if distance(x1, y1, x2, y2) < hitIndex[j].radius + opponent_hitIndex[k].radius then
-                if hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" and collision ~= "reflect" then
+                if hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" then
                   collision = "damage"
                 elseif collision == nil then
                   collision = "reflect"
@@ -385,7 +394,7 @@ function Trump:create(x, y, group)
     end
   end
 
-  return trump
+  return candidate
 end
 
 return Trump

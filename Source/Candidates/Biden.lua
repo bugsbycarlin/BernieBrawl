@@ -11,67 +11,70 @@ local max_y_velocity = 35
 
 local biden_resting_rate = 60
 local biden_action_rate = 40
-local biden_offset = 57
+local biden_offset = 47
 
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
 
-function Biden:create(x, y, group)
-  local biden = display.newGroup()
+function Biden:create(x, y, group, min_x, max_x)
+  local candidate = display.newGroup()
 
-  biden.frames = {}
+  candidate.frames = {}
   for i = 1, #BidenSpriteInfo.sheet.frames do
-    table.insert(biden.frames, i)
+    table.insert(candidate.frames, i)
   end
 
-  biden.name = "Joe Biden"
+  candidate.name = "Joe Biden"
 
-  group:insert(biden)
-  biden.sprite = display.newSprite(biden, BidenSprite, {frames=biden.frames})
-  biden.frameIndex = BidenSpriteInfo.frameIndex
-  biden.hitIndex = BidenSpriteInfo.hitIndex
-  biden.x = x
-  biden.y_offset = biden_offset
-  biden.x_vel = 0
-  biden.y_vel = 0
-  biden.y = y + biden.y_offset
+  group:insert(candidate)
+  candidate.sprite = display.newSprite(candidate, BidenSprite, {frames=candidate.frames})
+  candidate.frameIndex = BidenSpriteInfo.frameIndex
+  candidate.hitIndex = BidenSpriteInfo.hitIndex
+  candidate.x = x
+  candidate.y_offset = biden_offset
+  candidate.x_vel = 0
+  candidate.y_vel = 0
+  candidate.y = y + candidate.y_offset
 
-  biden.after_image = display.newSprite(biden, BidenSprite, {frames=biden.frames})
-  biden.after_image.frameIndex = BidenSpriteInfo.frameIndex
-  biden.after_image.alpha = 0.5
-  biden.after_image.isVisible = false
+  candidate.min_x = min_x
+  candidate.max_x = max_x
 
-  biden.health = 100
-  biden.visibleHealth = 100
+  candidate.after_image = display.newSprite(candidate, BidenSprite, {frames=candidate.frames})
+  candidate.after_image.frameIndex = BidenSpriteInfo.frameIndex
+  candidate.after_image.alpha = 0.5
+  candidate.after_image.isVisible = false
 
-  biden.action = nil
-  biden.damage_timer = 0
-  biden.damage_in_a_row = 0
+  candidate.health = 100
+  candidate.visibleHealth = 100
 
-  biden.power = 15
+  candidate.action = nil
+  candidate.damage_timer = 0
+  candidate.damage_in_a_row = 0
 
-  biden.animationTimer = nil
-  biden.physicsTimer = nil
+  candidate.power = 15
 
-  biden.frame = 1
+  candidate.animationTimer = nil
+  candidate.physicsTimer = nil
 
-  biden.target = nil
-  biden.other_fighters = nil
+  candidate.frame = 1
 
-  biden.enabled = false
+  candidate.target = nil
+  candidate.other_fighters = nil
 
-  function biden:enable()
+  candidate.enabled = false
+
+  function candidate:enable()
     self.enabled = true
     self.animationTimer = timer.performWithDelay(biden_resting_rate, function() self:animationLoop() end, 0)
     self.physicsTimer = timer.performWithDelay(33, function() self:physicsLoop() end, 0)
   end
 
-  function biden:enableAutomatic()
-    self.automaticActionTimer = timer.performWithDelay(600, function() self:automaticAction() end, 0)
+  function candidate:enableAutomatic()
+    self.automaticActionTimer = timer.performWithDelay(300, function() self:automaticAction() end, 0)
   end
 
-  function biden:disable()
+  function candidate:disable()
     self.enabled = false
     -- if self.animationTimer ~= nil then
     --   timer.cancel(self.animationTimer)
@@ -84,13 +87,13 @@ function Biden:create(x, y, group)
     end
   end
 
-  function biden:automaticAction()
+  function candidate:automaticAction()
     -- do return end
     if self.target == nil then
       return
     end
     if self.target.action ~= "dizzy" and self.target.action ~= "ko" then
-      if math.abs(self.x - self.target.x) > 80 then
+      if math.abs(self.x - self.target.x) > 110 then
         if math.random(1, 100) > 20 then
           self:moveAction(10 * self.xScale, 0)
         else
@@ -113,7 +116,7 @@ function Biden:create(x, y, group)
     end
   end
 
-  function biden:punchingAction()
+  function candidate:punchingAction()
     if self.action == nil then
       self.frame = 1
       self.animationTimer._delay = biden_action_rate
@@ -121,7 +124,7 @@ function Biden:create(x, y, group)
     end
   end
 
-  function biden:kickingAction()
+  function candidate:kickingAction()
     if self.action == nil then
       self.frame = 1
       self.animationTimer._delay = biden_action_rate
@@ -133,10 +136,10 @@ function Biden:create(x, y, group)
     end
   end
 
-  function biden:specialAction()
+  function candidate:specialAction()
   end
 
-  function biden:moveAction(x_vel, y_vel)
+  function candidate:moveAction(x_vel, y_vel)
     if self.action ~= nil then
       return
     end
@@ -161,10 +164,10 @@ function Biden:create(x, y, group)
     end
   end
 
-  function biden:damageAction(actor, extra_vel)
+  function candidate:damageAction(actor, extra_vel)
     self.sprite:setFrame(self.frameIndex["damage"])
     self.after_image.isVisible = false
-    self.x_vel = -15 * self.xScale
+    self.x_vel = -20 * self.xScale
     if extra_vel ~= nil then
       self.x_vel = self.x_vel - extra_vel * self.xScale
     end
@@ -179,14 +182,14 @@ function Biden:create(x, y, group)
     end
   end
 
-  function biden:koAction()
+  function candidate:koAction()
     self.action = "ko"
     self.damage_timer = 55
     self.y_vel = -20
-    self.x_vel = -23 * self.xScale
+    self.x_vel = -25 * self.xScale
   end
 
-  function biden:restingAction()
+  function candidate:restingAction()
     self.frame = 1
     self.frame = math.random(1, 32)
     self.after_image.isVisible = false
@@ -195,8 +198,8 @@ function Biden:create(x, y, group)
     self.action = nil
   end
 
-  function biden:animationLoop()
-    print("Biden " .. self.frame)
+  function candidate:animationLoop()
+    print("candidate " .. self.frame)
     if self.action == nil then
       self:restingAnimation()
     elseif self.action == "kicking" then
@@ -244,7 +247,7 @@ function Biden:create(x, y, group)
     15, 15,
     16, 16,
   }
-  function biden:restingAnimation()
+  function candidate:restingAnimation()
     self.sprite:setFrame(resting_frames[self.frame])
     self.frame = self.frame + 1
     if (self.frame > #resting_frames) then
@@ -260,7 +263,7 @@ function Biden:create(x, y, group)
     20, 20,
     1, 1,
   }
-  function biden:kickingAnimation()
+  function candidate:kickingAnimation()
     -- if (self.frame >= 2) then
     --   self.after_image.isVisible = true
     --   self.after_image:setFrame(kicking_frames[self.frame - 1])
@@ -275,7 +278,7 @@ function Biden:create(x, y, group)
   local punching_frames = {
     3, 3, 3, 3,
   }
-  function biden:punchingAnimation()
+  function candidate:punchingAnimation()
     self.sprite:setFrame(punching_frames[self.frame])
     self.frame = self.frame + 1
     if (self.frame > #punching_frames) then
@@ -283,7 +286,7 @@ function Biden:create(x, y, group)
     end
   end
 
-  function biden:jumpingAnimation()
+  function candidate:jumpingAnimation()
     -- if display.contentCenterY + self.y_offset - self.y > 60 then
     --   self.sprite:setFrame(20) -- flip
     -- elseif self.y_vel < 0 then
@@ -293,14 +296,14 @@ function Biden:create(x, y, group)
     -- end
   end
 
-  function biden:dizzyAnimation()
+  function candidate:dizzyAnimation()
     self.sprite:setFrame(2)
     if self.damage_timer % 9 == 0 then
       self.xScale = self.xScale * -1
     end
   end
 
-  function biden:koAnimation()
+  function candidate:koAnimation()
     if self.xScale == 1 and self.rotation > -90 and self.y_vel ~= 0 then
       self.rotation = self.rotation - 7
     elseif self.xScale == -1 and self.rotation < 90 and self.y_vel ~= 0 then
@@ -308,11 +311,22 @@ function Biden:create(x, y, group)
     end
   end
 
-  function biden:physicsLoop()
-    self.x = self.x + self.x_vel
+  function candidate:physicsLoop()
+    print("Here in biden's physics")
+    print(self.x)
+    print(self.min_x)
+    print(self.max_x)
+    if self.x + self.x_vel > self.min_x and self.x + self.x_vel < self.max_x then
+      print("Updating x value")
+      self.x = self.x + self.x_vel
+    end
     self.y = self.y + self.y_vel
 
-    self.x_vel = self.x_vel * 0.8
+    if math.abs(self.y_vel) < max_y_velocity / 4 then
+      self.x_vel = self.x_vel * 0.8
+    else
+      self.x_vel = self.x_vel * 0.9
+    end
 
     if (self.action == "jumping" or self.action == "jump_kicking") and math.abs(self.rotation_vel) > 0 then
       self.rotation = self.rotation + self.rotation_vel
@@ -354,7 +368,7 @@ function Biden:create(x, y, group)
     self:hitDetection()
   end
 
-  -- function biden:hitDetection()
+  -- function candidate:hitDetection()
   --   if self.other_fighters == nil then
   --     return
   --   end
@@ -369,7 +383,7 @@ function Biden:create(x, y, group)
   --   end
   -- end
 
-  function biden:hitDetection()
+  function candidate:hitDetection()
     if self.other_fighters == nil then
       return
     end
@@ -397,7 +411,7 @@ function Biden:create(x, y, group)
               x1, y1 = self:localToContent(hitIndex[j].x, hitIndex[j].y)
               x2, y2 = opponent:localToContent(opponent_hitIndex[k].x, opponent_hitIndex[k].y)
               if distance(x1, y1, x2, y2) < hitIndex[j].radius + opponent_hitIndex[k].radius then
-                if hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" and collision ~= "reflect" then
+                if hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" then
                   collision = "damage"
                 elseif collision == nil then
                   collision = "reflect"
@@ -417,7 +431,7 @@ function Biden:create(x, y, group)
     end
   end
 
-  return biden
+  return candidate
 end
 
 return Biden

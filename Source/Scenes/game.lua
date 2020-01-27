@@ -29,10 +29,9 @@ local mainGroup
 local uiGroup
 local hitBoxGroup
 
+local sky
 local parallax_background
-local background_1
-local background_2
-local foreground
+local background
 
 local button_s
 local button_1
@@ -122,6 +121,8 @@ local function gameLoop()
     camera.y = camera.speed * y + (1 - camera.speed) * camera.y
 
     -- assign to groups
+    skyGroup.x = camera.x
+    skyGroup.y = camera.y
     parallaxBackgroundGroup.x = 0.8 * display.contentCenterX + 0.2 * camera.x
     parallaxBackgroundGroup.y = camera.y
     mainGroup.x = camera.x
@@ -217,15 +218,15 @@ local function swipe(event)
 end
 
 
-local function backgroundAnimation()
-  if (background_1.isVisible == true) then
-    background_1.isVisible = false
-    background_2.isVisible = true
-  else
-    background_1.isVisible = true
-    background_2.isVisible = false
-  end
-end
+-- local function backgroundAnimation()
+--   if (background_1.isVisible == true) then
+--     background_1.isVisible = false
+--     background_2.isVisible = true
+--   else
+--     background_1.isVisible = true
+--     background_2.isVisible = false
+--   end
+-- end
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -235,6 +236,9 @@ end
 function scene:create( event )
   sceneGroup = self.view
   -- Code here runs when the scene is first created but has not yet appeared on screen
+
+  skyGroup = display.newGroup()
+  sceneGroup:insert(skyGroup)
 
   parallaxBackgroundGroup = display.newGroup()
   sceneGroup:insert(parallaxBackgroundGroup)
@@ -250,37 +254,41 @@ function scene:create( event )
 
   hitBoxGroup = display.newGroup()
   sceneGroup:insert(hitBoxGroup)
-  show_hitboxes = true
+  show_hitboxes = false
 
   uiGroup = display.newGroup()
   sceneGroup:insert(uiGroup)
 
-  parallax_background = display.newImageRect(parallaxBackgroundGroup, "Art/snow_parallax_background_pixelated.png", 1704, 753)
+  iowa_stage_width = 1800
+  min_x = display.contentCenterX - (iowa_stage_width / 2 - display.contentWidth / 2)
+  max_x = display.contentCenterX + (iowa_stage_width / 2 - display.contentWidth / 2)
+
+  sky = display.newImageRect(skyGroup, "Art/iowa_sky.png", iowa_stage_width, 512)
+  sky.x = display.contentCenterX
+  sky.y = display.contentHeight
+  sky.anchorY = 1
+
+  parallax_background = display.newImageRect(parallaxBackgroundGroup, "Art/iowa_skyline.png", 2820, 405)
   parallax_background.x = display.contentCenterX
-  parallax_background.y = display.contentHeight + 60
+  parallax_background.y = display.contentHeight + 30
   parallax_background.anchorY = 1
 
-  background_1 = display.newImageRect(mainGroup, "Art/snow_bg_1_pixelated.png", 1704, 753)
-  background_1.x = display.contentCenterX
-  background_1.y = display.contentHeight + 60
-  background_1.anchorY = 1
+  background = display.newImageRect(mainGroup, "Art/iowa_snow.png", iowa_stage_width, 512)
+  background.x = display.contentCenterX
+  background.y = display.contentHeight + 20
+  background.anchorY = 1
 
-  background_2 = display.newImageRect(mainGroup, "Art/snow_bg_2_pixelated.png", 1704, 753)
-  background_2.x = display.contentCenterX
-  background_2.y = display.contentHeight + 60
-  background_2.anchorY = 1
-  background_2.isVisible = false
+  -- background_2 = display.newImageRect(mainGroup, "Art/snow_bg_2_pixelated.png", 1704, 753)
+  -- background_2.x = display.contentCenterX
+  -- background_2.y = display.contentHeight + 60
+  -- background_2.anchorY = 1
+  -- background_2.isVisible = false
 
-  -- local foreground = display.newImageRect(foregroundGroup, "Art/snow_foreground_pixelated.png", 1704, 753)
-  -- foreground.x = display.contentCenterX
-  -- foreground.y = display.contentHeight + 40
-  -- foreground.anchorY = 1
-
-  fighters[1] = Biden:create(384, display.contentCenterY, mainGroup)
+  fighters[1] = Biden:create(384, display.contentCenterY, mainGroup, min_x, max_x)
   fighters[1].xScale = -1
   fighters[1].healthbar = HealthBar:create(display.contentWidth - 240 - 10, 10, uiGroup)
 
-  fighters[2] = Warren:create(184, display.contentCenterY, mainGroup)
+  fighters[2] = Warren:create(184, display.contentCenterY, mainGroup, min_x, max_x)
   fighters[2].healthbar = HealthBar:create(10, 10, uiGroup)
 
   fighters[1].target = fighters[2]
@@ -324,7 +332,7 @@ function scene:show( event )
   if ( phase == "will" ) then
     -- Code here runs when the scene is still off screen (but is about to come on screen)
     gameLoopTimer = timer.performWithDelay( 33, gameLoop, 0 )
-    backgroundAnimationTimer = timer.performWithDelay(500, backgroundAnimation, 0)
+    -- backgroundAnimationTimer = timer.performWithDelay(500, backgroundAnimation, 0)
     fighters[1]:enable()
     fighters[2]:enable()
     fighters[1]:enableAutomatic()
@@ -350,7 +358,7 @@ function scene:hide( event )
     -- Code here runs immediately after the scene goes entirely off screen
     composer.removeScene("game")
     timer.cancel(gameLoopTimer)
-    timer.cancel(backgroundAnimationTimer)
+    -- timer.cancel(backgroundAnimationTimer)
   end
 end
 

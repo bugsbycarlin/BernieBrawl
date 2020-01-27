@@ -61,6 +61,24 @@ local function pageSetup()
   end
 end
 
+local function printHitBoxes()
+  for k = 1, 10 do
+    print("")
+  end
+  for f = 1, #frames do
+    frame = frames[f]
+    print("{")
+    for i = 1, #hitBoxes[frame] do
+      h = hitBoxes[frame][i]
+      print("  {x=" .. h.x .. ",y=".. h.y .. ",type=\"" .. h.type .. "\",purpose=\"" .. h.purpose .. "\",radius=" .. h.radius .. "},")
+    end
+    print("},")
+  end
+  for k = 1, 10 do
+    print("")
+  end
+end
+
 local function debugKeyboard(event)
   if event.phase == "up" then    
     if event.keyName == "," then
@@ -85,6 +103,7 @@ local function debugKeyboard(event)
 
     selected_circle = hitBoxes[current_frame][#hitBoxes[current_frame]]
     
+    -- move the hitbox in space
     if event.keyName == "w" then
       selected_circle.y = selected_circle.y - 1
     elseif event.keyName == "s" then
@@ -95,6 +114,7 @@ local function debugKeyboard(event)
       selected_circle.x = selected_circle.x + 1
     end
 
+    -- change the radius of the hitbox
     if event.keyName == "up" then
       selected_circle.radius = selected_circle.radius + 1
     elseif event.keyName == "down" then
@@ -124,11 +144,13 @@ local function debugKeyboard(event)
       selected_circle.radius = 30
     end
 
+    -- remove the current hitbox
     if event.keyName == "z" then
       table.remove(hitBoxes[current_frame])
     end
 
-    if event.keyName == "left" or event.keyName == "right" or event.keyName == "p" then
+    -- change the purpose of the hitbox
+    if event.keyName == "left" or event.keyName == "right" then
       if selected_circle.purpose == "attack" then
         selected_circle.purpose = "defense"
       elseif selected_circle.purpose == "defense" then
@@ -136,6 +158,19 @@ local function debugKeyboard(event)
       elseif selected_circle.purpose == "vulnerability" then
         selected_circle.purpose = "attack"
       end
+    end
+
+    -- cycle between hitboxes
+    if event.keyName == "c" then
+      last_circle = hitBoxes[current_frame][#hitBoxes[current_frame]]
+      table.remove(hitBoxes[current_frame])
+      table.insert(hitBoxes[current_frame], 1, last_circle)
+      selected_circle = hitBoxes[current_frame][#hitBoxes[current_frame]]
+    end
+
+    -- print the information
+    if event.keyName == "p" then
+      printHitBoxes()
     end
 
     sprite:setFrame(current_frame)
