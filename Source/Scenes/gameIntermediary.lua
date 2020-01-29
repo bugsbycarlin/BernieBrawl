@@ -3,11 +3,10 @@ local composer = require("composer")
 
 local scene = composer.newScene()
 
-local function gotoCutscene()
-  composer.gotoScene("Source.Scenes.cutscene", {effect = "fade", time = 1000})
+local function gotoGame()
+  composer.removeScene("Source.Scenes.game")
+  composer.gotoScene("Source.Scenes.game")
 end
-
-local postfight_placeholder
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -16,21 +15,6 @@ local postfight_placeholder
 -- create()
 function scene:create( event )
 
-  local sceneGroup = self.view
-  -- Code here runs when the scene is first created but has not yet appeared on screen
-
-  candidate = composer.getVariable( "candidate" )
-  opponent = composer.getVariable("opponent")
-  location = composer.getVariable("location")
-  content = string.upper(candidate .. " defeats " .. opponent .. " in " .. location .. "!")
-  local remaining_locations = composer.getVariable("remaining_locations")
-  if #remaining_locations < 1 then
-    content = string.upper(candidate .. " WINS THE WHITEHOUSE!")
-  end
-  postfight_placeholder = display.newText(sceneGroup, content, display.contentCenterX, display.contentCenterY, "Georgia-Bold", 20)
-  postfight_placeholder:setTextColor(0.18, 0.18, 0.72)
-
-  timer.performWithDelay(3000, gotoCutscene, 1)
 end
 
 
@@ -44,9 +28,8 @@ function scene:show( event )
     -- Code here runs when the scene is still off screen (but is about to come on screen)
 
   elseif ( phase == "did" ) then
-    composer.removeScene("Source.Scenes.game")
     -- Code here runs when the scene is entirely on screen
-
+    gotoGame()
   end
 end
 
@@ -62,7 +45,7 @@ function scene:hide( event )
 
   elseif ( phase == "did" ) then
     -- Code here runs immediately after the scene goes entirely off screen
-    composer.removeScene("postfight")
+    composer.removeScene("Source.Scenes.gameIntermediary")
   end
 end
 
@@ -72,7 +55,6 @@ function scene:destroy( event )
 
   local sceneGroup = self.view
   -- Code here runs prior to the removal of scene's view
-
 end
 
 

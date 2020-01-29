@@ -21,14 +21,8 @@ local current_frame
 
 local frameText
 
--- local warrenSpriteInfo = require("Source.Sprites.warrenSprite")
--- local warrenSprite = graphics.newImageSheet("Art/warren_sprite.png", warrenSpriteInfo:getSheet())
--- local trumpSpriteInfo = require("Source.Sprites.trumpSprite")
--- local trumpSprite = graphics.newImageSheet("Art/trump_sprite.png", trumpSpriteInfo:getSheet())
-local bidenSpriteInfo = require("Source.Sprites.bidenSprite")
-local bidenSprite = graphics.newImageSheet("Art/biden_sprite.png", bidenSpriteInfo:getSheet())
-
-
+local spriteInfo = require("Source.Sprites.bidenSprite")
+local sprite = graphics.newImageSheet("Art/biden_sprite.png", spriteInfo:getSheet())
 
 local hitBoxes = {}
 
@@ -254,11 +248,11 @@ function scene:create( event )
   hitboxGroup.yScale = scale
 
   frames = {}
-  for i = 1, #bidenSpriteInfo.sheet.frames do
+  for i = 1, #spriteInfo.sheet.frames do
     table.insert(frames, i)
   end
 
-  sprite = display.newSprite(mainGroup, bidenSprite, {frames=frames})
+  sprite = display.newSprite(mainGroup, sprite, {frames=frames})
   sprite.x = display.contentCenterX
   sprite.y = display.contentCenterY
   sprite.xScale = scale

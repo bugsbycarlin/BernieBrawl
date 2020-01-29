@@ -13,6 +13,10 @@ local resting_rate = 60
 local action_rate = 40
 local sprite_offset = 47
 
+local power = 100
+-- local power = 12
+local knockback = 12
+
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
@@ -52,7 +56,7 @@ function biden:create(x, y, group, min_x, max_x)
   candidate.damage_timer = 0
   candidate.damage_in_a_row = 0
 
-  candidate.power = 35
+  candidate.power = power
 
   candidate.animationTimer = nil
   candidate.physicsTimer = nil
@@ -104,13 +108,21 @@ function biden:create(x, y, group, min_x, max_x)
         if math.random(1, 100) > 20 then
           self:moveAction(10 * self.xScale, 0)
         else
-          self:kickingAction()
+          if math.random(1,50) > 25 then
+            self:kickingAction()
+          else
+            self:punchingAction()
+          end
         end
       else
         if math.random(1, 100) > 80 then
           self:moveAction(10 * self.xScale, 0)
         else
-          self:kickingAction()
+          if math.random(1,50) > 25 then
+            self:kickingAction()
+          else
+            self:punchingAction()
+          end
         end
       end
     else
@@ -146,11 +158,16 @@ function biden:create(x, y, group, min_x, max_x)
   function candidate:specialAction()
   end
 
+
   function candidate:moveAction(x_vel, y_vel)
     if self.action ~= nil then
       return
     end
 
+    self:forceMoveAction(x_vel, y_vel)
+  end
+
+  function candidate:forceMoveAction(x_vel, y_vel)
     -- Set velocity in the direction of the touch
     self.x_vel = math.max(-1 * max_x_velocity, math.min(max_x_velocity, x_vel))
     self.y_vel = -1 * math.max(0, math.min(max_y_velocity, -1 * y_vel))
@@ -176,7 +193,7 @@ function biden:create(x, y, group, min_x, max_x)
     self.after_image.isVisible = false
     self.x_vel = -20 * self.xScale
     if extra_vel ~= nil then
-      self.x_vel = self.x_vel - extra_vel * self.xScale
+      self.x_vel = self.x_vel + extra_vel * self.xScale
     end
     self.y_vel = -5
     self.rotation = 15 * self.xScale
@@ -194,6 +211,14 @@ function biden:create(x, y, group, min_x, max_x)
     self.damage_timer = 55
     self.y_vel = -20
     self.x_vel = -25 * self.xScale
+  end
+
+  function candidate:celebratingAction()
+    self.frame = 1
+    self.after_image.isVisible = false
+    self.animationTimer._delay = resting_rate
+    self.rotation = 0
+    self.action = "celebrating"
   end
 
   function candidate:restingAction()
@@ -218,6 +243,8 @@ function biden:create(x, y, group, min_x, max_x)
       self:dizzyAnimation()
     elseif self.action == "ko" then
       self:koAnimation()
+    elseif self.action == "celebrating" then
+      self:celebratingAnimation()
     end
 
     if (self.damage_timer > 0) then
@@ -282,7 +309,17 @@ function biden:create(x, y, group, min_x, max_x)
   end
 
   local punching_frames = {
-    3, 3, 3, 3,
+    1, 1,
+    21, 21,
+    22, 22,
+    23, 23,
+    24, 24,
+    25, 25,
+    26, 26, 26, 26,
+    27, 27,
+    10, 10,
+    9, 9,
+    1, 1,
   }
   function candidate:punchingAnimation()
     self.sprite:setFrame(punching_frames[self.frame])
@@ -303,10 +340,7 @@ function biden:create(x, y, group, min_x, max_x)
   end
 
   function candidate:dizzyAnimation()
-    self.sprite:setFrame(2)
-    if self.damage_timer % 9 == 0 then
-      self.xScale = self.xScale * -1
-    end
+    self.sprite:setFrame(28)
   end
 
   function candidate:koAnimation()
@@ -314,6 +348,17 @@ function biden:create(x, y, group, min_x, max_x)
       self.rotation = self.rotation - 7
     elseif self.xScale == -1 and self.rotation < 90 and self.y_vel ~= 0 then
       self.rotation = self.rotation + 7
+    end
+  end
+
+  local celebrating_frames = {
+    1
+  }
+  function candidate:celebratingAnimation()
+    self.sprite:setFrame(celebrating_frames[self.frame])
+    self.frame = self.frame + 1
+    if (self.frame > #celebrating_frames) then
+      self.frame = 1
     end
   end
 
@@ -352,7 +397,7 @@ function biden:create(x, y, group, min_x, max_x)
       end
       if self.action == "ko" then
         self.rotation = 0
-        self.sprite:setFrame(2)
+        self.sprite:setFrame(29)
       end
     end
 
@@ -399,7 +444,12 @@ function biden:create(x, y, group, min_x, max_x)
               if distance(x1, y1, x2, y2) < hitIndex[j].radius + opponent_hitIndex[k].radius then
                 if hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" then
                   collision = "damage"
-                elseif collision == nil then
+                elseif hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "defense" and collision == nil then
+                  collision = "block" 
+                  print("a block happened") 
+                elseif hitIndex[j].purpose == "defense" and opponent_hitIndex[k].purpose == "defense" and collision == nil then
+                  collision = "stop"
+                elseif hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "attack" and collision == nil then
                   collision = "reflect"
                 end
               end
@@ -409,14 +459,22 @@ function biden:create(x, y, group, min_x, max_x)
 
         if collision == "reflect" then
           if self.action == nil then
-            self:moveAction(-15 * self.xScale, -5)
-            opponent:moveAction(-15 * opponent.xScale, -5)
+            self:forceMoveAction(-1 * knockback * self.xScale, -5)
+            opponent:forceMoveAction(-1 * knockback * opponent.xScale, -5)
           else
-            self:moveAction(0, 0)
-            opponent:moveAction(0, 0)
+            self:forceMoveAction(0, 0)
+            opponent:forceMoveAction(0, 0)
           end
+        elseif collision == "block" then
+          print("doing the block thing")
+          self:forceMoveAction(-0.5 * knockback * self.xScale, -3)
+          opponent:forceMoveAction(-0.5 * knockback * opponent.xScale, -3)
+        elseif collision == "stop" then
+          self:forceMoveAction(self.x_vel / 2, self.y_vel)
+          opponent:forceMoveAction(opponent.x_vel / 2, opponent.y_vel)
         elseif collision == "damage" then
-          opponent:damageAction(self, 15 * self.xScale)
+          self.damage_in_a_row = 0
+          opponent:damageAction(self, knockback * self.xScale)
         end
       end
     end

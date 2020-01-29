@@ -38,6 +38,9 @@ local function quick_setup(candidate, opponent)
   location = table.remove(locations, 1)
   composer.setVariable("location", location)
   composer.setVariable("remaining_locations", locations)
+  composer.setVariable("player_wins", 0)
+  composer.setVariable("opponent_wins", 0)
+  composer.setVariable("round", 1)
 end
 
 quick_setup("warren", "biden")

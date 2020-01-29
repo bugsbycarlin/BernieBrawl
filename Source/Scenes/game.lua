@@ -3,14 +3,16 @@ local composer = require("composer")
 
 local scene = composer.newScene()
 
+local function gotoGame()
+  composer.gotoScene("Source.Scenes.gameIntermediary", {effect = "fade", time = 2000})
+end
+
 local function gotoPostfight()
-  composer.gotoScene("Source.Scenes.postfight", {effect = "fade", time = 1000})
-  composer.removeScene("Source.Scenes.game")
+  composer.gotoScene("Source.Scenes.postfight", {effect = "fade", time = 2000})
 end
 
 local function gotoGameover()
-  composer.gotoScene("Source.Scenes.gameover", {effect = "fade", time = 1000})
-  composer.removeScene("Source.Scenes.game")
+  composer.gotoScene("Source.Scenes.gameover", {effect = "fade", time = 2000})
 end
 
 local function pause(event)
@@ -22,6 +24,7 @@ end
 
 local healthBar = require("Source.Utilities.healthBar")
 local snow = require("Source.Utilities.snow")
+local effects = require("Source.Utilities.effects")
 
 candidates = {}
 candidates["warren"] = require("Source.Candidates.warren")
@@ -32,9 +35,19 @@ local state
 
 local paused = false
 
-local camera = {x = 0, y = 0, move = true, speed = 0.4}
+local camera = {
+  x = 0,
+  y = 0,
+  move = true,
+  speed = 0.4,
+  min_x = 0,
+  max_x = 0,
+  min_y = 0,
+  max_y = 0,
+}
 
 local iowa_snow
+local effects_thingy
 
 local show_hitboxes
 
@@ -48,14 +61,15 @@ local sky
 local parallax_background
 local background
 
-local button_s
-local button_1
-local button_2
-local button_pause
+local announcement_text
 
--- local button_p
--- local button_k
--- local button_b
+local red_button
+local green_button
+local blue_button
+local pause_button
+
+local player_checkmark
+local opponent_checkmark
 
 local fighters = {}
 
@@ -65,20 +79,37 @@ local physics = require( "physics" )
 physics.start()
 
 local player
+local other_fighters
+
+local function activateGame()
+  for i = 1, #other_fighters do
+    other_fighters[i]:enableAutomatic()
+  end
+  state = "active"
+end
+
 
 local function checkPlayerActions()
-  if player.action ~= nil then
-    button_s.alpha = 0.5
-    button_1.alpha = 0.5
+  if state ~= "active" then
+    red_button.alpha = 0.5
+    green_button.alpha = 0.5
+    blue_button.alpha = 0.5
+  elseif player.action ~= nil and player.action ~= "blocking" then
+    red_button.alpha = 0.5
+    green_button.alpha = 0.5
     if player.action ~= "jumping" then
-      button_2.alpha = 0.5
+      blue_button.alpha = 0.5
     else
-      button_2.alpha = 1.0
+      blue_button.alpha = 1.0
     end
+  elseif player.action == "blocking" then
+    red_button.alpha = 0.5
+    green_button.alpha = 1.0
+    blue_button.alpha = 1.0
   else
-    button_s.alpha = 1.0
-    button_1.alpha = 1.0
-    button_2.alpha = 1.0
+    red_button.alpha = 1.0
+    green_button.alpha = 1.0
+    blue_button.alpha = 1.0
   end
 end
 
@@ -114,21 +145,74 @@ local function showHitBoxes()
   end
 end
 
-local function gameLoop()
-  if state == "active" then
-    if fighters[1].health <= 0 or fighters[2].health <= 0 then
-      state = "ending"
-      for i = 1, #fighters do
-        fighters[i]:disableAutomatic()
-      end
-      if (player.health > 0) then
+local function checkEnding()
+
+  other_fighters_awake = false
+  for i = 1, #other_fighters do
+    if other_fighters[i].health > 0 then
+      other_fighters_awake = true
+    end
+  end
+
+  player_awake = (player.health > 0)
+
+  print(player_awake)
+
+  if player_awake == false or other_fighters_awake == false then
+    state = "ending"
+    for i = 1, #fighters do
+      fighters[i]:disableAutomatic()
+    end
+
+    Runtime:removeEventListener("touch", swipe)
+    Runtime:removeEventListener("key", debugKeyboard)
+
+    player_wins = composer.getVariable("player_wins")
+    opponent_wins = composer.getVariable("opponent_wins")
+    round = composer.getVariable("round")
+
+    round = round + 1
+
+    if player_awake == true and other_fighters_awake == false then -- a win
+      timer.performWithDelay(1000, function() player:celebratingAction() end)
+      player_wins = player_wins + 1
+      if player_wins > 1 then
+        player_wins = 0
+        opponent_wins = 0
+        round = 1
         timer.performWithDelay(4000, gotoPostfight)
       else
-        timer.performWithDelay(4000, gotoGameover)
+        timer.performWithDelay(4000, gotoGame)
       end
-      Runtime:removeEventListener("touch", swipe)
-      Runtime:removeEventListener("key", debugKeyboard)
+    elseif other_fighters_awake == true and player_awake == false then -- a loss
+      for i = 1, #other_fighters do
+        if other_fighters[i].health > 0 then
+          timer.performWithDelay(1000, function() other_fighters[i]:celebratingAction() end)
+        end
+      end
+      opponent_wins = opponent_wins + 1
+      if opponent_wins > 1 then
+        player_wins = 0
+        opponent_wins = 0
+        round = 1
+        timer.performWithDelay(4000, gotoGameover)
+      else
+        timer.performWithDelay(4000, gotoGame)
+      end
+    elseif player_awake == false and other_fighters_awake == false then -- a draw
+      -- do something
+      timer.performWithDelay(4000, gotoGame)
     end
+
+    composer.setVariable("player_wins", player_wins)
+    composer.setVariable("opponent_wins", opponent_wins)
+    composer.setVariable("round", round)
+  end
+end
+
+local function gameLoop()
+  if state == "active" then
+    checkEnding()
   end
 
   if camera.move then
@@ -137,8 +221,12 @@ local function gameLoop()
     y = -1 * ((fighters[1].y - fighters[1].y_offset + fighters[2].y - fighters[2].y_offset) / 2.0 - display.contentCenterY)
 
     -- blend with old camera position
-    camera.x = camera.speed * x + (1 - camera.speed) * camera.x
-    camera.y = camera.speed * y + (1 - camera.speed) * camera.y
+    if x >= camera.min_x and x <= camera.max_x then
+      camera.x = camera.speed * x + (1 - camera.speed) * camera.x
+    end
+    if y >= camera.min_y and y <= camera.max_y then
+      camera.y = camera.speed * y + (1 - camera.speed) * camera.y
+    end
 
     -- assign to groups
     skyGroup.x = camera.x
@@ -156,6 +244,7 @@ local function gameLoop()
   end
 
   iowa_snow:update()
+  effects_thingy:update()
 
   for i = 1,2,1 do
     if (fighters[i].health < fighters[i].visibleHealth) then
@@ -171,30 +260,59 @@ local function gameLoop()
   end
 end
 
-local function player_2_button(event)
-  player:kickingAction()
+local function player_blue_button(event)
+  if state == "active" then
+    player:kickingAction()
+  end
 end
 
-local function player_1_button(event)
-  player:punchingAction()
+local function player_green_button(event)
+  if state == "active" then
+    player:punchingAction()
+  end
 end
 
 local function player_s_button(event)
-  player:specialAction()
+  if state == "active" then
+    player:specialAction()
+  end
+end
+
+local function player_red_button(event)
+  if state == "active" then
+    if (event.phase == "began") and player.action == nil then
+      if player.action == nil then
+        player:blockingAction()
+      end
+    elseif (event.phase == "ended" or event.phase == "cancelled") then
+      print("cancelled")
+      if player.action == "blocking" then
+        player:restingAction()
+      end
+    end
+  end
+
+  return true  -- Prevents touch propagation to underlying objects
 end
 
 local function debugKeyboard(event)
-  if event.keyName == "j" then
-    player_s_button(event)
-  end
-  if event.keyName == "k" then
-    player_1_button(event)
-  end
-  if event.keyName == "l" then
-    player_2_button(event)
+  if state ~= "active" then
+    return
   end
 
   if event.keyName == "h" then
+    if player.action == nil then
+      player:blockingAction()
+    end
+  end
+  if event.keyName == "j" then
+    player_green_button(event)
+  end
+  if event.keyName == "k" then
+    player_blue_button(event)
+  end
+
+  if event.keyName == "x" and event.phase == "up" then
     if show_hitboxes == true then
       show_hitboxes = false
       hitBoxGroup.isVisible = false
@@ -210,6 +328,10 @@ end
 local swipe_event = {}
 local function swipe(event)
 
+  if state ~= "active" then
+    return
+  end
+
   if (event.phase == "began") then
     -- Set touch focus on the fighter
     -- display.currentStage:setFocus( fighter )
@@ -220,6 +342,11 @@ local function swipe(event)
   elseif (event.phase == "moved") then
     -- nothing
   elseif (event.phase == "ended" or event.phase == "cancelled") then
+    -- -- if the block touch ended outside the blocking event, it still needs to be canceled
+    -- if player.action == "blocking" then
+    --   player:restingAction()
+    -- end
+
     if (swipe_event.initialX == nil) then
       swipe_event.initialX = event.x
     end
@@ -284,6 +411,11 @@ function scene:create( event )
   min_x = display.contentCenterX - (iowa_stage_width / 2 - display.contentWidth / 2)
   max_x = display.contentCenterX + (iowa_stage_width / 2 - display.contentWidth / 2)
 
+  camera.min_x = min_x - 300
+  camera.max_x = max_x + 300
+  camera.min_y = 0
+  camera.max_y = 150
+
   sky = display.newImageRect(skyGroup, "Art/iowa_sky.png", iowa_stage_width, 512)
   sky.x = display.contentCenterX
   sky.y = display.contentHeight
@@ -299,16 +431,28 @@ function scene:create( event )
   background.y = display.contentHeight + 20
   background.anchorY = 1
 
-  local candidate = composer.getVariable( "candidate" )
+  traffic_cone = display.newImageRect(foregroundGroup, "Art/traffic_cone.png", 128, 128)
+  traffic_cone.x = background.x - 676
+  traffic_cone.y = background.y - 52
+
+  traffic_cone_2 = display.newImageRect(foregroundGroup, "Art/traffic_cone.png", 128, 128)
+  traffic_cone_2.x = background.x + 698
+  traffic_cone_2.y = background.y - 49
+
+  effects_thingy = effects:create()
+  print(effects_thingy.effect_list)
+  print("juel")
+
+  local candidate = composer.getVariable("candidate")
   -- local opponent = composer.getVariable("opponent")
   local opponent = "biden"
   local location = composer.getVariable("location")
 
-  fighters[1] = candidates[opponent]:create(384, display.contentCenterY, mainGroup, min_x, max_x)
+  fighters[1] = candidates[opponent]:create(384, display.contentCenterY, mainGroup, min_x, max_x, effects_thingy)
   fighters[1].xScale = -1
   fighters[1].healthbar = healthBar:create(display.contentWidth - 240 - 10, 10, 0.8, uiGroup)
 
-  fighters[2] = candidates[candidate]:create(184, display.contentCenterY, mainGroup, min_x, max_x)
+  fighters[2] = candidates[candidate]:create(184, display.contentCenterY, mainGroup, min_x, max_x, effects_thingy)
   fighters[2].healthbar = healthBar:create(60, 10, 0.8, uiGroup)
 
   fighters[1].target = fighters[2]
@@ -317,6 +461,7 @@ function scene:create( event )
   fighters[2].other_fighters = {fighters[1]}
 
   player = fighters[2]
+  other_fighters = player.other_fighters
 
   iowa_snow = snow:create(foregroundGroup)
 
@@ -328,45 +473,58 @@ function scene:create( event )
   opponent_headshot.x = display.contentWidth - 27
   opponent_headshot.y = 27
 
-  -- button_2 = display.newImageRect(uiGroup, "Art/button_2.png", 48, 48)
-  -- button_2.x = display.contentWidth - 30
-  -- button_2.y = display.contentHeight - 30
+  player_wins = composer.getVariable("player_wins")
+  opponent_wins = composer.getVariable("opponent_wins")
+  round = composer.getVariable("round")
 
-  -- button_1 = display.newImageRect(uiGroup, "Art/button_1.png", 48, 48)
-  -- button_1.x = display.contentWidth - (30 + 50)
-  -- button_1.y = display.contentHeight - 30
+  player_checkmark = display.newImageRect( uiGroup, "Art/checkmark.png", 40, 40)
+  player_checkmark.x = player_headshot.x - 5
+  player_checkmark.y = player_headshot.y + 45
+  player_checkmark.isVisible = (player_wins > 0)
 
-  -- button_s = display.newImageRect(uiGroup, "Art/button_s.png", 48, 48)
-  -- button_s.x = display.contentWidth - (30 + 100)
-  -- button_s.y = display.contentHeight - 30
+  opponent_checkmark = display.newImageRect( uiGroup, "Art/checkmark.png", 40, 40)
+  opponent_checkmark.x = opponent_headshot.x + 5
+  opponent_checkmark.y = opponent_headshot.y + 45
+  opponent_checkmark.isVisible = (opponent_wins > 0)
 
-  button_1 = display.newImageRect(uiGroup, "Art/button_p.png", 60, 60)
-  button_1.x = display.contentWidth - 94
-  button_1.y = display.contentHeight - 32
+  announcement_text = display.newEmbossedText(uiGroup, "Round " .. round, display.contentCenterX, 70, "Georgia-Bold", 30)
+  announcement_text:setTextColor(0.72, 0.18, 0.18)
+  timer.performWithDelay(1500, function() announcement_text.text = "Fight!" end)
+  timer.performWithDelay(2500, function() announcement_text.isVisible = false end)
 
-  button_2 = display.newImageRect(uiGroup, "Art/button_k.png", 60, 60)
-  button_2.x = display.contentWidth - 32
-  button_2.y = display.contentHeight - 32
 
-  button_s = display.newImageRect(uiGroup, "Art/button_b.png", 60, 60)
-  button_s.x = 32
-  button_s.y = display.contentHeight - 32  
+  right_panel = display.newImageRect(uiGroup, "Art/right_panel.png", 116, 58)
+  right_panel.x = display.contentWidth - 58
+  right_panel.y = display.contentHeight - 29
 
-  button_pause = display.newImageRect(uiGroup, "Art/button_pause.png", 48, 48)
-  button_pause.x = display.contentCenterX
-  button_pause.y = 24  
+  green_button = display.newImageRect(uiGroup, "Art/green_button.png", 54, 54)
+  green_button.x = display.contentWidth - 86
+  green_button.y = display.contentHeight - 28
+
+  blue_button = display.newImageRect(uiGroup, "Art/blue_button.png", 54, 54)
+  blue_button.x = display.contentWidth - 30
+  blue_button.y = display.contentHeight - 28
+
+  red_button = display.newImageRect(uiGroup, "Art/red_button.png", 54, 54)
+  red_button.x = 32
+  red_button.y = display.contentHeight - 32  
+
+  pause_button = display.newImageRect(uiGroup, "Art/pause_button.png", 48, 48)
+  pause_button.x = display.contentCenterX
+  pause_button.y = 24
 
   punch_sound = audio.loadSound("Sound/punch.wav")
   -- stage_music = audio.loadStream("Sound/test_music.mp3")
 
-  button_2:addEventListener("tap", player_2_button)
-  button_1:addEventListener("tap", player_1_button)
-  button_s:addEventListener("tap", player_s_button)
-  button_pause:addEventListener("tap", pause)
+  blue_button:addEventListener("tap", player_blue_button)
+  green_button:addEventListener("tap", player_green_button)
+  -- red_button:addEventListener("tap", player_s_button)
+  red_button:addEventListener("touch", player_red_button)
+  pause_button:addEventListener("tap", pause)
   Runtime:addEventListener("touch", swipe)
   Runtime:addEventListener("key", debugKeyboard)
 
-  state = "active"
+  state = "waiting"
 end
 
 
@@ -382,7 +540,7 @@ function scene:show( event )
     -- backgroundAnimationTimer = timer.performWithDelay(500, backgroundAnimation, 0)
     fighters[1]:enable()
     fighters[2]:enable()
-    fighters[1]:enableAutomatic()
+    timer.performWithDelay(2500, function() activateGame() end)
     -- audio.play( stage_music, { channel=1, loops=-1 } )
 
   elseif ( phase == "did" ) then
@@ -407,6 +565,7 @@ function scene:hide( event )
     for i = 1, #fighters do
       fighters[i]:disable()
     end
+
   end
 end
 

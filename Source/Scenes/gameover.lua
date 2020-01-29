@@ -48,6 +48,7 @@ function scene:show( event )
     tryAgainText:addEventListener("touch", gotoPrefight)
     returnToTitleText:addEventListener("touch", gotoTitle)
   elseif ( phase == "did" ) then
+    composer.removeScene("Source.Scenes.game")
     -- Code here runs when the scene is entirely on screen
 
   end

@@ -16,11 +16,16 @@ local resting_rate = 50
 local action_rate = 40
 local sprite_offset = 50
 
+local power = 90
+-- local power = 7
+local knockback = 10
+local blocking_max_frames = 30
+
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
 
-function warren:create(x, y, group, min_x, max_x)
+function warren:create(x, y, group, min_x, max_x, effects_thingy)
   local candidate = display.newGroup()
 
   candidate.frames = {}
@@ -29,6 +34,10 @@ function warren:create(x, y, group, min_x, max_x)
   end
 
   candidate.name = "Elizabeth Warren"
+
+  candidate.effects_thingy = effects_thingy
+  print(candidate.effects_thingy)
+  print("is here")
 
   group:insert(candidate)
   candidate.sprite = display.newSprite(candidate, warrenSprite, {frames=candidate.frames})
@@ -59,7 +68,7 @@ function warren:create(x, y, group, min_x, max_x)
   candidate.damage_timer = 0
   candidate.damage_in_a_row = 0
 
-  candidate.power = 5
+  candidate.power = power
 
   candidate.animationTimer = nil
   candidate.physicsTimer = nil
@@ -91,7 +100,7 @@ function warren:create(x, y, group, min_x, max_x)
   end
 
   function candidate:enableAutomatic()
-    self.automaticActionTimer = timer.performWithDelay(500, function() self:automaticAction() end, 0)
+    self.automaticActionTimer = timer.performWithDelay(250, function() self:automaticAction() end, 0)
   end
 
   function candidate:disableAutomatic()
@@ -102,7 +111,14 @@ function warren:create(x, y, group, min_x, max_x)
   end
 
   function candidate:automaticAction()
-
+    dice = math.random(1, 100)
+    if dice > 90 then
+      self:moveAction(10 * self.xScale, 0)
+    elseif dice > 45 then
+      self:punchingAction()
+    else
+      self:kickingAction()
+    end
   end
 
   function candidate:punchingAction()
@@ -139,6 +155,10 @@ function warren:create(x, y, group, min_x, max_x)
       return
     end
 
+    self:forceMoveAction(x_vel, y_vel)
+  end
+
+  function candidate:forceMoveAction(x_vel, y_vel)
     -- Set velocity in the direction of the touch
     self.x_vel = math.max(-1 * max_x_velocity, math.min(max_x_velocity, x_vel))
     self.y_vel = -1 * math.max(0, math.min(max_y_velocity, -1 * y_vel))
@@ -177,11 +197,39 @@ function warren:create(x, y, group, min_x, max_x)
     end
   end
 
+  function candidate:blockingAction()
+    self.frame = 1
+    self.after_image.isVisible = false
+    self.whip_image.isVisible = false
+    self.animationTimer._delay = resting_rate
+    self.rotation = 0
+    self.action = "blocking"
+  end
+
   function candidate:koAction()
     self.action = "ko"
     self.damage_timer = 55
     self.y_vel = -20
     self.x_vel = -25 * self.xScale
+  end
+
+  function candidate:dizzyAction()
+    self.action = "dizzy"
+    self.damage_timer = 45
+    self.damage_in_a_row = 0
+    -- self.rotation_vel = -1 * math.random(50, 100) / 30 * self.xScale
+    for i = 1, 3, 1 do
+      self.effects_thingy:addTwit(self, 0, -110 + math.random(1,20), 40 + math.random(1,20), 2250)
+    end
+  end
+
+  function candidate:celebratingAction()
+    self.frame = 1
+    self.after_image.isVisible = false
+    self.whip_image.isVisible = false
+    self.animationTimer._delay = resting_rate
+    self.rotation = 0
+    self.action = "celebrating"
   end
 
   function candidate:restingAction()
@@ -206,10 +254,14 @@ function warren:create(x, y, group, min_x, max_x)
       self:jumpingAnimation()
     elseif self.action == "jump_kicking" then
       self:jumpKickingAnimation()
+    elseif self.action == "blocking" then
+      self:blockingAnimation()
     elseif self.action == "dizzy" then
       self:dizzyAnimation()
     elseif self.action == "ko" then
       self:koAnimation()
+    elseif self.action == "celebrating" then
+      self:celebratingAnimation()
     end
 
     if (self.damage_timer > 0) then
@@ -217,10 +269,7 @@ function warren:create(x, y, group, min_x, max_x)
       if self.damage_timer <= 0 and self.health > 0 then
         self:restingAction()
         if self.damage_in_a_row >= 4 then
-          self.action = "dizzy"
-          self.damage_timer = 45
-          self.damage_in_a_row = 0
-          self.rotation_vel = -1 * math.random(50, 100) / 30 * self.xScale
+          self:dizzyAction()
         end
       end
     end
@@ -343,11 +392,19 @@ function warren:create(x, y, group, min_x, max_x)
     end
   end
 
+  function candidate:blockingAnimation()
+    self.sprite:setFrame(25)
+    self.frame = self.frame + 1
+    if self.frame > blocking_max_frames then
+      self:restingAction()
+    end
+  end
+
   function candidate:dizzyAnimation()
     self.sprite:setFrame(24)
-    if self.damage_timer % 9 == 0 then
-      self.xScale = self.xScale * -1
-    end
+    -- if self.damage_timer % 9 == 0 then
+    --   self.xScale = self.xScale * -1
+    -- end
   end
 
   function candidate:koAnimation()
@@ -358,9 +415,36 @@ function warren:create(x, y, group, min_x, max_x)
     end
   end
 
+  local celebrating_frames = {
+    25, 25,
+    26, 26, 26, 26, 26,
+    25, 25,
+    26, 26, 26, 26, 26,
+    7, 7,
+    8, 8,
+    9, 9,
+  }
+  function candidate:celebratingAnimation()
+    self.sprite:setFrame(celebrating_frames[self.frame])
+    if self.frame == 3 or self.frame == 10 then
+      self.y_vel = -10
+      self.xScale = self.xScale * -1
+    end
+    self.frame = self.frame + 1
+    if (self.frame > #celebrating_frames) then
+      self.frame = 1
+    end
+  end
+
   function candidate:physicsLoop()
     if self.x + self.x_vel > self.min_x and self.x + self.x_vel < self.max_x then
       self.x = self.x + self.x_vel
+    end
+    if self.x > self.max_x then
+      self.x = self.max_x
+    end
+    if self.x < self.min_x then
+      self.x = self.min_x
     end
     self.y = self.y + self.y_vel
 
@@ -411,41 +495,6 @@ function warren:create(x, y, group, min_x, max_x)
     self:hitDetection()
   end
 
-  -- function candidate:hitDetection()
-  --   if self.other_fighters == nil then
-  --     return
-  --   end
-  --   for i = 1, #self.other_fighters do
-  --     victim = self.other_fighters[i]
-      
-  --     if victim.action ~= "damaged" and victim.action ~= "ko" then
-  --       if self.action == "punching" then
-  --         if self.frame == 3 or self.frame == 7 or self.frame == 13 then
-  --           if (self.xScale == 1 and self.x - 10 < victim.x and self.x + 105 > victim.x) or
-  --             (self.xScale == -1 and self.x + 10 > victim.x and self.x - 105 < victim.x) then
-  --             victim:damageAction(self)
-  --           end
-  --         end
-  --       elseif self.action == "kicking" then
-  --         if self.frame == 3 or self.frame == 9 then
-  --           if (self.xScale == 1 and self.x - 10 < victim.x and self.x + 105 > victim.x) or
-  --             (self.xScale == -1 and self.x + 10 > victim.x and self.x - 105 < victim.x) then
-  --             victim:damageAction(self)
-  --           end
-  --         end
-  --       elseif self.action == "whipping" then
-  --         if (self.frame == 6) then
-  --           if math.abs(self.x - victim.x) < 200 then
-  --             victim:damageAction(self)
-  --             victim.damage_timer = 50
-  --           end
-  --           -- audio.play(punch_sound)
-  --         end
-  --       end
-  --     end
-  --   end
-  -- end
-
   function candidate:hitDetection()
     -- to do: this should maybe run when the frame has changed instead of on the physics timer
     if self.other_fighters == nil then
@@ -477,9 +526,12 @@ function warren:create(x, y, group, min_x, max_x)
               if distance(x1, y1, x2, y2) < hitIndex[j].radius + opponent_hitIndex[k].radius then
                 if hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" then
                   collision = "damage"
+                elseif hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "defense" and collision == nil then
+                  collision = "block" 
+                  print("a block happened") 
                 elseif hitIndex[j].purpose == "defense" and opponent_hitIndex[k].purpose == "defense" and collision == nil then
                   collision = "stop"
-                elseif collision == nil then
+                elseif hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "attack" and collision == nil then
                   collision = "reflect"
                 end
               end
@@ -489,17 +541,22 @@ function warren:create(x, y, group, min_x, max_x)
 
         if collision == "reflect" then
           if self.action == nil then
-            self:moveAction(-15 * self.xScale, -5)
-            opponent:moveAction(-15 * opponent.xScale, -5)
+            self:forceMoveAction(-1 * knockback * self.xScale, -5)
+            opponent:forceMoveAction(-1 * knockback * opponent.xScale, -5)
           else
-            self:moveAction(0, 0)
-            opponent:moveAction(0, 0)
+            self:forceMoveAction(0, 0)
+            opponent:forceMoveAction(0, 0)
           end
+        elseif collision == "block" then
+          print("doing the block thing")
+          self:forceMoveAction(-0.5 * knockback * self.xScale, -3)
+          opponent:forceMoveAction(-0.5 * knockback * opponent.xScale, -3)
         elseif collision == "stop" then
-          -- self:moveAction(0, 0)
-          -- opponent:moveAction(0,0)
+          self:forceMoveAction(self.x_vel / 2, self.y_vel)
+          opponent:forceMoveAction(opponent.x_vel / 2, opponent.y_vel)
         elseif collision == "damage" then
-          opponent:damageAction(self, 15 * self.xScale)
+          self.damage_in_a_row = 0
+          opponent:damageAction(self, knockback * self.xScale)
         end
       end
     end
