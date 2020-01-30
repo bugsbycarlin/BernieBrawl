@@ -43,7 +43,7 @@ local function quick_setup(candidate, opponent)
   composer.setVariable("round", 1)
 end
 
-quick_setup("warren", "biden")
+quick_setup("biden", "warren")
 
 -- -- Go to the menu screen
 -- composer.gotoScene("Source.Scenes.title", {effect = "fade", time = 2000})

@@ -62,9 +62,11 @@ local function printHitBoxes()
   for f = 1, #frames do
     frame = frames[f]
     print("{")
-    for i = 1, #hitBoxes[frame] do
-      h = hitBoxes[frame][i]
-      print("  {x=" .. h.x .. ",y=".. h.y .. ",type=\"" .. h.type .. "\",purpose=\"" .. h.purpose .. "\",radius=" .. h.radius .. "},")
+    if hitBoxes[frame] ~= nil then
+      for i = 1, #hitBoxes[frame] do
+        h = hitBoxes[frame][i]
+        print("  {x=" .. h.x .. ",y=".. h.y .. ",type=\"" .. h.type .. "\",purpose=\"" .. h.purpose .. "\",radius=" .. h.radius .. "},")
+      end
     end
     print("},")
   end
@@ -164,6 +166,7 @@ local function debugKeyboard(event)
 
     -- print the information
     if event.keyName == "p" then
+      print("Hello here")
       printHitBoxes()
     end
 

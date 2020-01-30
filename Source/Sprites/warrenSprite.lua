@@ -191,21 +191,14 @@ warrenSpriteInfo.sheet =
     sheetContentHeight = 1280
 }
 
-warrenSpriteInfo.frameIndex =
-{
-    -- resting frames: 1,2,3,4,5,6
-    -- kicking frames: 7,8,9,10,11,12
-    -- punching frames: 13,14,15,16,17
-    -- extra whip frame: 18
-    -- jump frames: 19 up, 20 flip, 21 down
-    -- duress frames: 22 damage, 23 ko, 24 dizzy
-    -- blocking frame: 25
-    -- celebrating frames: 26
-
-    ["normal"] = 1,
-    ["damage"] = 22,
-    -- ["damage"] = 2,
-}
+-- resting frames: 1,2,3,4,5,6
+-- kicking frames: 7,8,9,10,11,12
+-- punching frames: 13,14,15,16,17
+-- extra whip frame: 18
+-- jump frames: 19 up, 20 flip, 21 down
+-- duress frames: 22 damage, 23 ko, 24 dizzy
+-- blocking frame: 25
+-- celebrating frames: 26
 
 warrenSpriteInfo.hitIndex = {
     {

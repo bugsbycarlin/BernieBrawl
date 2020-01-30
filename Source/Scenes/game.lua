@@ -49,7 +49,7 @@ local camera = {
 local iowa_snow
 local effects_thingy
 
-local show_hitboxes
+local show_hitboxes = false
 
 local sceneGroup
 local bgGroup
@@ -156,8 +156,6 @@ local function checkEnding()
 
   player_awake = (player.health > 0)
 
-  print(player_awake)
-
   if player_awake == false or other_fighters_awake == false then
     state = "ending"
     for i = 1, #fighters do
@@ -246,8 +244,11 @@ local function gameLoop()
   iowa_snow:update()
   effects_thingy:update()
 
-  for i = 1,2,1 do
-    if (fighters[i].health < fighters[i].visibleHealth) then
+  for i = 1, #fighters do
+    if (fighters[i].health < fighters[i].visibleHealth - 5) then
+      fighters[i].visibleHealth = 0.2 * fighters[i].health + 0.8 * fighters[i].visibleHealth
+      fighters[i].healthbar:setHealth(fighters[i].visibleHealth)
+    elseif (fighters[i].health < fighters[i].visibleHealth) then
       fighters[i].visibleHealth = fighters[i].visibleHealth - 1
       fighters[i].healthbar:setHealth(fighters[i].visibleHealth)
     end
@@ -402,7 +403,6 @@ function scene:create( event )
 
   hitBoxGroup = display.newGroup()
   sceneGroup:insert(hitBoxGroup)
-  show_hitboxes = false
 
   uiGroup = display.newGroup()
   sceneGroup:insert(uiGroup)
@@ -440,12 +440,10 @@ function scene:create( event )
   traffic_cone_2.y = background.y - 49
 
   effects_thingy = effects:create()
-  print(effects_thingy.effect_list)
-  print("juel")
 
   local candidate = composer.getVariable("candidate")
   -- local opponent = composer.getVariable("opponent")
-  local opponent = "biden"
+  local opponent = "warren"
   local location = composer.getVariable("location")
 
   fighters[1] = candidates[opponent]:create(384, display.contentCenterY, mainGroup, min_x, max_x, effects_thingy)

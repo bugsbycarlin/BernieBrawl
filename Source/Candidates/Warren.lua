@@ -16,10 +16,12 @@ local resting_rate = 50
 local action_rate = 40
 local sprite_offset = 50
 
-local power = 90
--- local power = 7
+-- local power = 90
+local power = 7
 local knockback = 10
 local blocking_max_frames = 30
+
+local action_window = 1500
 
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
@@ -36,12 +38,9 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
   candidate.name = "Elizabeth Warren"
 
   candidate.effects_thingy = effects_thingy
-  print(candidate.effects_thingy)
-  print("is here")
 
   group:insert(candidate)
   candidate.sprite = display.newSprite(candidate, warrenSprite, {frames=candidate.frames})
-  candidate.frameIndex = warrenSpriteInfo.frameIndex
   candidate.hitIndex = warrenSpriteInfo.hitIndex
 
   candidate.x = x
@@ -50,11 +49,12 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
   candidate.y_vel = 0
   candidate.y = y + candidate.y_offset
 
+  candidate.swipe_history = {}
+
   candidate.min_x = min_x
   candidate.max_x = max_x
 
   candidate.after_image = display.newSprite(candidate, warrenSprite, {frames=candidate.frames})
-  candidate.after_image.frameIndex = warrenSpriteInfo.frameIndex
   candidate.after_image.alpha = 0.5
   candidate.after_image.isVisible = false
 
@@ -100,7 +100,7 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
   end
 
   function candidate:enableAutomatic()
-    self.automaticActionTimer = timer.performWithDelay(250, function() self:automaticAction() end, 0)
+    self.automaticActionTimer = timer.performWithDelay(350, function() self:automaticAction() end, 0)
   end
 
   function candidate:disableAutomatic()
@@ -161,10 +161,45 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
   function candidate:forceMoveAction(x_vel, y_vel)
     -- Set velocity in the direction of the touch
     self.x_vel = math.max(-1 * max_x_velocity, math.min(max_x_velocity, x_vel))
-    self.y_vel = -1 * math.max(0, math.min(max_y_velocity, -1 * y_vel))
+    self.y_vel = math.max(-1 * max_y_velocity, math.min(max_y_velocity, y_vel))
+    print(self.y_vel)
+    table.insert(self.swipe_history, {x_vel=self.x_vel, y_vel=self.y_vel, time=system.getTimer()})
 
+
+
+
+    if #self.swipe_history > 2 
+      and system.getTimer() - self.swipe_history[#self.swipe_history - 2].time < 1500 then
+
+      x_vel_1 = self.swipe_history[#self.swipe_history - 2].x_vel
+      y_vel_1 = self.swipe_history[#self.swipe_history - 2].y_vel
+      x_vel_2 = self.swipe_history[#self.swipe_history - 1].x_vel
+      y_vel_2 = self.swipe_history[#self.swipe_history - 1].y_vel
+      x_vel_3 = self.swipe_history[#self.swipe_history].x_vel
+      y_vel_3 = self.swipe_history[#self.swipe_history].y_vel
+
+      if math.abs(x_vel_1) > max_x_velocity / 3 and x_vel_1 * self.xScale > 0 
+        and math.abs(y_vel_1) < max_y_velocity / 5
+        and math.abs(x_vel_2) > max_x_velocity / 3 and x_vel_2 * self.xScale < 0
+        and math.abs(y_vel_2) < max_y_velocity / 5
+        and math.abs(x_vel_3) > max_x_velocity / 1.25 and x_vel_3 * self.xScale > 0 
+        and math.abs(y_vel_3) < max_y_velocity / 5 then
+
+        self.y_vel = 0
+        self:specialAction()
+        return
+      end
+    end
+    
+    -- check if there's substantial backward velocity with downward velocity,
+    -- and if so, make this a block
+    -- if (self.xScale == 1 and self.x_vel < -1 * max_x_velocity / 2 and self.y_vel > max_y_velocity / 10)
+    --   or (self.xScale == -1 and self.x_vel > max_x_velocity / 2 and self.y_vel > max_y_velocity / 10) then
+    --   self.y_vel = 0
+    --   self:blockingAction()
+    
     -- check if there's substantial upward velocity, and if so, make this a jump
-    if math.abs(self.y_vel) > max_y_velocity / 2 then
+    if self.y_vel < -1 * max_y_velocity / 2 then
       self.action = "jumping"
 
       -- if the time to impact is sufficiently long, then this is a flipping jump
@@ -176,11 +211,13 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
         end
         self.rotation_vel = 360.0 / time_to_impact * alternator
       end
+    else
+      self.y_vel = 0
     end
   end
 
   function candidate:damageAction(actor, extra_vel)
-    self.sprite:setFrame(self.frameIndex["damage"])
+    self.sprite:setFrame(22)
     self.after_image.isVisible = false
     self.x_vel = -20 * self.xScale
     if extra_vel ~= nil then
@@ -437,6 +474,13 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
   end
 
   function candidate:physicsLoop()
+    if #candidate.swipe_history > 0 
+      and system.getTimer() - candidate.swipe_history[#candidate.swipe_history].time > action_window then
+      print("Was " .. #candidate.swipe_history)
+      candidate.swipe_history = {}
+      print("clearing")
+    end
+
     if self.x + self.x_vel > self.min_x and self.x + self.x_vel < self.max_x then
       self.x = self.x + self.x_vel
     end
@@ -453,6 +497,10 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
     else
       self.x_vel = self.x_vel * 0.9
     end
+
+    -- if (math.abs(self.x_vel) < max_x_velocity / 12) and self.action == "blocking" then
+    --   self:restingAction()
+    -- end
 
     if (self.action == "jumping" or self.action == "jump_kicking") and math.abs(self.rotation_vel) > 0 then
       self.rotation = self.rotation + self.rotation_vel
