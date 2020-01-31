@@ -9,8 +9,6 @@ warren = {}
 warren.__index = warren
 
 local gravity = 4
-local max_x_velocity = 20
-local max_y_velocity = 35
 
 local resting_rate = 50
 local action_rate = 40
@@ -48,6 +46,10 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
   candidate.x_vel = 0
   candidate.y_vel = 0
   candidate.y = y + candidate.y_offset
+  candidate.rotation_vel = 0
+
+  candidate.max_x_velocity = 20
+  candidate.max_y_velocity = 35
 
   candidate.swipe_history = {}
 
@@ -69,6 +71,8 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
   candidate.damage_in_a_row = 0
 
   candidate.power = power
+
+  candidate.ground_target = display.contentCenterY + candidate.y_offset
 
   candidate.animationTimer = nil
   candidate.physicsTimer = nil
@@ -160,13 +164,10 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
 
   function candidate:forceMoveAction(x_vel, y_vel)
     -- Set velocity in the direction of the touch
-    self.x_vel = math.max(-1 * max_x_velocity, math.min(max_x_velocity, x_vel))
-    self.y_vel = math.max(-1 * max_y_velocity, math.min(max_y_velocity, y_vel))
+    self.x_vel = math.max(-1 * self.max_x_velocity, math.min(self.max_x_velocity, x_vel))
+    self.y_vel = math.max(-1 * self.max_y_velocity, math.min(self.max_y_velocity, y_vel))
     print(self.y_vel)
     table.insert(self.swipe_history, {x_vel=self.x_vel, y_vel=self.y_vel, time=system.getTimer()})
-
-
-
 
     if #self.swipe_history > 2 
       and system.getTimer() - self.swipe_history[#self.swipe_history - 2].time < 1500 then
@@ -178,12 +179,12 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
       x_vel_3 = self.swipe_history[#self.swipe_history].x_vel
       y_vel_3 = self.swipe_history[#self.swipe_history].y_vel
 
-      if math.abs(x_vel_1) > max_x_velocity / 3 and x_vel_1 * self.xScale > 0 
-        and math.abs(y_vel_1) < max_y_velocity / 5
-        and math.abs(x_vel_2) > max_x_velocity / 3 and x_vel_2 * self.xScale < 0
-        and math.abs(y_vel_2) < max_y_velocity / 5
-        and math.abs(x_vel_3) > max_x_velocity / 1.25 and x_vel_3 * self.xScale > 0 
-        and math.abs(y_vel_3) < max_y_velocity / 5 then
+      if math.abs(x_vel_1) > self.max_x_velocity / 3 and x_vel_1 * self.xScale > 0 
+        and math.abs(y_vel_1) < self.max_y_velocity / 5
+        and math.abs(x_vel_2) > self.max_x_velocity / 3 and x_vel_2 * self.xScale < 0
+        and math.abs(y_vel_2) < self.max_y_velocity / 5
+        and math.abs(x_vel_3) > self.max_x_velocity / 1.25 and x_vel_3 * self.xScale > 0 
+        and math.abs(y_vel_3) < self.max_y_velocity / 5 then
 
         self.y_vel = 0
         self:specialAction()
@@ -193,18 +194,18 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
     
     -- check if there's substantial backward velocity with downward velocity,
     -- and if so, make this a block
-    -- if (self.xScale == 1 and self.x_vel < -1 * max_x_velocity / 2 and self.y_vel > max_y_velocity / 10)
-    --   or (self.xScale == -1 and self.x_vel > max_x_velocity / 2 and self.y_vel > max_y_velocity / 10) then
+    -- if (self.xScale == 1 and self.x_vel < -1 * self.max_x_velocity / 2 and self.y_vel > self.max_y_velocity / 10)
+    --   or (self.xScale == -1 and self.x_vel > self.max_x_velocity / 2 and self.y_vel > self.max_y_velocity / 10) then
     --   self.y_vel = 0
     --   self:blockingAction()
     
     -- check if there's substantial upward velocity, and if so, make this a jump
-    if self.y_vel < -1 * max_y_velocity / 2 then
+    if self.y_vel < -1 * self.max_y_velocity / 2 then
       self.action = "jumping"
 
       -- if the time to impact is sufficiently long, then this is a flipping jump
       time_to_impact = -2 * self.y_vel / gravity 
-      if math.abs(self.y_vel) > max_y_velocity / 1.2 then
+      if math.abs(self.y_vel) > self.max_y_velocity / 1.2 then
         local alternator = 1
         if self.x_vel < 0 or (self.xScale == -1 and self.x_vel < 0) then
           alternator = -1
@@ -492,13 +493,13 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
     end
     self.y = self.y + self.y_vel
 
-    if math.abs(self.y_vel) < max_y_velocity / 4 then
+    if math.abs(self.y_vel) < self.max_y_velocity / 4 then
       self.x_vel = self.x_vel * 0.8
     else
       self.x_vel = self.x_vel * 0.9
     end
 
-    -- if (math.abs(self.x_vel) < max_x_velocity / 12) and self.action == "blocking" then
+    -- if (math.abs(self.x_vel) < self.max_x_velocity / 12) and self.action == "blocking" then
     --   self:restingAction()
     -- end
 
@@ -506,15 +507,15 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
       self.rotation = self.rotation + self.rotation_vel
     end
 
-    local ground_target = display.contentCenterY + self.y_offset
+    local current_ground_target = self.ground_target
     if self.action == "ko" then
-      ground_target = ground_target + 60
+      current_ground_target = current_ground_target + 60
     end
 
-    if (self.y < ground_target) then
+    if (self.y < current_ground_target) then
       self.y_vel = self.y_vel + gravity
     else
-      self.y = ground_target
+      self.y = current_ground_target
       self.y_vel = 0
       if self.action ~= "dizzy" then
         self.rotation_vel = 0

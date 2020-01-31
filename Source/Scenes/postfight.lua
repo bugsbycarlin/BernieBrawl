@@ -4,6 +4,7 @@ local composer = require("composer")
 local scene = composer.newScene()
 
 local function gotoCutscene()
+  composer.removeScene("Source.Scenes.game")
   composer.gotoScene("Source.Scenes.cutscene", {effect = "fade", time = 1000})
 end
 
@@ -44,7 +45,6 @@ function scene:show( event )
     -- Code here runs when the scene is still off screen (but is about to come on screen)
 
   elseif ( phase == "did" ) then
-    composer.removeScene("Source.Scenes.game")
     -- Code here runs when the scene is entirely on screen
 
   end

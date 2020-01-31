@@ -43,12 +43,13 @@ local function quick_setup(candidate, opponent)
   composer.setVariable("round", 1)
 end
 
-quick_setup("biden", "warren")
+quick_setup("warren", "biden")
 
 -- -- Go to the menu screen
 -- composer.gotoScene("Source.Scenes.title", {effect = "fade", time = 2000})
 -- composer.gotoScene("Source.Scenes.intro", {effect = "fade", time = 3000})
 -- composer.gotoScene("Source.Scenes.select", {effect = "fade", time = 1000})
-composer.gotoScene("Source.Scenes.game")
+composer.gotoScene("Source.Scenes.prefight_alt", {effect = "fade", time = 1000})
+-- composer.gotoScene("Source.Scenes.game")
 -- composer.gotoScene("Source.Scenes.hitDetectionEditor")
 

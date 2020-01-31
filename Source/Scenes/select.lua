@@ -3,8 +3,12 @@ local composer = require("composer")
 
 local scene = composer.newScene()
 
-local function gotoAnnounce()
-  composer.gotoScene("Source.Scenes.announce", {effect = "fade", time = 1000})
+-- local function gotoAnnounce()
+--   composer.gotoScene("Source.Scenes.announce", {effect = "fade", time = 1000})
+-- end
+
+local function gotoPrefight()
+  composer.gotoScene("Source.Scenes.prefight_alt", {effect = "fade", time = 1000})
 end
 
 local big_faces = {}
@@ -44,7 +48,10 @@ local function choose_player(event)
   location = table.remove(locations, 1)
   composer.setVariable("location", location)
   composer.setVariable("remaining_locations", locations)
-  gotoAnnounce()
+  composer.setVariable("player_wins", 0)
+  composer.setVariable("opponent_wins", 0)
+  composer.setVariable("round", 1)
+  gotoPrefight()
 end
 
 local function select_fighter(event)

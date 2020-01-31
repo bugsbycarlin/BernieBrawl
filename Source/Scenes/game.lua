@@ -8,6 +8,7 @@ local function gotoGame()
 end
 
 local function gotoPostfight()
+  composer.removeScene("Source.Scenes.postfight")
   composer.gotoScene("Source.Scenes.postfight", {effect = "fade", time = 2000})
 end
 
@@ -442,8 +443,8 @@ function scene:create( event )
   effects_thingy = effects:create()
 
   local candidate = composer.getVariable("candidate")
-  -- local opponent = composer.getVariable("opponent")
-  local opponent = "warren"
+  local opponent = composer.getVariable("opponent")
+  -- local opponent = "biden"
   local location = composer.getVariable("location")
 
   fighters[1] = candidates[opponent]:create(384, display.contentCenterY, mainGroup, min_x, max_x, effects_thingy)
@@ -485,9 +486,9 @@ function scene:create( event )
   opponent_checkmark.y = opponent_headshot.y + 45
   opponent_checkmark.isVisible = (opponent_wins > 0)
 
-  announcement_text = display.newEmbossedText(uiGroup, "Round " .. round, display.contentCenterX, 70, "Georgia-Bold", 30)
+  announcement_text = display.newEmbossedText(uiGroup, "ROUND " .. round, display.contentCenterX, 70, "Georgia-Bold", 30)
   announcement_text:setTextColor(0.72, 0.18, 0.18)
-  timer.performWithDelay(1500, function() announcement_text.text = "Fight!" end)
+  timer.performWithDelay(1500, function() announcement_text.text = "FIGHT!" end)
   timer.performWithDelay(2500, function() announcement_text.isVisible = false end)
 
 
@@ -542,6 +543,7 @@ function scene:show( event )
     -- audio.play( stage_music, { channel=1, loops=-1 } )
 
   elseif ( phase == "did" ) then
+    composer.removeScene("Source.Scenes.prefight_alt")
     -- Code here runs when the scene is entirely on screen
 
   end
@@ -573,6 +575,12 @@ function scene:destroy( event )
 
   local sceneGroup = self.view
   -- Code here runs prior to the removal of scene's view
+  if gameLoopTimer ~= nil then
+    timer.cancel(gameLoopTimer)
+  end
+  for i = 1, #fighters do
+    fighters[i]:disable()
+  end
   audio.dispose(punch_sound)
 end
 

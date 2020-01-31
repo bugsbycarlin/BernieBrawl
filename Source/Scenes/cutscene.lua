@@ -9,6 +9,7 @@ local scene = composer.newScene()
 -- -----------------------------------------------------------------------------------
 
 local function gotoPrefight()
+  composer.removeScene("Source.Scenes.prefight")
   composer.gotoScene("Source.Scenes.prefight", {effect = "fade", time = 1000})
 end
 
