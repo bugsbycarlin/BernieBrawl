@@ -13,14 +13,18 @@ display.setStatusBar( display.HiddenStatusBar )
 math.randomseed( os.time() )
 
 -- Reserve channel 1 for background music
-audio.reserveChannels( 1 )
+audio.reserveChannels(1)
+audio.reserveChannels(1)
 -- Reduce the overall volume of the channel
-volume = 0.5
-audio.setVolume( volume)
+audio.setVolume(0.3, {channel=1})
+audio.setVolume(0.3, {channel=2})
+for i = 3,32 do
+  audio.setVolume(1.0, { channel=i })
+end
 
-music = false
-local stage_music
-stage_music = audio.loadStream("Sound/test_music.mp3")
+-- music = false
+-- local stage_music
+-- stage_music = audio.loadStream("Sound/test_music.mp3")
 -- audio.play( stage_music, { channel=1, loops=-1 } )
 
 local function quick_setup(candidate, opponent)
@@ -39,17 +43,17 @@ local function quick_setup(candidate, opponent)
   composer.setVariable("location", location)
   composer.setVariable("remaining_locations", locations)
   composer.setVariable("player_wins", 0)
-  composer.setVariable("opponent_wins", 0)
-  composer.setVariable("round", 1)
+  composer.setVariable("opponent_wins", 1)
+  composer.setVariable("round", 2)
 end
 
-quick_setup("warren", "biden")
+quick_setup("sanders", "biden")
 
 -- -- Go to the menu screen
 -- composer.gotoScene("Source.Scenes.title", {effect = "fade", time = 2000})
 -- composer.gotoScene("Source.Scenes.intro", {effect = "fade", time = 3000})
--- composer.gotoScene("Source.Scenes.select", {effect = "fade", time = 1000})
-composer.gotoScene("Source.Scenes.prefight_alt", {effect = "fade", time = 1000})
+composer.gotoScene("Source.Scenes.select", {effect = "fade", time = 1000})
+-- composer.gotoScene("Source.Scenes.prefight_alt", {effect = "fade", time = 1000})
 -- composer.gotoScene("Source.Scenes.game")
 -- composer.gotoScene("Source.Scenes.hitDetectionEditor")
 

@@ -21,8 +21,8 @@ local current_frame
 
 local frameText
 
-local spriteInfo = require("Source.Sprites.bidenSprite")
-local sprite = graphics.newImageSheet("Art/biden_sprite.png", spriteInfo:getSheet())
+local spriteInfo = require("Source.Sprites.broSprite")
+local sprite = graphics.newImageSheet("Art/bro_1_sprite.png", spriteInfo:getSheet())
 
 local hitBoxes = {}
 

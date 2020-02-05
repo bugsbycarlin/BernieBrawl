@@ -9,7 +9,12 @@ local scene = composer.newScene()
 -- -----------------------------------------------------------------------------------
 
 local function gotoPrefight()
-  composer.removeScene("Source.Scenes.prefight")
+  composer.setVariable("player_wins", 0)
+  composer.setVariable("opponent_wins", 0)
+  composer.setVariable("round", 1)
+  composer.removeScene("Source.Scenes.game")
+  composer.removeScene("Source.Scenes.prefight_alt")
+  composer.removeScene("Source.Scenes.postfight_alt")
   composer.gotoScene("Source.Scenes.prefight", {effect = "fade", time = 1000})
 end
 

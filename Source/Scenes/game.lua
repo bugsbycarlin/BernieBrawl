@@ -7,13 +7,18 @@ local function gotoGame()
   composer.gotoScene("Source.Scenes.gameIntermediary", {effect = "fade", time = 2000})
 end
 
-local function gotoPostfight()
-  composer.removeScene("Source.Scenes.postfight")
-  composer.gotoScene("Source.Scenes.postfight", {effect = "fade", time = 2000})
-end
+-- local function gotoPostfight()
+--   composer.removeScene("Source.Scenes.postfight")
+--   composer.gotoScene("Source.Scenes.postfight", {effect = "fade", time = 2000})
+-- end
 
-local function gotoGameover()
-  composer.gotoScene("Source.Scenes.gameover", {effect = "fade", time = 2000})
+-- local function gotoGameover()
+--   composer.gotoScene("Source.Scenes.gameover", {effect = "fade", time = 2000})
+-- end
+
+local function gotoPostfight()
+  composer.removeScene("Source.Scenes.postfight_alt")
+  composer.gotoScene("Source.Scenes.postfight_alt", {effect = "crossFade", time = 2000})
 end
 
 local function pause(event)
@@ -27,14 +32,40 @@ local healthBar = require("Source.Utilities.healthBar")
 local snow = require("Source.Utilities.snow")
 local effects = require("Source.Utilities.effects")
 
+number_sheet =
+{
+    frames = {
+    
+        { x=0, y=0, width=568, height=320,},
+        { x=0, y=320, width=568, height=320,},
+        { x=0, y=640, width=568, height=320,},
+        { x=0, y=960, width=568, height=320,},
+        { x=0, y=1280, width=568, height=320,},
+        { x=0, y=1600, width=568, height=320,},
+        { x=0, y=1920, width=568, height=320,},
+        { x=0, y=2240, width=568, height=320,},
+        { x=0, y=2560, width=568, height=320,},
+        { x=0, y=2880, width=568, height=320,},
+
+    },
+
+    sheetContentWidth = 568,
+    sheetContentHeight = 4096
+}
+local numbers = graphics.newImageSheet("Art/number_sheet.png", number_sheet)
+
 candidates = {}
 candidates["warren"] = require("Source.Candidates.warren")
 candidates["trump"] = require("Source.Candidates.trump")
 candidates["biden"] = require("Source.Candidates.biden")
-
-local state
+candidates["sanders"] = require("Source.Candidates.sanders")
+candidates["bro"] = require("Source.Candidates.bro")
 
 local paused = false
+
+local show_hitboxes = false
+
+local state
 
 local camera = {
   x = 0,
@@ -47,10 +78,10 @@ local camera = {
   max_y = 0,
 }
 
+local stage_music = audio.loadStream("Sound/BeiMir.mp3")
+
 local iowa_snow
 local effects_thingy
-
-local show_hitboxes = false
 
 local sceneGroup
 local bgGroup
@@ -92,25 +123,37 @@ end
 
 local function checkPlayerActions()
   if state ~= "active" then
-    red_button.alpha = 0.5
-    green_button.alpha = 0.5
-    blue_button.alpha = 0.5
+    if state == "ending" then
+      red_button.alpha = 0.0
+      green_button.alpha = 0.0
+      blue_button.alpha = 0.0
+      right_panel.alpha = 0.0
+    else
+      red_button.alpha = 0.5
+      green_button.alpha = 0.5
+      blue_button.alpha = 0.5
+      right_panel.alpha = 0.5
+    end
   elseif player.action ~= nil and player.action ~= "blocking" then
     red_button.alpha = 0.5
     green_button.alpha = 0.5
     if player.action ~= "jumping" then
       blue_button.alpha = 0.5
+      right_panel.alpha = 0.5
     else
       blue_button.alpha = 1.0
+      right_panel.alpha = 1.0
     end
   elseif player.action == "blocking" then
     red_button.alpha = 0.5
     green_button.alpha = 1.0
     blue_button.alpha = 1.0
+    right_panel.alpha = 1.0
   else
     red_button.alpha = 1.0
     green_button.alpha = 1.0
     blue_button.alpha = 1.0
+    right_panel.alpha = 1.0
   end
 end
 
@@ -119,7 +162,7 @@ local function showHitBoxes()
     hitBoxGroup[i]:removeSelf()
     hitBoxGroup[1] = nil
   end
-  for i = 1,2,1 do
+  for i = 1,#fighters do
     frame = fighters[i].sprite.frame
     -- if frame > #fighters[i].frames then
     --   frame = 1
@@ -179,7 +222,19 @@ local function checkEnding()
         player_wins = 0
         opponent_wins = 0
         round = 1
-        timer.performWithDelay(4000, gotoPostfight)
+        composer.setVariable("winning_fighter", player.short_name)
+        composer.setVariable("ko_fighter", player.target.short_name)
+        composer.setVariable("gameover", false)
+        timer.performWithDelay(4000, function()
+          ko_x, ko_y = player.target:localToContent(0,0)
+          print("player victory")
+          print(ko_x)
+          print(ko_y)
+          print(camera.x)
+          print(camera.y)
+          composer.setVariable("ko_location", {x=ko_x,y=ko_y, xScale=player.target.xScale})
+          gotoPostfight()
+        end)
       else
         timer.performWithDelay(4000, gotoGame)
       end
@@ -194,7 +249,19 @@ local function checkEnding()
         player_wins = 0
         opponent_wins = 0
         round = 1
-        timer.performWithDelay(4000, gotoGameover)
+        composer.setVariable("winning_fighter", player.target.short_name)
+        composer.setVariable("ko_fighter", player.short_name)
+        composer.setVariable("gameover", true)
+        timer.performWithDelay(4000, function() 
+          ko_x, ko_y = player:localToContent(0,0)
+          print("opponent victory")
+          print(ko_x)
+          print(ko_y)
+          print(camera.x)
+          print(camera.y)
+          composer.setVariable("ko_location", {x=ko_x,y=ko_y, xScale=player.xScale})
+          gotoPostfight()
+        end)
       else
         timer.performWithDelay(4000, gotoGame)
       end
@@ -210,6 +277,10 @@ local function checkEnding()
 end
 
 local function gameLoop()
+  if audio.isChannelPlaying(1) == false and audio.isChannelPlaying(2) == false then
+    audio.play(stage_music, {channel=2, loops=-1})
+  end
+
   if state == "active" then
     checkEnding()
   end
@@ -245,13 +316,18 @@ local function gameLoop()
   iowa_snow:update()
   effects_thingy:update()
 
+  print("Number of fighters is " .. #fighters)
+  -- to do: ditch bros from the fighters list, or recycle them
+
   for i = 1, #fighters do
-    if (fighters[i].health < fighters[i].visibleHealth - 5) then
-      fighters[i].visibleHealth = 0.2 * fighters[i].health + 0.8 * fighters[i].visibleHealth
-      fighters[i].healthbar:setHealth(fighters[i].visibleHealth)
-    elseif (fighters[i].health < fighters[i].visibleHealth) then
-      fighters[i].visibleHealth = fighters[i].visibleHealth - 1
-      fighters[i].healthbar:setHealth(fighters[i].visibleHealth)
+    if fighters[i].healthbar ~= nil then
+      if (fighters[i].health < fighters[i].visibleHealth - 5) then
+        fighters[i].visibleHealth = 0.2 * fighters[i].health + 0.8 * fighters[i].visibleHealth
+        fighters[i].healthbar:setHealth(fighters[i].visibleHealth)
+      elseif (fighters[i].health < fighters[i].visibleHealth) then
+        fighters[i].visibleHealth = fighters[i].visibleHealth - 1
+        fighters[i].healthbar:setHealth(fighters[i].visibleHealth)
+      end
     end
   end
 
@@ -269,15 +345,17 @@ local function player_blue_button(event)
 end
 
 local function player_green_button(event)
-  if state == "active" then
+  if event.phase == "began" and state == "active" then
     player:punchingAction()
   end
+  return true
 end
 
 local function player_s_button(event)
-  if state == "active" then
+  if event.phase == "began" and state == "active" then
     player:specialAction()
   end
+  return true
 end
 
 local function player_red_button(event)
@@ -287,7 +365,6 @@ local function player_red_button(event)
         player:blockingAction()
       end
     elseif (event.phase == "ended" or event.phase == "cancelled") then
-      print("cancelled")
       if player.action == "blocking" then
         player:restingAction()
       end
@@ -441,13 +518,14 @@ function scene:create( event )
   traffic_cone_2.y = background.y - 49
 
   effects_thingy = effects:create()
+  effects_thingy.fighters = fighters
 
   local candidate = composer.getVariable("candidate")
   local opponent = composer.getVariable("opponent")
-  -- local opponent = "biden"
   local location = composer.getVariable("location")
 
   fighters[1] = candidates[opponent]:create(384, display.contentCenterY, mainGroup, min_x, max_x, effects_thingy)
+  -- fighters[1] = candidates["trump"]:create(384, display.contentCenterY, mainGroup, min_x, max_x, effects_thingy)
   fighters[1].xScale = -1
   fighters[1].healthbar = healthBar:create(display.contentWidth - 240 - 10, 10, 0.8, uiGroup)
 
@@ -455,18 +533,19 @@ function scene:create( event )
   fighters[2].healthbar = healthBar:create(60, 10, 0.8, uiGroup)
 
   fighters[1].target = fighters[2]
-  fighters[1].other_fighters = {fighters[2]}
+  fighters[1].fighters = fighters
   fighters[2].target = fighters[1]
-  fighters[2].other_fighters = {fighters[1]}
+  fighters[2].fighters = fighters
 
   player = fighters[2]
-  other_fighters = player.other_fighters
+  other_fighters = {fighters[1]}
 
   iowa_snow = snow:create(foregroundGroup)
 
   player_headshot = display.newImageRect(uiGroup, "Art/" .. candidate .. "_face.png", 50, 50)
   player_headshot.x = 27
   player_headshot.y = 27
+  player_headshot.xScale = -1
 
   opponent_headshot = display.newImageRect(uiGroup, "Art/" .. opponent .. "_face.png", 50, 50)
   opponent_headshot.x = display.contentWidth - 27
@@ -486,9 +565,22 @@ function scene:create( event )
   opponent_checkmark.y = opponent_headshot.y + 45
   opponent_checkmark.isVisible = (opponent_wins > 0)
 
-  announcement_text = display.newEmbossedText(uiGroup, "ROUND " .. round, display.contentCenterX, 70, "Georgia-Bold", 30)
-  announcement_text:setTextColor(0.72, 0.18, 0.18)
-  timer.performWithDelay(1500, function() announcement_text.text = "FIGHT!" end)
+  announcement_text = display.newImageRect(uiGroup, "Art/round.png", 568/1.5, 320/1.5)
+  announcement_text.x = display.contentCenterX + 30
+  announcement_text.y = 80
+  announcement_number = display.newSprite(uiGroup, numbers, {frames={1,2,3,4,5,6,7,8,9,10}})
+  announcement_number:setFrame(round + 1)
+  announcement_number.xScale = 1/1.5
+  announcement_number.yScale = 1/1.5
+  announcement_number.x = display.contentCenterX + 70
+  announcement_number.y = 80
+  timer.performWithDelay(1500, function()
+    display.remove(announcement_text)
+    display.remove(announcement_number)
+    announcement_text = display.newImageRect(uiGroup, "Art/fight.png", 568/1.5, 320/1.5)
+    announcement_text.x = display.contentCenterX
+    announcement_text.y = 80
+  end)
   timer.performWithDelay(2500, function() announcement_text.isVisible = false end)
 
 
@@ -515,8 +607,8 @@ function scene:create( event )
   punch_sound = audio.loadSound("Sound/punch.wav")
   -- stage_music = audio.loadStream("Sound/test_music.mp3")
 
-  blue_button:addEventListener("tap", player_blue_button)
-  green_button:addEventListener("tap", player_green_button)
+  blue_button:addEventListener("touch", player_blue_button)
+  green_button:addEventListener("touch", player_green_button)
   -- red_button:addEventListener("tap", player_s_button)
   red_button:addEventListener("touch", player_red_button)
   pause_button:addEventListener("tap", pause)
@@ -540,10 +632,10 @@ function scene:show( event )
     fighters[1]:enable()
     fighters[2]:enable()
     timer.performWithDelay(2500, function() activateGame() end)
-    -- audio.play( stage_music, { channel=1, loops=-1 } )
 
   elseif ( phase == "did" ) then
     composer.removeScene("Source.Scenes.prefight_alt")
+    -- audio.play(stage_music, { channel=3, loops=1 })
     -- Code here runs when the scene is entirely on screen
 
   end
@@ -565,6 +657,8 @@ function scene:hide( event )
     for i = 1, #fighters do
       fighters[i]:disable()
     end
+    -- audio.stop(3)
+    -- audio.dispose(stage_music)
 
   end
 end

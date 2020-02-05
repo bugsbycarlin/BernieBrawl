@@ -15,7 +15,7 @@ local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
 
-function trump:create(x, y, group, min_x, max_x)
+function trump:create(x, y, group, min_x, max_x, effects)
   local candidate = display.newGroup()
 
   candidate.frames = {}
@@ -23,9 +23,12 @@ function trump:create(x, y, group, min_x, max_x)
     table.insert(candidate.frames, i)
   end
 
-  candidate.name = "Donald Trump"
+  candidate.name = "bro"
+  candidate.short_name = "warren"
 
-  group:insert(candidate)
+  candidate.parent_group = group
+  candidate.parent_group:insert(candidate)
+
   candidate.sprite = display.newSprite(candidate, trumpSprite, {frames=candidate.frames})
   candidate.frameIndex = trumpSpriteInfo.frameIndex
   candidate.hitIndex = trumpSpriteInfo.hitIndex
@@ -35,6 +38,10 @@ function trump:create(x, y, group, min_x, max_x)
   candidate.y_vel = 0
   candidate.y = y + candidate.y_offset
 
+  candidate.ground_target = display.contentCenterY + candidate.y_offset
+
+  candidate.rotation_vel = 0
+
   candidate.min_x = min_x
   candidate.max_x = max_x
 
@@ -43,14 +50,14 @@ function trump:create(x, y, group, min_x, max_x)
   candidate.after_image.alpha = 0.5
   candidate.after_image.isVisible = false
 
-  candidate.health = 100
-  candidate.visibleHealth = 100
+  candidate.health = 30
+  candidate.visibleHealth = 30
 
   candidate.action = nil
   candidate.damage_timer = 0
   candidate.damage_in_a_row = 0
 
-  candidate.power = 15
+  candidate.power = 10
 
   candidate.animationTimer = nil
   candidate.physicsTimer = nil
@@ -93,20 +100,19 @@ function trump:create(x, y, group, min_x, max_x)
   end
 
   function candidate:automaticAction()
-    print("in here")
     -- do return end
     if self.target == nil then
       return
     end
     if self.target.action ~= "dizzy" and self.target.action ~= "ko" then
       if math.abs(self.x - self.target.x) > 80 then
-        if math.random(1, 100) > 20 then
+        if math.random(1, 100) > 40 then
           self:moveAction(10 * self.xScale, 0)
         else
           self:punchingAction()
         end
       else
-        if math.random(1, 100) > 80 then
+        if math.random(1, 100) > 90 then
           self:moveAction(10 * self.xScale, 0)
         else
           self:punchingAction()
@@ -302,15 +308,19 @@ function trump:create(x, y, group, min_x, max_x)
       self.rotation = self.rotation + self.rotation_vel
     end
 
-    local ground_target = display.contentCenterY + self.y_offset
-    if self.action == "ko" then
-      ground_target = ground_target + 60
+    if self.health <= 0 then
+      self.ground_target = 500
     end
 
-    if (self.y < ground_target) then
+    local current_ground_target = self.ground_target
+    if self.action == "ko" then
+      current_ground_target = current_ground_target + 60
+    end
+
+    if (self.y < current_ground_target) then
       self.y_vel = self.y_vel + gravity
-    else
-      self.y = ground_target
+    elseif (self.y >= current_ground_target and self.y_vel > 0) then
+      self.y = current_ground_target
       self.y_vel = 0
       if self.action ~= "dizzy" then
         self.rotation_vel = 0
@@ -354,7 +364,7 @@ function trump:create(x, y, group, min_x, max_x)
   -- end
 
   function candidate:hitDetection()
-    if self.other_fighters == nil then
+    if self.target == nil then
       return
     end
 
@@ -364,41 +374,44 @@ function trump:create(x, y, group, min_x, max_x)
       return
     end
 
-    for i = 1, #self.other_fighters do
-      opponent = self.other_fighters[i]
+    -- for i = 1, #self.other_fighters do
+    -- opponent = self.other_fighters[i]
+    opponent = self.target
+    print(opponent.action)
 
-      
-      if opponent.action ~= "damaged" and opponent.action ~= "ko" then
+    if opponent.action ~= "damaged" and opponent.action ~= "ko" then
 
-        opponent_frame = opponent.sprite.frame
-        opponent_hitIndex = opponent.hitIndex[opponent_frame]
+      opponent_frame = opponent.sprite.frame
+      opponent_hitIndex = opponent.hitIndex[opponent_frame]
 
-        collision = nil
+      collision = nil
 
-        for j = 1, #hitIndex do
-          if hitIndex[j].purpose ~= "vulnerability" and opponent_hitIndex ~= nil then
-            for k = 1, #opponent_hitIndex do
-              x1, y1 = self:localToContent(hitIndex[j].x, hitIndex[j].y)
-              x2, y2 = opponent:localToContent(opponent_hitIndex[k].x, opponent_hitIndex[k].y)
-              if distance(x1, y1, x2, y2) < hitIndex[j].radius + opponent_hitIndex[k].radius then
-                if hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" then
-                  collision = "damage"
-                elseif collision == nil then
-                  collision = "reflect"
-                end
+      for j = 1, #hitIndex do
+        if hitIndex[j].purpose ~= "vulnerability" and opponent_hitIndex ~= nil then
+          for k = 1, #opponent_hitIndex do
+            x1, y1 = self:localToContent(hitIndex[j].x, hitIndex[j].y)
+            x2, y2 = opponent:localToContent(opponent_hitIndex[k].x, opponent_hitIndex[k].y)
+            if distance(x1, y1, x2, y2) < hitIndex[j].radius + opponent_hitIndex[k].radius then
+              if hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" then
+                collision = "damage"
+              elseif collision == nil then
+                collision = "reflect"
               end
             end
           end
         end
+      end
 
-        if collision == "reflect" then
-          self:moveAction(-15 * self.xScale, -5)
-          opponent:moveAction(-15 * opponent.xScale, -5)
-        elseif collision == "damage" then
-          opponent:damageAction(self, 15 * self.xScale)
-        end
+      print(collision)
+
+      if collision == "reflect" then
+        self:moveAction(-15 * self.xScale, -5)
+        opponent:moveAction(-15 * opponent.xScale, -5)
+      elseif collision == "damage" then
+        opponent:damageAction(self, 15 * self.xScale)
       end
     end
+    -- end
   end
 
   return candidate

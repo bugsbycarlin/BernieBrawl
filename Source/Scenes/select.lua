@@ -8,6 +8,9 @@ local scene = composer.newScene()
 -- end
 
 local function gotoPrefight()
+  audio.stop(1)
+  audio.dispose(select_music)
+  audio.play(punch_sound, {channel=4})
   composer.gotoScene("Source.Scenes.prefight_alt", {effect = "fade", time = 1000})
 end
 
@@ -20,9 +23,20 @@ local selection_square
 local nameText
 local nicknameText
 
+local select_music = audio.loadStream("Sound/SS_98_carry_on_drum_loop.wav")
+local punch_sound = audio.loadSound("Sound/punch.wav")
+
 local names = {"warren", "sanders", "biden", "buttigieg", "yang", "bloomberg"}
-local nicknames = {"the protector", "the populist", "chosen son", "the polyglot", "the founder", "the money"}
+local nicknames = {
+  warren = "the protector",
+  sanders = "the populist",
+  biden = "chosen son",
+  buttigieg = "the polyglot",
+  yang = "the founder",
+  bloomberg = "the money"}
 layout = {{8, 8}, {116, 8}, {224, 8}, {8, 116}, {116, 116}, {224, 116}}
+
+local selectable_names = {"warren", "sanders", "biden"}
 
 -- TODO playable trump and bonus clinton
 -- TODO VP debate
@@ -37,9 +51,9 @@ local selection = ""
 local function choose_player(event)
   composer.setVariable("candidate", selection)
   local remaining_candidates = {}
-  for i = 1, #names do
-    if selection ~= names[i] then
-      table.insert(remaining_candidates, names[i])
+  for i = 1, #selectable_names do
+    if selection ~= selectable_names[i] then
+      table.insert(remaining_candidates, selectable_names[i])
     end
   end
   local opponent = table.remove(remaining_candidates, math.random(1, #remaining_candidates))
@@ -51,19 +65,32 @@ local function choose_player(event)
   composer.setVariable("player_wins", 0)
   composer.setVariable("opponent_wins", 0)
   composer.setVariable("round", 1)
+  audio.play(punch_sound)
   gotoPrefight()
 end
 
 local function select_fighter(event)
   selection = event.target.name
+  selectable = false
+  for i = 1,#selectable_names,1 do
+    if selection == selectable_names[i] then
+      selectable = true
+    end
+  end
+  if selectable == false then
+    return
+  end
   for i = 1,#names,1 do
-    big_faces[i].isVisible = false
-    if small_faces[i].name == selection then
-      big_faces[i].isVisible = true
-      nickNameText.text = string.upper(nicknames[i])
+    big_faces[names[i]].isVisible = false
+  end
+  for i = 1,#selectable_names,1 do
+    name = small_faces[selectable_names[i]].name
+    if name == selection then
+      big_faces[name].isVisible = true
+      nickNameText.text = string.upper(nicknames[name])
       selection_square.isVisible = true
-      selection_square.x = small_faces[i].x - 2
-      selection_square.y = small_faces[i].y - 2
+      selection_square.x = small_faces[name].x - 2
+      selection_square.y = small_faces[name].y - 2
     end
   end
   nameText.text = string.upper(selection)
@@ -71,10 +98,27 @@ local function select_fighter(event)
 end
 
 local checkmark_pulse_counter
-local function checkmark_pulse()
+local function checkmarkPulse()
   checkmark_pulse_counter = checkmark_pulse_counter + 0.1
   checkmark.xScale = 0.96 + 0.08 * math.sin(checkmark_pulse_counter)
   checkmark.yScale = 0.96 + 0.08 * math.sin(checkmark_pulse_counter)
+end
+
+local function beatPulse()
+  -- local current_face = small_faces[names[math.random(1, 6)]]
+  -- if current_face.xScale == -1 then
+  --   current_face.xScale = -1.01
+  -- else
+  --   current_face.xScale = -1
+  -- end
+  -- for i = 1,#names,1 do
+  --   name = names[i]
+  --   if small_faces[name].x == layout[i][1] then
+  --     small_faces[name].x = small_faces[name].x + 1
+  --   else
+  --     small_faces[name].x = layout[i][1]
+  --   end
+  -- end
 end
 
 -- -----------------------------------------------------------------------------------
@@ -104,25 +148,37 @@ function scene:create( event )
   selection_square.isVisible = false
 
   for i = 1,#names,1 do
-    big_faces[i] = display.newImageRect( mainGroup, "Art/" .. names[i] .. "_face.png", 200, 200 )
-    big_faces[i].x = 340
-    big_faces[i].y = 12
-    big_faces[i].anchorX = 0
-    big_faces[i].anchorY = 0
-    big_faces[i].xScale = 1
-    big_faces[i].isVisible = false
+    name = names[i]
+    selectable = false
+    for j = 1,#selectable_names,1 do
+      if name ==selectable_names[j] then
+        selectable = true
+      end
+    end
+    
+    big_faces[name] = display.newImageRect( mainGroup, "Art/" .. name .. "_face.png", 200, 200 )
+    big_faces[name].x = 340
+    big_faces[name].y = 12
+    big_faces[name].anchorX = 0
+    big_faces[name].anchorY = 0
+    big_faces[name].xScale = 1
+    big_faces[name].isVisible = false
 
-    small_faces[i] = display.newImageRect( mainGroup, "Art/" .. names[i] .. "_face.png", 100, 100 )
-    small_faces[i].name = names[i]
-    small_faces[i].x = layout[i][1]
-    small_faces[i].y = layout[i][2]
-    small_faces[i].anchorX = 1
-    small_faces[i].anchorY = 0
-    small_faces[i].xScale = -1
-    -- if i == 1 then
-    --   small_faces[i].alpha = 1
-    -- end
-    small_faces[i]:addEventListener("touch", select_fighter)
+    small_faces[name] = display.newImageRect( mainGroup, "Art/" .. name .. "_face.png", 100, 100 )
+    small_faces[name].name = name
+    small_faces[name].x = layout[i][1]
+    small_faces[name].y = layout[i][2]
+    small_faces[name].anchorX = 1
+    small_faces[name].anchorY = 0
+    small_faces[name].xScale = -1
+    if selectable then
+      small_faces[name]:addEventListener("touch", select_fighter)
+    else
+      small_faces[name].fill.effect = "filter.duotone"
+      small_faces[name].fill.effect.darkColor = { 0.5, 0.5, 0.5, 1 }
+      small_faces[name].fill.effect.lightColor = { 0.8, 0.8, 0.8, 1 }
+      small_faces[name]:setFillColor(1,1,1)
+    end
   end
 
   nameText = display.newEmbossedText(uiGroup, "", 240, 232, "Georgia-Bold", 30)
@@ -158,7 +214,10 @@ function scene:show( event )
 
   if ( phase == "will" ) then
     -- Code here runs when the scene is still off screen (but is about to come on screen)
-    checkmarkPulseTimer = timer.performWithDelay(30, checkmark_pulse, 0)
+    checkmarkPulseTimer = timer.performWithDelay(30, checkmarkPulse, 0)
+    audio.play(select_music, { channel=1, loops=-1 })
+
+    beatPulseTimer = timer.performWithDelay(306/2, beatPulse, 0)
 
   elseif ( phase == "did" ) then
     -- Code here runs when the scene is entirely on screen
@@ -188,6 +247,7 @@ function scene:destroy( event )
 
   local sceneGroup = self.view
   -- Code here runs prior to the removal of scene's view
+  audio.dispose(punch_sound)
 end
 
 

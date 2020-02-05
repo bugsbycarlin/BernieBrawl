@@ -14,7 +14,7 @@ local resting_rate = 50
 local action_rate = 40
 local sprite_offset = 50
 
--- local power = 90
+-- local power = 9000
 local power = 7
 local knockback = 10
 local blocking_max_frames = 30
@@ -34,6 +34,7 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
   end
 
   candidate.name = "Elizabeth Warren"
+  candidate.short_name = "warren"
 
   candidate.effects_thingy = effects_thingy
 
@@ -47,6 +48,8 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
   candidate.y_vel = 0
   candidate.y = y + candidate.y_offset
   candidate.rotation_vel = 0
+
+  candidate.ko_frame = 23
 
   candidate.max_x_velocity = 20
   candidate.max_y_velocity = 35
@@ -80,7 +83,7 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
   candidate.frame = 1
 
   candidate.target = nil
-  candidate.other_fighters = nil
+  candidate.fighters = nil
 
   candidate.enabled = false
 
@@ -151,6 +154,7 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
       self.animationTimer._delay = action_rate
       self.action = "whipping"
       self.whip_image.isVisible = true
+      self.effects_thingy:playSound("whip_swing")
     end
   end
 
@@ -252,7 +256,11 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
   end
 
   function candidate:dizzyAction()
+    if self.action == "ko" then
+      self.y = self.y - 60
+    end
     self.action = "dizzy"
+    self:dizzyAnimation()
     self.damage_timer = 45
     self.damage_in_a_row = 0
     -- self.rotation_vel = -1 * math.random(50, 100) / 30 * self.xScale
@@ -305,9 +313,10 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
     if (self.damage_timer > 0) then
       self.damage_timer = self.damage_timer - 1  
       if self.damage_timer <= 0 and self.health > 0 then
-        self:restingAction()
-        if self.damage_in_a_row >= 4 then
+        if self.action == "ko" then
           self:dizzyAction()
+        else
+          self:restingAction()
         end
       end
     end
@@ -350,19 +359,26 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
       self.after_image.isVisible = true
       self.after_image:setFrame(kicking_frames[self.frame - 1])
     end
+    if self.frame == 3 or self.frame == 8 then
+      self.effects_thingy:playSound("swing_1")
+    end
     if self.frame == 9 or self.frame == 11 then
-      if self.xScale == 1 then
-        self.x = self.x + 20
-      else
-        self.x = self.x - 20
-      end
+      -- self.x = self.x + 20 * self.xScale
+      self:forceMoveAction(13*self.xScale, 0)
+      -- if self.xScale == 1 then
+      --   self.x = self.x + 20
+      -- else
+      --   self.x = self.x - 20
+      -- end
     end
     if self.frame == 13 then
-      if self.xScale == 1 then
-        self.x = self.x + 40
-      else
-        self.x = self.x - 40
-      end
+      -- self.x = self.x + 40 * self.xScale
+      -- if self.xScale == 1 then
+      --   self.x = self.x + 40
+      -- else
+      --   self.x = self.x - 40
+      -- end
+      self:forceMoveAction(13*self.xScale, 0)
     end
     self.frame = self.frame + 1
     if (self.frame > #kicking_frames) then
@@ -382,8 +398,16 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
   }
   function candidate:punchingAnimation()
     self.sprite:setFrame(punching_frames[self.frame])
-    if self.frame == 3 or self.frame == 7 or self.frame == 13 then
+    if self.frame == 3 then
+      self.effects_thingy:playSound("swing_3")
+      self:forceMoveAction(8*self.xScale, 0)
+    elseif self.frame == 7 then
+      self.effects_thingy:playSound("swing_3")
+      self:forceMoveAction(8*self.xScale, 0)
+    elseif self.frame == 13 then
       -- punch(self, self.target)
+      self.effects_thingy:playSound("swing_1")
+      self:forceMoveAction(10*self.xScale, 0)
     end
     self.frame = self.frame + 1
     if (self.frame > #punching_frames) then
@@ -514,7 +538,7 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
 
     if (self.y < current_ground_target) then
       self.y_vel = self.y_vel + gravity
-    else
+    elseif (self.y >= current_ground_target and self.y_vel > 0) then
       self.y = current_ground_target
       self.y_vel = 0
       if self.action ~= "dizzy" then
@@ -526,7 +550,7 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
       end
       if self.action == "ko" then
         self.rotation = 0
-        self.sprite:setFrame(23)
+        self.sprite:setFrame(self.ko_frame)
       end
     end
 
@@ -546,7 +570,7 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
 
   function candidate:hitDetection()
     -- to do: this should maybe run when the frame has changed instead of on the physics timer
-    if self.other_fighters == nil then
+    if self.fighters == nil then
       return
     end
 
@@ -556,11 +580,11 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
       return
     end
 
-    for i = 1, #self.other_fighters do
-      opponent = self.other_fighters[i]
+    for i = 1, #self.fighters do
+      opponent = self.fighters[i]
 
       
-      if opponent.action ~= "damaged" and opponent.action ~= "ko" then
+      if opponent.name ~= self.name and opponent.action ~= "damaged" and opponent.action ~= "ko" then
 
         opponent_frame = opponent.sprite.frame
         opponent_hitIndex = opponent.hitIndex[opponent_frame]
@@ -590,6 +614,7 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
 
         if collision == "reflect" then
           if self.action == nil then
+            self.effects_thingy:randomDamage()
             self:forceMoveAction(-1 * knockback * self.xScale, -5)
             opponent:forceMoveAction(-1 * knockback * opponent.xScale, -5)
           else
@@ -598,12 +623,14 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
           end
         elseif collision == "block" then
           print("doing the block thing")
+          self.effects_thingy:playSound("block")
           self:forceMoveAction(-0.5 * knockback * self.xScale, -3)
           opponent:forceMoveAction(-0.5 * knockback * opponent.xScale, -3)
         elseif collision == "stop" then
           self:forceMoveAction(self.x_vel / 2, self.y_vel)
           opponent:forceMoveAction(opponent.x_vel / 2, opponent.y_vel)
         elseif collision == "damage" then
+          self.effects_thingy:randomDamage()
           self.damage_in_a_row = 0
           opponent:damageAction(self, knockback * self.xScale)
         end

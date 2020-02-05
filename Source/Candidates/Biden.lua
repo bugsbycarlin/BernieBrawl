@@ -31,6 +31,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
   end
 
   candidate.name = "Joe Biden"
+  candidate.short_name = "biden"
 
   candidate.effects_thingy = effects_thingy
 
@@ -43,6 +44,8 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
   candidate.y_vel = 0
   candidate.y = y + candidate.y_offset
   candidate.rotation_vel = 0
+
+  candidate.ko_frame = 30
 
   candidate.max_x_velocity = 20
   candidate.max_y_velocity = 35
@@ -73,7 +76,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
   candidate.frame = 1
 
   candidate.target = nil
-  candidate.other_fighters = nil
+  candidate.fighters = nil
 
   candidate.enabled = false
 
@@ -112,6 +115,12 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
     if self.target == nil then
       return
     end
+    -- if self.action == nil then
+    --   self:specialAction()
+    -- end
+
+    
+    
     if self.target.action ~= "dizzy" and self.target.action ~= "ko" then
       if math.abs(self.x - self.target.x) > 110 then
         if math.random(1, 100) > 20 then
@@ -149,6 +158,8 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
       self.frame = 1
       self.animationTimer._delay = action_rate
       self.action = "punching"
+    elseif self.action == "jumping" then
+      self:jumpAttackAction()
     end
   end
 
@@ -157,9 +168,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
       self.frame = 1
       self.animationTimer._delay = action_rate
       self.action = "kicking"
-    end
-
-    if self.action == "jumping" then
+    elseif self.action == "jumping" then
       self:jumpAttackAction()
     end
   end
@@ -168,6 +177,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
     self.action = "jump_kicking"
     self.frame = 1
     self.sprite:setFrame(33)
+    self:forceMoveAction(10*self.xScale, 0)
   end
 
   function candidate:specialAction()
@@ -275,7 +285,11 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
   end
 
   function candidate:dizzyAction()
+    if self.action == "ko" then
+      self.y = self.y - 60
+    end
     self.action = "dizzy"
+    self:dizzyAnimation()
     self.damage_timer = 45
     self.damage_in_a_row = 0
     for i = 1, 3, 1 do
@@ -326,9 +340,10 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
     if (self.damage_timer > 0) then
       self.damage_timer = self.damage_timer - 1  
       if self.damage_timer <= 0 and self.health > 0 then
-        self:restingAction()
-        if self.damage_in_a_row >= 4 then
+        if self.action == "ko" then
           self:dizzyAction()
+        else
+          self:restingAction()
         end
       end
     end
@@ -375,6 +390,10 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
     --   self.after_image:setFrame(kicking_frames[self.frame - 1])
     -- end
     self.sprite:setFrame(kicking_frames[self.frame])
+    if self.frame == 5 then
+      self:forceMoveAction(15*self.xScale, 0)
+      self.effects_thingy:playSound("swing_1")
+    end
     self.frame = self.frame + 1
     if (self.frame > #kicking_frames) then
       self:restingAction()
@@ -396,6 +415,10 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
   }
   function candidate:punchingAnimation()
     self.sprite:setFrame(punching_frames[self.frame])
+    if self.frame == 5 or self.frame == 13 then
+      self:forceMoveAction(10*self.xScale, 0)
+      self.effects_thingy:playSound("swing_1")
+    end
     self.frame = self.frame + 1
     if (self.frame > #punching_frames) then
       self:restingAction()
@@ -504,7 +527,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
       else
         self.y_vel = self.y_vel + gravity / 2
       end
-    else
+    elseif (self.y >= current_ground_target and self.y_vel > 0) then
       self.y = current_ground_target
       self.y_vel = 0
       if self.action ~= "dizzy" then
@@ -516,7 +539,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
       end
       if self.action == "ko" then
         self.rotation = 0
-        self.sprite:setFrame(30)
+        self.sprite:setFrame(self.ko_frame)
       end
     end
 
@@ -534,7 +557,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
   end
 
   function candidate:hitDetection()
-    if self.other_fighters == nil then
+    if self.fighters == nil then
       return
     end
 
@@ -544,11 +567,11 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
       return
     end
 
-    for i = 1, #self.other_fighters do
-      opponent = self.other_fighters[i]
+    for i = 1, #self.fighters do
+      opponent = self.fighters[i]
 
       
-      if opponent.action ~= "damaged" and opponent.action ~= "ko" then
+      if opponent.name ~= self.name and opponent.action ~= "damaged" and opponent.action ~= "ko" then
 
         opponent_frame = opponent.sprite.frame
         opponent_hitIndex = opponent.hitIndex[opponent_frame]
@@ -578,6 +601,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
 
         if collision == "reflect" then
           if self.action == nil then
+            self.effects_thingy:randomDamage()
             self:forceMoveAction(-1 * knockback * self.xScale, -5)
             opponent:forceMoveAction(-1 * knockback * opponent.xScale, -5)
           else
@@ -585,6 +609,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
             opponent:forceMoveAction(0, 0)
           end
         elseif collision == "block" then
+          self.effects_thingy:playSound("block")
           print("doing the block thing")
           self:forceMoveAction(-0.5 * knockback * self.xScale, -3)
           opponent:forceMoveAction(-0.5 * knockback * opponent.xScale, -3)
@@ -592,6 +617,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
           self:forceMoveAction(self.x_vel / 2, self.y_vel)
           opponent:forceMoveAction(opponent.x_vel / 2, opponent.y_vel)
         elseif collision == "damage" then
+          self.effects_thingy:randomDamage()
           self.damage_in_a_row = 0
           if self.action ~= "ultra_punching" then
             opponent:damageAction(self, knockback * self.xScale)

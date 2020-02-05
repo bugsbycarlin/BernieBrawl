@@ -9,6 +9,9 @@ candidates = {}
 candidates["warren"] = require("Source.Candidates.warren")
 candidates["trump"] = require("Source.Candidates.trump")
 candidates["biden"] = require("Source.Candidates.biden")
+candidates["sanders"] = require("Source.Candidates.sanders")
+
+local stage_music = audio.loadStream("Sound/BeiMir.mp3")
 
 local effects
 
@@ -50,14 +53,39 @@ quips = {
       first = "I'm landing Medicare for All and you're not gonna stop me, Joe.",
       second = "I'm literally gonna make you pay for that, Liz."
     },
+    sanders = {
+      first="blah",
+      second="blah",
+    },
   },
-  warren_vs_bloomberg = {
-    first="how are you gonna pay for Medicare for All, Senator?",
-    second="I'm gonna beat the money out of you, Mike!",
+  -- warren_vs_bloomberg = {
+  --   first="how are you gonna pay for Medicare for All, Senator?",
+  --   second="I'm gonna beat the money out of you, Mike!",
+  -- },
+  -- Bloomberg: this is a fight you can't afford to lose!
+  -- Sanders vs bloomberg (or trump): "I hate billionaires and hair stylists!"
+  -- warren vs trump: you can't keep blocking everything that moves this country forward. this has to stop.
+  -- nobody in this country got rich on his own. Nobody.
+  -- You're a loud, nasty, thin-skinner fraud who never risked anything for anyone and you serve nobody but yourself.
+  biden = {
+    warren = {
+      first="I helped you with the CFPB! I got you votes!",
+      second="I'll thank you when I'm President.",
+    },
+    sanders = {
+      first="blah",
+      second="blah",
+    },
   },
-  biden_vs_warren = {
-    first="I helped you with the CFPB! I got you votes!",
-    second="I'll thank you when I'm President.",
+  sanders = {
+    warren = {
+      first="blah",
+      second="blah",
+    },
+    biden = {
+      first="blah",
+      second="blah",
+    },
   },
 }
 
@@ -156,12 +184,10 @@ local function animation()
   if(blue_fighter.y < blue_fighter.ground_target - 250 - 10) then
     blue_fighter.ground_target = display.contentCenterY + blue_fighter.y_offset
   end
-  print(blue_fighter.x)
 
   if(red_fighter.y < red_fighter.ground_target - 250 - 10) then
     red_fighter.ground_target = display.contentCenterY + red_fighter.y_offset
   end
-  print(red_fighter.x)
 end
 
 -- -----------------------------------------------------------------------------------
@@ -192,7 +218,7 @@ function scene:create( event )
   color_backdrop.y = display.contentCenterY + 90
   color_backdrop:setFillColor(blue_color.r, blue_color.g, blue_color.b)
 
-  blue_candidate = display.newImageRect(pictureGroup, "Art/warren_blue_pixelated.png", 341, 227)
+  blue_candidate = display.newImageRect(pictureGroup, "Art/Cutouts/" .. candidate .. "_blue_pixelated.png", 341, 227)
   blue_candidate.x = 40
   blue_candidate.y = display.contentCenterY - 50
   blue_candidate.target_x = 40
@@ -202,7 +228,7 @@ function scene:create( event )
   blue_candidate.rotation = 0
   blue_text = display.newText(
     mainGroup,
-    quips["warren"]["biden"].first,
+    quips[candidate][opponent].first,
     display.contentCenterX + 100, 80, 350, 100,
     "Georgia-Bold", 20)
   blue_text:setTextColor(blue_color.r, blue_color.g, blue_color.b)
@@ -227,13 +253,14 @@ function scene:create( event )
     end
   end
 
-  red_candidate = display.newImageRect(pictureGroup, "Art/biden_red_pixelated.png", 341, 227)
+  red_candidate = display.newImageRect(pictureGroup, "Art/Cutouts/" .. opponent .. "_red_pixelated.png", 341, 227)
   red_candidate.x = display.contentWidth - 80
   red_candidate.y = display.contentCenterY - 50
+  red_candidate.xScale = -1
   red_candidate.alpha = 0.0
   red_text = display.newText(
     mainGroup,
-    quips["warren"]["biden"].second,
+    quips[candidate][opponent].second,
     display.contentCenterX - 80, 80, 300, 100,
     "Georgia-Bold", 20)
   red_text:setTextColor(red_color.r, red_color.g, red_color.b)
@@ -261,24 +288,24 @@ function scene:create( event )
     addBlueSpeedLine(color_backdrop.y)
   end
 
-  red_fighter = candidates["biden"]:create(384 + 38, display.contentCenterY + 250, mainGroup, -500, 1500, effects)
+  red_fighter = candidates[opponent]:create(384 + 38, display.contentCenterY + 250, mainGroup, -500, 1500, effects)
   red_fighter.xScale = -1
   red_fighter.ground_target = red_fighter.ground_target + 250
   red_fighter.max_y_velocity = 70
 
   red_fighter.sprite.fill.effect = "filter.duotone"
   red_fighter.sprite.fill.effect.darkColor = { red_color.r / 3, red_color.g / 3, red_color.b / 3, 1 }
-  red_fighter.sprite.fill.effect.lightColor = { 0.1, 0.1, 0.1, 1 }
-  red_fighter.sprite:setFillColor(1, 1, 1)
+  red_fighter.sprite.fill.effect.lightColor = { red_color.r / 3, red_color.r / 3, red_color.r / 3, 1 }
+  red_fighter.sprite:setFillColor(red_color.r / 3, red_color.r / 3, red_color.r / 3)
 
-  blue_fighter = candidates["warren"]:create(184 - 38, display.contentCenterY + 250, mainGroup, -500, 1500, effects)
+  blue_fighter = candidates[candidate]:create(184 - 38, display.contentCenterY + 250, mainGroup, -500, 1500, effects)
   blue_fighter.ground_target = blue_fighter.ground_target + 250
   blue_fighter.max_y_velocity = 70
 
   blue_fighter.sprite.fill.effect = "filter.duotone"
   blue_fighter.sprite.fill.effect.darkColor = { blue_color.r / 3, blue_color.g / 3, blue_color.b / 3, 1 }
-  blue_fighter.sprite.fill.effect.lightColor = { 0.1, 0.1, 0.1, 1 }
-  blue_fighter.sprite:setFillColor(1, 1, 1)
+  blue_fighter.sprite.fill.effect.lightColor = { blue_color.r / 3, blue_color.r / 3, blue_color.r / 3, 1 }
+  blue_fighter.sprite:setFillColor(blue_color.r / 3, blue_color.r / 3, blue_color.r / 3)
   
   red_fighter.target = blue_fighter
   red_fighter.other_fighters = {blue_fighter}
@@ -312,6 +339,8 @@ function scene:show( event )
     blue_fighter:enable()
     red_fighter:enable()
     blue_fighter:forceMoveAction(5, -45)
+    print("here")
+    audio.play(stage_music, { channel=1, loops=0 })
 
   elseif ( phase == "did" ) then
     -- Code here runs when the scene is entirely on screen
