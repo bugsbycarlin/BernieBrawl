@@ -209,7 +209,6 @@ function scene:create( event )
 
   candidate = composer.getVariable("candidate")
   opponent = composer.getVariable("opponent")
-  opponent = "warren"
   location = composer.getVariable("location")
 
   color_backdrop = display.newImageRect(backgroundGroup, "Art/block.png", speed_line_width, speed_line_backdrop_height)
@@ -392,7 +391,7 @@ function scene:hide( event )
     -- Code here runs immediately after the scene goes entirely off screen
     red_fighter:disable()
     blue_fighter:disable()
-    composer.removeScene("Source.Scenes.prefight`")
+    composer.removeScene("Source.Scenes.prefight")
   end
 end
 

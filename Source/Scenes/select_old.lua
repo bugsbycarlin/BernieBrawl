@@ -28,9 +28,9 @@ local punch_sound = audio.loadSound("Sound/punch.wav")
 
 local names = {"warren", "sanders", "biden", "buttigieg", "yang", "bloomberg"}
 local nicknames = {
-  warren = "the protector",
+  warren = "the planner",
   sanders = "the populist",
-  biden = "chosen son",
+  biden = "the smiler",
   buttigieg = "the polyglot",
   yang = "the founder",
   bloomberg = "the money"}
