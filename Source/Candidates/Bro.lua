@@ -9,7 +9,7 @@ local gravity = 4
 local max_x_velocity = 20
 local max_y_velocity = 35
 
-local sprite_offset = 55
+local sprite_offset = 50
 
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)

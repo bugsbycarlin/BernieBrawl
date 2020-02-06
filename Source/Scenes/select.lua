@@ -11,7 +11,7 @@ local function gotoPrefight()
   audio.stop(1)
   audio.dispose(select_music)
   audio.play(punch_sound, {channel=4})
-  composer.gotoScene("Source.Scenes.prefight_alt", {effect = "fade", time = 1000})
+  composer.gotoScene("Source.Scenes.prefight", {effect = "fade", time = 1000})
 end
 
 local big_faces = {}

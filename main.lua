@@ -53,7 +53,7 @@ quick_setup("sanders", "biden")
 -- composer.gotoScene("Source.Scenes.title", {effect = "fade", time = 2000})
 -- composer.gotoScene("Source.Scenes.intro", {effect = "fade", time = 3000})
 composer.gotoScene("Source.Scenes.select", {effect = "fade", time = 1000})
--- composer.gotoScene("Source.Scenes.prefight_alt", {effect = "fade", time = 1000})
+-- composer.gotoScene("Source.Scenes.prefight", {effect = "fade", time = 1000})
 -- composer.gotoScene("Source.Scenes.game")
 -- composer.gotoScene("Source.Scenes.hitDetectionEditor")
 

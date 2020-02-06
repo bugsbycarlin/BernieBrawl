@@ -17,8 +17,8 @@ end
 -- end
 
 local function gotoPostfight()
-  composer.removeScene("Source.Scenes.postfight_alt")
-  composer.gotoScene("Source.Scenes.postfight_alt", {effect = "crossFade", time = 2000})
+  composer.removeScene("Source.Scenes.postfight")
+  composer.gotoScene("Source.Scenes.postfight", {effect = "crossFade", time = 2000})
 end
 
 local function pause(event)
@@ -634,7 +634,7 @@ function scene:show( event )
     timer.performWithDelay(2500, function() activateGame() end)
 
   elseif ( phase == "did" ) then
-    composer.removeScene("Source.Scenes.prefight_alt")
+    composer.removeScene("Source.Scenes.prefight")
     -- audio.play(stage_music, { channel=3, loops=1 })
     -- Code here runs when the scene is entirely on screen
 
