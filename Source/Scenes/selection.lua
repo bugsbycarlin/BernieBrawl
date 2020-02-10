@@ -3,15 +3,19 @@ local composer = require("composer")
 
 local scene = composer.newScene()
 
--- local function gotoAnnounce()
---   composer.gotoScene("Source.Scenes.announce", {effect = "fade", time = 1000})
--- end
+candidates = {}
+candidates["warren"] = require("Source.Candidates.warren")
+candidates["trump"] = require("Source.Candidates.trump")
+candidates["biden"] = require("Source.Candidates.biden")
+candidates["sanders"] = require("Source.Candidates.sanders")
 
-local function gotoPrefight()
+local effects_class = require("Source.Utilities.effects")
+
+local function gotoFlight()
   audio.stop(1)
   audio.dispose(select_music)
   audio.play(punch_sound, {channel=4})
-  composer.gotoScene("Source.Scenes.prefight", {effect = "fade", time = 1000})
+  composer.gotoScene("Source.Scenes.flight", {effect = "fade", time = 500})
 end
 
 local big_faces = {}
@@ -26,6 +30,10 @@ local nicknameText
 local select_music = audio.loadStream("Sound/SS_98_carry_on_drum_loop.wav")
 local punch_sound = audio.loadSound("Sound/punch.wav")
 
+local effects
+
+local fighter
+
 local animationTimer
 
 local names = {"warren", "sanders", "biden", "buttigieg", "yang", "bloomberg"}
@@ -36,8 +44,6 @@ local nicknames = {
   buttigieg = "the polyglot",
   yang = "the founder",
   bloomberg = "the money"}
--- layout = {{8, 8}, {116, 8}, {224, 8}, {8, 116}, {116, 116}, {224, 116}}
--- layout = {{2,1}, {2,81}, {2,161}, {2,241}, {82,241}, {162,241}}
 layout = {{164,159}, {244,159}, {324,159}, {164,239}, {244,239}, {324,239}}
 
 local selectable_names = {"biden", "sanders", "warren",}
@@ -48,7 +54,7 @@ local selectable_names = {"biden", "sanders", "warren",}
 -- local nicknames = {"the protector", "the populist", "chosen son", "the polyglot", "the founder", "the money", "determined", "unbelievable"}
 -- layout = {{8, 8}, {116, 8}, {224, 8}, {8, 116}, {116, 116}, {224, 116}, {8, 224}, {116, 224}}
 
-local locations = {"iowa", "new hampshire", "super tuesday", "nomination fight", "first debate", "second debate", "final battle"}
+local locations = {"Iowa", "New Hampshire", "Super Tuesday", "DNC - Milwaukee", "Vice Presidential Debate - Salt Lake City", "First Debate - South Bend", "Second Debate - Nashville", "Final Battle"}
 
 local selection = ""
 
@@ -70,7 +76,7 @@ local function choose_player(event)
   composer.setVariable("opponent_wins", 0)
   composer.setVariable("round", 1)
   audio.play(punch_sound)
-  gotoPrefight()
+  gotoFlight()
 end
 
 local function select_fighter(event)
@@ -97,6 +103,18 @@ local function select_fighter(event)
       selection_square.y = small_faces[name].y - 1
     end
   end
+  if fighter ~= nil then
+    -- fighter.disable()
+    fighter:disable()
+    display.remove(fighter)
+    -- fighter = nil
+  end
+  fighter = candidates[selection]:create(display.contentCenterX + 210, display.contentCenterY - 120, mainGroup, -500, 1500, effects)
+  fighter.xScale = -0.75
+  fighter.yScale = 0.75
+  fighter.ground_target = fighter.y
+  fighter:enable()
+
   nameText.text = string.upper(selection)
   checkmark.isVisible = true
 end
@@ -161,7 +179,7 @@ function scene:create( event )
   uiGroup = display.newGroup()
   sceneGroup:insert( uiGroup )
 
-  background = display.newImageRect( bgGroup, "Art/selection_background.png", 800, 500)
+  background = display.newImageRect( bgGroup, "Art/selection_background.png", 800, 550)
   background.x = display.contentCenterX
   background.y = display.contentCenterY
 
@@ -169,6 +187,8 @@ function scene:create( event )
   selection_square.anchorX = 0
   selection_square.anchorY = 0
   selection_square.isVisible = false
+
+  effects = effects_class:create()
 
   for i = 1,#names,1 do
     name = names[i]
@@ -180,11 +200,11 @@ function scene:create( event )
     end
     
     big_faces[name] = display.newImageRect( mainGroup, "Art/" .. name .. "_face.png", 150, 150 )
-    big_faces[name].x = 209
+    big_faces[name].x = 152
     big_faces[name].y = 2
     big_faces[name].anchorX = 0
     big_faces[name].anchorY = 0
-    big_faces[name].xScale = 1
+    big_faces[name].xScale = -1
     big_faces[name].isVisible = false
 
     small_faces[name] = display.newImageRect( mainGroup, "Art/" .. name .. "_face.png", 78, 78 )
@@ -204,12 +224,12 @@ function scene:create( event )
     end
   end
 
-  nameText = display.newEmbossedText(uiGroup, "", 284 - 75 - 8, 2, "Georgia-Bold", 20)
-  nameText.anchorX = 1
+  nameText = display.newEmbossedText(uiGroup, "", display.contentCenterX, 52, "Georgia-Bold", 30)
+  nameText.anchorX = 0.5
   nameText.anchorY = 0
   nameText:setTextColor(0.72, 0.18, 0.18)
-  nickNameText = display.newEmbossedText(uiGroup, "", 284 + 75 + 8, 2, "Georgia-Bold", 20)
-  nickNameText.anchorX = 0
+  nickNameText = display.newEmbossedText(uiGroup, "", display.contentCenterX, 82, "Georgia-Bold", 20)
+  nickNameText.anchorX = 0.5
   nickNameText.anchorY = 0
   nickNameText:setTextColor(0.72, 0.18, 0.18)
 
@@ -262,6 +282,10 @@ function scene:hide( event )
     -- Code here runs immediately after the scene goes entirely off screen
     timer.cancel(animationTimer)
     composer.removeScene("Source.Scenes.selection")
+    if fighter ~= nil then
+      fighter:disable()
+      display.remove(fighter)
+    end
   end
 end
 

@@ -73,7 +73,7 @@ quips["biden"]["warren"] = {
   "I'll thank you when I'm President.",
 }
 quips["biden"]["sanders"] = {
-  "Put'cher hand down for a second bernie, okay?",
+  "Put'cher hand down for a second, Bernie, okay?",
   "Just waving to you, Joe.",
 }
 

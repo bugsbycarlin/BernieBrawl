@@ -76,7 +76,7 @@ quips = {
     "I know I'm not supposed to like muscle cars, but I like muscle cars.",
   },
   sanders = {
-    "There are no 'human' oppressors. oppressors have lost their humanity!",
+    "There are no 'human' oppressors. Oppressors have lost their humanity!",
     "Let us wage a moral and political war against war itself!",
     "When we stand together, we will always win!",
     "What the people want to see is not someone who can win every fight. They want to see him stand up and fight for what he believes.",
@@ -163,7 +163,7 @@ function scene:create( event )
   quip_text = display.newText(
     mainGroup,
     quips[winning_fighter_name][math.random(1, #quips[winning_fighter_name])],
-    60, 130, 200, 200,
+    60, 130, 240, 200,
     "Georgia-Bold", 20)
   quip_text:setTextColor(0.3, 0.3, 0.4)
   quip_text.alpha = 0
@@ -251,24 +251,6 @@ function scene:create( event )
       continue_group:update()
     end)
   end
-
-  -- ko_fighter.sprite.fill.effect = "filter.duotone"
-  -- ko_fighter.sprite.fill.effect.darkColor = { blue_color.r / 3, blue_color.g / 3, blue_color.b / 3, 1 }
-  -- ko_fighter.sprite.fill.effect.lightColor = { blue_color.r / 3, blue_color.r / 3, blue_color.r / 3, 1 }
-  -- ko_fighter.sprite:setFillColor(blue_color.r / 3, blue_color.r / 3, blue_color.r / 3)
-
-  -- timer.performWithDelay(3000, function() beat_number = 1 end)
-  -- timer.performWithDelay(4000, function()
-  --   red_fighter:forceMoveAction(-5, -45)
-  --   beat_number = 2 
-  --   for i = 1,20,1 do
-  --     addRedSpeedLine(color_backdrop.y)
-  --   end
-  -- end)
-  -- timer.performWithDelay(7000, function()
-  --   beat_number = 3
-  -- end)
-  -- timer.performWithDelay(8000, function() gotoGame() end)
 end
 
 

@@ -4,7 +4,7 @@ local composer = require("composer")
 local scene = composer.newScene()
 
 local function gotoTitle()
-  composer.gotoScene("Source.Scenes.title", {effect = "fade", time = 3000})
+  composer.gotoScene("Source.Scenes.title", {effect = "fade", time = 2000})
 end
 
 local good
@@ -12,6 +12,15 @@ local game
 local lab
 
 local background
+
+local transitionTimer
+
+local function immediateTitle(event)
+  print("hi there")
+  timer.cancel(transitionTimer)
+  Runtime:removeEventListener("tap", immediateTitle)
+  gotoTitle()
+end
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -28,7 +37,6 @@ function scene:create( event )
   background.y = display.contentCenterY
   background.alpha = 0.8
 
-
   good = display.newEmbossedText(sceneGroup, "GOOD", display.contentCenterX - 106, display.contentCenterY, "Georgia-Bold", 30)
   good:setTextColor(0.72, 0.18, 0.18)
 
@@ -37,6 +45,7 @@ function scene:create( event )
 
   lab = display.newEmbossedText(sceneGroup, "LAB", display.contentCenterX + 93, display.contentCenterY, "Georgia-Bold", 30)
   lab:setTextColor(0.18, 0.18, 0.72)
+
 end
 
 
@@ -48,7 +57,9 @@ function scene:show( event )
 
   if ( phase == "will" ) then
     -- Code here runs when the scene is still off screen (but is about to come on screen)
-    timer.performWithDelay(6000, gotoTitle, 1)
+    transitionTimer = timer.performWithDelay(4000, gotoTitle, 1)
+    display.getCurrentStage():setFocus(background)
+    Runtime:addEventListener("tap", immediateTitle)
   elseif ( phase == "did" ) then
     -- Code here runs when the scene is entirely on screen
 
@@ -67,7 +78,7 @@ function scene:hide( event )
 
   elseif ( phase == "did" ) then
     -- Code here runs immediately after the scene goes entirely off screen
-    composer.removeScene("intro")
+    composer.removeScene("Source.Scenes.intro")
   end
 end
 

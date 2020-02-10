@@ -342,10 +342,11 @@ local function player_blue_button(event)
   if state == "active" then
     player:kickingAction()
   end
+  return true
 end
 
 local function player_green_button(event)
-  if event.phase == "began" and state == "active" then
+  if state == "active" then
     player:punchingAction()
   end
   return true
@@ -390,6 +391,12 @@ local function debugKeyboard(event)
   if event.keyName == "k" then
     player_blue_button(event)
   end
+
+  if event.keyName == "p" then
+    composer.setVariable("player_wins", 1)
+    player.target.health = 0
+  end
+
 
   if event.keyName == "x" and event.phase == "up" then
     if show_hitboxes == true then
@@ -627,7 +634,7 @@ function scene:show( event )
 
   if ( phase == "will" ) then
     -- Code here runs when the scene is still off screen (but is about to come on screen)
-    gameLoopTimer = timer.performWithDelay( 33, gameLoop, 0 )
+    gameLoopTimer = timer.performWithDelay(33, gameLoop, 0)
     -- backgroundAnimationTimer = timer.performWithDelay(500, backgroundAnimation, 0)
     fighters[1]:enable()
     fighters[2]:enable()
