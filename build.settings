@@ -40,10 +40,12 @@ settings =
 	--
 	-- Plugins section
 	--
-	plugins =
-	{
-
-	},
+	plugins = {
+      ["plugin.animation"] =
+      {
+          publisherId = "com.coronalabs"
+      },
+  },
 
 	--
 	-- Project section
