@@ -21,8 +21,10 @@ local current_frame
 
 local frameText
 
-local spriteInfo = require("Source.Sprites.trumpSprite")
-local sprite = graphics.newImageSheet("Art/trump_sprite.png", spriteInfo:getSheet())
+local character = "sanders"
+
+local spriteInfo = require("Source.Sprites." .. character .. "Sprite")
+local sprite = graphics.newImageSheet("Art/" .. character .. "_sprite.png", spriteInfo:getSheet())
 
 local hitBoxes = {}
 
@@ -196,7 +198,7 @@ local function clicky(event)
   return true  -- Prevents touch propagation to underlying objects
 end
 
-local filepath = system.pathForFile("hitdetection.json", system.DocumentsDirectory)
+local filepath = system.pathForFile(character .. "_hitdetection.json", system.DocumentsDirectory)
 
 local function saveInfo(event)
   local file = io.open(filepath, "w")
