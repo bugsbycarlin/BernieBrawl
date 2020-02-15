@@ -21,14 +21,14 @@ local plane_sound = audio.loadSound("Sound/plane_sound.mp3")
 local train_sound = audio.loadSound("Sound/train_sound.mp3")
 
 targets = {
-    {name="Iowa", x=887, y=435, icon="corn.png"},
-    {name="New Hampshire", x=1442, y=265, icon="beer.png"},
-    {name="Super Tuesday", x=486, y=526, icon="beer.png"},
-    {name="The Convention", x=1030, y=384, icon="beer.png"},
-    {name="VP Debate", x=411, y=498, icon="beer.png"},
-    {name="First Debate", x=1079, y=427, icon="beer.png"},
-    {name="Second Debate", x=1100, y=618, icon="guitar.png"},
-    {name="The White House", x=1363, y=453, icon="beer.png"},
+    {name="Iowa", x=887, y=435, icon="black_stone.png"},
+    {name="New Hampshire", x=1442, y=265, icon="black_stone.png"},
+    {name="Super Tuesday", x=486, y=526, icon="black_stone.png"},
+    {name="The Convention", x=1030, y=384, icon="black_stone.png"},
+    {name="VP Debate", x=411, y=498, icon="black_stone.png"},
+    {name="First Debate", x=1079, y=427, icon="black_stone.png"},
+    {name="Second Debate", x=1100, y=618, icon="black_stone.png"},
+    {name="The White House", x=1363, y=453, icon="black_stone.png"},
 }
 
 local location_number
@@ -99,11 +99,11 @@ function scene:create( event )
   -- icon2.x = origin.x * zoom
   -- icon2.y = origin.y * zoom
 
-  icon = display.newImageRect(mainGroup, "Art/" .. targets[location_number].icon, 64, 64)
+  icon = display.newImageRect(mainGroup, "Art/" .. targets[location_number].icon, 16, 16)
   icon.x = targets[location_number].x * zoom
   icon.y = targets[location_number].y * zoom
   
-  location_name = display.newText(mainGroup, string.upper(targets[location_number].name), icon.x, icon.y + 40, "Georgia-Bold", 25)
+  location_name = display.newText(mainGroup, string.upper(targets[location_number].name), icon.x, icon.y + 25, "Georgia-Bold", 25)
   location_name:setTextColor(1,1,1)
 
   if location_number == 4 then

@@ -87,6 +87,11 @@ local function gotoSelection()
   composer.gotoScene("Source.Scenes.selection")
 end
 
+local function gotoQuickTitle()
+  audio.stop(1)
+  composer.gotoScene("Source.Scenes.quick_title")
+end
+
 local timerTable
 
 local function addSpeedLine(color, direction, y)
@@ -140,7 +145,6 @@ local function addRandomSpeedLine()
 end
 
 local function animationFunction()
-  print(beat_number)
   effects:update()
 
   if beat_number > 0 and beat_number < 10 then
@@ -171,34 +175,10 @@ local function immediateTitleCard(event)
     return
   end
   for i = 1, #timerTable do
-    print(timerTable[i])
     timer.cancel(timerTable[i])
   end
   Runtime:removeEventListener("tap", immediateTitleCard)
-  audio.stop(1)
-
-  orange_background.isVisible = false
-  black_cutout.isVisible = false
-  display.remove(fightGroup)
-  beat_number = 10
-  display.remove(satire)
-  title_card.isVisible = true
-  white_screen.alpha = 1
-  for i = 1,40,1 do
-    addRandomSpeedLine()
-  end
-  press_start.isVisible = true
-  press_start.alpha = 1
-  display.getCurrentStage():setFocus(press_start)
-  press_start:addEventListener("tap", gotoSelection)
-
-  timer.performWithDelay(800, function()
-    beat_number = 11
-  end)
-
-  print("here")
-
-  audio.play(thunder_sound, {channel=1, loops=0})
+  gotoQuickTitle()
 end
 
 -- -----------------------------------------------------------------------------------

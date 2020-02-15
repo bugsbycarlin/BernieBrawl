@@ -76,8 +76,8 @@ setup()
 quick_setup("sanders", "trump")
 
 -- -- Go to the menu screen
--- composer.gotoScene("Source.Scenes.intro", {effect = "fade", time = 2000})
-composer.gotoScene("Source.Scenes.title", {effect = "fade", time = 2000})
+composer.gotoScene("Source.Scenes.intro", {effect = "fade", time = 2000})
+-- composer.gotoScene("Source.Scenes.title", {effect = "fade", time = 2000})
 -- composer.gotoScene("Source.Scenes.selection", {effect = "fade", time = 1000})
 -- composer.gotoScene("Source.Scenes.flight")
 -- composer.gotoScene("Source.Scenes.prefight", {effect = "fade", time = 1000})
