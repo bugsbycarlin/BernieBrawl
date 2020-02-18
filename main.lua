@@ -68,20 +68,20 @@ local function quick_setup(candidate, opponent)
   location = table.remove(locations, 1)
   composer.setVariable("locations", locations)
   composer.setVariable("player_wins", 0)
-  composer.setVariable("opponent_wins", 1)
-  composer.setVariable("round", 2)
+  composer.setVariable("opponent_wins", 0)
+  composer.setVariable("round", 1)
 end
 
 setup()
-quick_setup("sanders", "trump")
+quick_setup("sanders", "biden")
 
 -- -- Go to the menu screen
 -- composer.gotoScene("Source.Scenes.intro", {effect = "fade", time = 2000})
 -- composer.gotoScene("Source.Scenes.title", {effect = "fade", time = 2000})
-composer.gotoScene("Source.Scenes.selection", {effect = "fade", time = 1000})
+-- composer.gotoScene("Source.Scenes.selection", {effect = "fade", time = 1000})
 -- composer.gotoScene("Source.Scenes.flight")
 -- composer.gotoScene("Source.Scenes.prefight", {effect = "fade", time = 1000})
--- composer.gotoScene("Source.Scenes.game")
+composer.gotoScene("Source.Scenes.game")
 -- composer.gotoScene("Source.Scenes.hitDetectionEditor")
 -- composer.gotoScene("Source.Scenes.cutscene_alt")
 

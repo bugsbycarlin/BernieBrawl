@@ -66,6 +66,8 @@ function healthBar:create(x, y, xScale, group)
 end
 
 function healthBar:setHealth(health_percent)
+  print("health percent")
+  print(health_percent)
   self.health_percent = health_percent
   self.overlay_bar.isVisible = false
   self.foreground_bar.isVisible = true

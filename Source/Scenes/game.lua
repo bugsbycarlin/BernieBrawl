@@ -63,7 +63,7 @@ candidates["bro"] = require("Source.Candidates.bro")
 
 local paused = false
 
-local show_hitboxes = false
+local show_hitboxes = true
 
 local state
 
@@ -134,7 +134,7 @@ local function checkPlayerActions()
       blue_button.alpha = 0.5
       right_panel.alpha = 0.5
     end
-  elseif player.action ~= nil and player.action ~= "blocking" then
+  elseif player.action ~= "resting" and player.action ~= "blocking" then
     red_button.alpha = 0.5
     green_button.alpha = 0.5
     if player.action ~= "jumping" then
@@ -316,17 +316,16 @@ local function gameLoop()
   iowa_snow:update()
   effects_thingy:update()
 
-  print("Number of fighters is " .. #fighters)
   -- to do: ditch bros from the fighters list, or recycle them
 
   for i = 1, #fighters do
     if fighters[i].healthbar ~= nil then
-      if (fighters[i].health < fighters[i].visibleHealth - 5) then
-        fighters[i].visibleHealth = 0.2 * fighters[i].health + 0.8 * fighters[i].visibleHealth
-        fighters[i].healthbar:setHealth(fighters[i].visibleHealth)
-      elseif (fighters[i].health < fighters[i].visibleHealth) then
-        fighters[i].visibleHealth = fighters[i].visibleHealth - 1
-        fighters[i].healthbar:setHealth(fighters[i].visibleHealth)
+      if (fighters[i].health < fighters[i].visible_health - 5) then
+        fighters[i].visible_health = 0.2 * fighters[i].health + 0.8 * fighters[i].visible_health
+        fighters[i].healthbar:setHealth(fighters[i].visible_health / fighters[i].max_health * 100)
+      elseif (fighters[i].health < fighters[i].visible_health) then
+        fighters[i].visible_health = fighters[i].visible_health - 1
+        fighters[i].healthbar:setHealth(fighters[i].visible_health / fighters[i].max_health * 100)
       end
     end
   end
@@ -361,10 +360,8 @@ end
 
 local function player_red_button(event)
   if state == "active" then
-    if (event.phase == "began") and player.action == nil then
-      if player.action == nil then
-        player:blockingAction()
-      end
+    if (event.phase == "began") and player.action == "resting" then
+      player:blockingAction()
     elseif (event.phase == "ended" or event.phase == "cancelled") then
       if player.action == "blocking" then
         player:restingAction()
@@ -381,7 +378,7 @@ local function debugKeyboard(event)
   end
 
   if event.keyName == "h" then
-    if player.action == nil then
+    if player.action == "resting" then
       player:blockingAction()
     end
   end
