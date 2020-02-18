@@ -110,23 +110,9 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
     end
   end
 
-  function candidate:damageAction(actor, extra_vel)
-    self.sprite:setFrame(22)
-    self.after_image.isVisible = false
-    self.x_vel = -20 * self.xScale
-    if extra_vel ~= nil then
-      self.x_vel = self.x_vel + extra_vel * self.xScale
-    end
-    self.y_vel = -5
-    self.rotation = 15 * self.xScale
-    self.damage_timer = 4
-    self.health = self.health - actor.power
-    self.damage_in_a_row = self.damage_in_a_row + 1
-    self.action = "damaged"
-    if self.damage_in_a_row > 3 or self.health <= 0 then
-      self:koAction()
-    end
-  end
+  candidate.damaged_frames = {
+    22
+  }
 
   candidate.parentAnimationLoop = candidate.animationLoop
   function candidate:animationLoop()

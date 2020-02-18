@@ -63,7 +63,7 @@ candidates["bro"] = require("Source.Candidates.bro")
 
 local paused = false
 
-local show_hitboxes = true
+local show_hitboxes = false
 
 local state
 

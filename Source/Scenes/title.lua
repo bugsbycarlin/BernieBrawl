@@ -408,7 +408,7 @@ function scene:show( event )
       --trump:damageAction(blue_fighter, 30)
       -- trump:disable()
       trump.isVisible = true
-      trump.sprite:setFrame(13)
+      trump.sprite:setFrame(30)
       -- trump.xVel = -5
       local x = trump.x
       animation.to(trump, {x=trump.x + 30}, {time=4000, easing=easing.outSine})
@@ -441,7 +441,7 @@ function scene:show( event )
     --   animation.to(blue_slash, {y=800, x= display.contentCenterX - 100, rotation=60}, {time=prep_gap, easing=easing.inOutCirc})
     --   animation.to(blue_fighter, {y=1000}, {time=prep_gap - 100, easing=easing.inOutCirc})
     --   animation.to(blue_fighter, {alpha=0}, {time=prep_gap - 100, easing=easing.inOutCirc})
-    --   trump.sprite:setFrame(13)
+    --   trump.sprite:setFrame(30)
     --   animation.cancel(trump)
     --   trump.isVisible = false
     --   trump.x = display.contentCenterX - 20
@@ -465,7 +465,7 @@ function scene:show( event )
       animation.to(trump, {x=trump.x - 30}, {time=4000, easing=easing.outSine})
     end))
     table.insert(timerTable, timer.performWithDelay(initial_delay + second + 50, function()
-      trump.sprite:setFrame(13)
+      trump.sprite:setFrame(30)
       white_fighter.sprite:setFrame(21)
       blue_slash.isVisible = false
       blue_fighter.isVisible = false
@@ -480,7 +480,7 @@ function scene:show( event )
       animation.to(white_fighter, {xScale = 0.0, yScale = 0.0}, {time=prep_gap - 100, easing=easing.inOutExpo})
       animation.to(white_cutout_1, {xScale = 0.0, yScale = 0.0}, {time=100, easing=easing.outExpo})
       white_cutout_1.isVisible = false
-      trump.sprite:setFrame(13)
+      trump.sprite:setFrame(30)
       animation.cancel(trump)
       trump.isVisible = false
       trump.x = display.contentCenterX + 20
@@ -506,7 +506,7 @@ function scene:show( event )
     end))
     table.insert(timerTable, timer.performWithDelay(initial_delay + third + 50, function()
       -- red_fighter.sprite:setFrame(12)
-      trump.sprite:setFrame(13)
+      trump.sprite:setFrame(30)
       animation.to(red_slash, {x=display.contentCenterX - 60}, {time=4000, easing=easing.outSine})
       animation.to(red_fighter, {x=display.contentCenterX + 90}, {time=4000, easing=easing.outSine})
       animation.to(red_cutout_1, {rotation=4, x=red_cutout_1.x + 15}, {time=4000, easing=easing.outSine})
@@ -522,7 +522,7 @@ function scene:show( event )
       -- animation.to(trump, {x=display.contentCenterX, rotation=0}, {time=prep_gap, easing=easing.inOutExpo})
     end))
     table.insert(timerTable, timer.performWithDelay(initial_delay + fourth, function()
-      trump.sprite:setFrame(13)
+      trump.sprite:setFrame(30)
       animation.cancel(trump)
       trump.xScale = 0.7
       trump.rotation = -20
@@ -541,7 +541,7 @@ function scene:show( event )
     end))
     table.insert(timerTable, timer.performWithDelay(initial_delay + fourth + 50, function()
       -- red_fighter.sprite:setFrame(12)
-      trump.sprite:setFrame(13)
+      trump.sprite:setFrame(30)
       animation.to(yellow_slash, {x=display.contentCenterX + 20}, {time=4000, easing=easing.outSine})
       local y = yellow_fighter.y
       animation.to(yellow_fighter, {y=y - 15}, {time=4000, easing=easing.outSine})
@@ -558,7 +558,7 @@ function scene:show( event )
       animation.to(yellow_cutout_1, {alpha = 0}, {time=prep_gap, easing=easing.outExpo})
     end))
     table.insert(timerTable, timer.performWithDelay(initial_delay + fifth, function()
-      trump.sprite:setFrame(1)
+      trump.sprite:setFrame(23)
       animation.cancel(trump)
       trump.xScale = -0.7
       trump.rotation = 0
@@ -624,7 +624,7 @@ function scene:show( event )
       -- animation.to(yellow_cutout_1, {alpha = 0}, {time=prep_gap, easing=easing.outExpo})
     end))
     table.insert(timerTable, timer.performWithDelay(initial_delay + sixth, function()
-      trump.sprite:setFrame(1)
+      trump.sprite:setFrame(30)
       animation.cancel(trump)
       trump.xScale = -0.7
       trump.rotation = 0
