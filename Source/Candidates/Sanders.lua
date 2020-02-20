@@ -7,8 +7,6 @@ local sandersSprite = graphics.newImageSheet("Art/sanders_sprite.png", sandersSp
 sanders = {}
 sanders.__index = sanders
 
-local blocking_max_frames = 30
-
 function sanders:create(x, y, group, min_x, max_x, effects_thingy)
   local candidate = candidate_template:create(x, y, group, min_x, max_x, effects_thingy, 47)
 
@@ -16,7 +14,7 @@ function sanders:create(x, y, group, min_x, max_x, effects_thingy)
   candidate.automatic_rate = 450
   candidate.bros = 4
   candidate.ko_frame = 33
-  candidate:setMaxHealth(400)
+  -- candidate:setMaxHealth(400)
 
   candidate.frames = {}
   for i = 1, #sandersSpriteInfo.sheet.frames do
@@ -203,13 +201,7 @@ function sanders:create(x, y, group, min_x, max_x, effects_thingy)
     end
   end
 
-  candidate.animations["blocking"] = function(self)
-    self.sprite:setFrame(30)
-    self.frame = self.frame + 1
-    if self.frame > blocking_max_frames then
-      self:restingAction()
-    end
-  end
+  candidate.blocking_frames = {30}
 
   candidate.animations["dizzy"] = function(self)
     self.sprite:setFrame(32)

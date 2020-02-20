@@ -34,6 +34,7 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
   tim.action_window = 1500
   tim.power = 10
   tim.knockback = 12
+  tim.blocking_max_frames = 30
 
   tim.max_health = 100
   tim.health = tim.max_health
@@ -64,6 +65,8 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
   tim.enabled = false
 
   tim.animations = {}
+
+  tim.attack = nil
 
   function tim:setMaxHealth(max_health)
     self.max_health = max_health
@@ -110,6 +113,7 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
       self.frame = 1
       self.animationTimer._delay = self.action_rate
       self.action = "punching"
+      self.attack = {power=tim.power, knockback=tim.knockback}
     elseif self.action == "jumping" then
       self:jumpAttackAction()
     end
@@ -120,6 +124,7 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
       self.frame = 1
       self.animationTimer._delay = self.action_rate
       self.action = "kicking"
+      self.attack = {power=tim.power, knockback=tim.knockback}
     elseif self.action == "jumping" then
       self:jumpAttackAction()
     end
@@ -132,6 +137,7 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
   function tim:jumpAttackAction()
     self.action = "jump_kicking"
     self.frame = 1
+    self.attack = {power=tim.power, knockback=tim.knockback}
   end
 
   function tim:specialAction()
@@ -154,6 +160,7 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
     -- Set velocity in the direction of the touch
     self.x_vel = math.max(-1 * self.max_x_velocity, math.min(self.max_x_velocity, x_vel))
     self.y_vel = math.max(-1 * self.max_y_velocity, math.min(self.max_y_velocity, y_vel))
+    -- to do: only do this on voluntary moves.
     table.insert(self.swipe_history, {x_vel=self.x_vel, y_vel=self.y_vel, time=system.getTimer()})
 
     if self:checkSpecialAction(x_vel, y_vel) then
@@ -168,35 +175,64 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
     end
   end
 
-  function tim:damageAction(actor, extra_vel)
+  function tim:adjustVelocity(x_vel_delta, y_vel_delta)
+    -- Add velocity to existing velocity
+    self.x_vel = math.max(-1 * self.max_x_velocity, math.min(self.max_x_velocity, self.x_vel + x_vel_delta))
+    self.y_vel = math.max(-1 * self.max_y_velocity, math.min(self.max_y_velocity, self.y_vel + y_vel_delta))
 
+    -- check if there's substantial upward velocity, and if so, make this a jump
+    -- if self.y_vel < -1 * self.max_y_velocity / 2 then
+    --   self:jumpingAction()
+    -- elseif math.abs(self.y_vel) < self.max_y_velocity / 6 then
+    --   self.y_vel = 0
+    -- end
   end
 
   function tim:blockingAction()
-    self.frame = 1
+    self.sprite:setFrame(self.blocking_frames[1])
     self.after_image.isVisible = false
     self.animationTimer._delay = self.resting_rate
     self.rotation = 0
     self.action = "blocking"
   end
 
-  function tim:damageAction(actor, extra_vel)
-    self.sprite:setFrame(self.damaged_frames[1])
+  function tim:damageAction(type, damage_value, knockback, y_vel, rotation)
     self.after_image.isVisible = false
-    self.x_vel = -20 * self.xScale
-    if extra_vel ~= nil then
-      self.x_vel = self.x_vel + extra_vel * self.xScale
-    end
-    self.y_vel = -5
-    self.rotation = 15 * self.xScale
-    self.damage_timer = 4
-    self.health = self.health - actor.power
-    self.damage_in_a_row = self.damage_in_a_row + 1
-    self.action = "damaged"
-    if self.damage_in_a_row > 3 or self.health <= 0 then
-      self:koAction()
+    self.health = self.health - damage_value
+    self:adjustVelocity(knockback * -1 * self.xScale, y_vel)
+    self.rotation = rotation * self.xScale
+    self.animationTimer._delay = self.resting_rate
+    
+    if type == "damaged" then
+      self.sprite:setFrame(self.damaged_frames[1])
+      self.damage_timer = 4
+      self.action = "damaged"
+      if self.damage_in_a_row > 3 or self.health <= 0 then
+        self:koAction()
+      end
+    elseif type == "knockback" then
+      self.sprite:setFrame(self.blocking_frames[1])
+      self.action = "knockback"
     end
   end
+
+  -- function tim:damageAction(actor, extra_vel)
+  --   self.sprite:setFrame(self.damaged_frames[1])
+  --   self.after_image.isVisible = false
+  --   self.x_vel = -20 * self.xScale
+  --   if extra_vel ~= nil then
+  --     self.x_vel = self.x_vel + extra_vel * self.xScale
+  --   end
+  --   self.y_vel = -5
+  --   self.rotation = 15 * self.xScale
+  --   self.damage_timer = 4
+  --   self.health = self.health - actor.power
+  --   self.damage_in_a_row = self.damage_in_a_row + 1
+  --   self.action = "damaged"
+  --   if self.damage_in_a_row > 3 or self.health <= 0 then
+  --     self:koAction()
+  --   end
+  -- end
 
   function tim:koAction()
     self.action = "ko"
@@ -214,7 +250,7 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
     self.damage_timer = 45
     self.damage_in_a_row = 0
     for i = 1, 3, 1 do
-      self.effects_thingy:addTwit(self, 0, -110 + math.random(1,20), 40 + math.random(1,20), 2250)
+      self.effects_thingy:addDizzyTwit(self, self, 0, -110 + math.random(1,20), 40 + math.random(1,20), 2250)
     end
   end
 
@@ -259,6 +295,18 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
     end
   end
 
+  tim.animations["blocking"] = function(self)
+    self.sprite:setFrame(self.blocking_frames[1])
+    self.frame = self.frame + 1
+    if self.frame > self.blocking_max_frames then
+      self:restingAction()
+    end
+  end
+
+  tim.animations["knockback"] = function(self)
+    self.sprite:setFrame(self.blocking_frames[1])
+  end
+
   function tim:physicsLoop()
     if #self.swipe_history > 0 
       and system.getTimer() - self.swipe_history[#self.swipe_history].time > self.action_window then
@@ -268,7 +316,9 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
     if self.x + self.x_vel > self.min_x and self.x + self.x_vel < self.max_x then
       self.x = self.x + self.x_vel
     end
-    self.y = self.y + self.y_vel
+    if self.action ~= "pre_jumping" then
+      self.y = self.y + self.y_vel
+    end
 
     if math.abs(self.y_vel) < self.max_y_velocity / 4 and self.action ~= "ultra_punching" then
       self.x_vel = self.x_vel * 0.8
@@ -283,6 +333,10 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
     local current_ground_target = self.ground_target
     if self.action == "ko" then
       current_ground_target = current_ground_target + 60
+    end
+
+    if self.action == "knockback" and math.abs(self.x_vel) < self.max_x_velocity / 10 then
+      self:restingAction()
     end
 
     if (self.y < current_ground_target) then
@@ -321,76 +375,180 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
   end
 
   function tim:hitDetection()
+    -- Each sprite frame has a covering of circles marked "attack", "vulnerability", or "defense".
+    -- A collision happens when Alice's circles touch Bob's circles.
+    -- But it's necessary to resolve all the different touch points at once, symmetrically.
+    -- That is, Alice is doing several things to Bob and Bob is doing several things to Alice,
+    -- and these must all be boiled down to a result for Alice and a result for Bob.
+
+    -- The priority list of results is as follows.
+    -- Highest: recieve full damage and full knockback, action set to "damaged"
+    -- recieve partial damage and partial knockback, action set to "knockback"
+    -- recieve full knockback, action set to "knockback"
+    -- recieve partial knockback, action unchanged (eg "block")
+    -- Lowest: slow approach velocity, action unchanged
+    -- priority = {
+    --   5="full_damage",
+    --   4="partial_damage",
+    --   3="full_knockback",
+    --   2="partial_knockback",
+    --   1="slowdown",
+    -- }
+
+    -- For each other fighter, all collisions are examined. Each collision generates a result for Alice and a result for Bob.
+    -- For instance, if Alice's attack touches Bob's vulnerability, the result is that Bob recieves full damage and full knockback,
+    -- and his action is set to "damaged".
+    -- Or, if Alice's attack touches Bob's attack, the result is both Alice and Bob recieve partial damage and partial knockback.
+
+    -- The highest priority effect is chosen for each fighter independent of the other.
+
+    -- To prevent a single attack landing multiple times, if any attack surface is touching, the fighter's attack is *deactivated*.
+    -- If the fighter's attack is deactivated, attack circles are ignored. It will take a new attack to reactivate and deal damage again.
+
+    -- Note that since there are potentially more than two fighters, a player can potentially collide multiple times.
+
+    -- first, get the list of fighters, using {self.target} if necessary, and return if it's empty. 
     hit_list = self.fighters
     if hit_list == nil then
       hit_list = {self.target}
     end
-
     if hit_list == nil then
       return
     end
 
+    -- then, get the hit detection circles for the fighter's current frame
     frame = self.sprite.frame
     hitIndex = self.hitIndex[frame]
     if hitIndex == nil then
       return
     end
 
+    -- determines how much the circles have to touch before it counts as a collision. higher value prevents over-sensitive collisions.
+    local insensitivity = 4
+
+    -- Loop through fighters (skipping self)
     for i = 1, #hit_list do
       opponent = hit_list[i]
 
-      if opponent.name ~= self.name and opponent.action ~= "damaged" and opponent.action ~= "ko" then
+      fighter_result = -1
+      opponent_result = -1
 
+      if opponent ~= self and (self.ally == nil or self.ally ~= opponent) and (opponent.ally == nil or opponent.ally ~= self) then
+        -- Get the opponent's hit detection circles
         opponent_frame = opponent.sprite.frame
         opponent_hitIndex = opponent.hitIndex[opponent_frame]
 
-        collision = nil
+        -- if self.name == "bro" then
+        --   print("ally")
+        --   print(self.ally.name)
+        --   print("opponent")
+        --   print(opponent.name)
+        --   print(self.ally == opponent)
+        -- end
 
         for j = 1, #hitIndex do
-          if hitIndex[j].purpose ~= "vulnerability" and opponent_hitIndex ~= nil then
-            for k = 1, #opponent_hitIndex do
-              x1, y1 = self:localToContent(hitIndex[j].x, hitIndex[j].y)
-              x2, y2 = opponent:localToContent(opponent_hitIndex[k].x, opponent_hitIndex[k].y)
-              if distance(x1, y1, x2, y2) < hitIndex[j].radius + opponent_hitIndex[k].radius then
-                if hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" then
-                  collision = "damage"
-                elseif hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "defense" and collision == nil then
-                  collision = "block" 
-                  print("a block happened") 
-                elseif hitIndex[j].purpose == "defense" and opponent_hitIndex[k].purpose == "defense" and collision == nil then
-                  collision = "stop"
-                elseif hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "attack" and collision == nil then
-                  collision = "reflect"
-                end
+          for k = 1, #opponent_hitIndex do
+            x1, y1 = self:localToContent(hitIndex[j].x, hitIndex[j].y)
+            x2, y2 = opponent:localToContent(opponent_hitIndex[k].x, opponent_hitIndex[k].y)
+            if distance(x1, y1, x2, y2) < hitIndex[j].radius + opponent_hitIndex[k].radius - insensitivity then
+              -- a collision has occured. Determine the consequence based on the type.
+              if self.attack ~= nil and hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" then
+                -- Alice hits Bob in his vulnerability. Full damage to Bob and nothing to Alice.
+                opponent_result = math.max(opponent_result, 5)
+              elseif self.attack ~= nil and hitIndex[j].purpose == "attack" and opponent.attack ~= nil and opponent_hitIndex[k].purpose == "attack" then
+                -- Alice and Bob punch each other in the fists. Partial damage each.
+                fighter_result = math.max(fighter_result, 4)
+                opponent_result = math.max(opponent_result, 4)
+              elseif self.attack ~= nil and hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "defense" then
+                -- Alice punches Bob in his defense surface. Full knockback for Alice, partial knockback for Bob.
+                fighter_result = math.max(fighter_result, 3)
+                opponent_result = math.max(opponent_result, 2)
+              elseif hitIndex[j].purpose == "defense" and opponent.attack ~= nil and opponent_hitIndex[k].purpose == "attack" then
+                -- Bob punches Alice in her defense surface. Full knockback for Bob, partial knockback for Alice.
+                fighter_result = math.max(fighter_result, 2)
+                opponent_result = math.max(opponent_result, 3)
+              elseif hitIndex[j].purpose == "defense" and opponent_hitIndex[k].purpose == "defense" then
+                -- defense on defense contact is made. Slow approach velocities for both.
+                fighter_result = math.max(fighter_result, 1)
+                opponent_result = math.max(opponent_result, 1)
+              elseif hitIndex[j].purpose == "defense" and opponent_hitIndex[k].purpose == "vulnerability" then
+                -- defense on vulnerability contact is made. Slow approach velocities for both.
+                fighter_result = math.max(fighter_result, 1)
+                opponent_result = math.max(opponent_result, 1)
+              elseif hitIndex[j].purpose == "vulnerability" and opponent.attack ~= nil and opponent_hitIndex[k].purpose == "attack" then
+                -- Bob hits alice in her vulnerability. Full damage to Alice and nothing to Bob.
+                fighter_result = math.max(fighter_result, 5)
+              elseif hitIndex[j].purpose == "vulnerability" and opponent_hitIndex[k].purpose == "defense" then
+                -- defense on vulnerability contact is made. Slow approach velocities for both.
+                fighter_result = math.max(fighter_result, 1)
+                opponent_result = math.max(opponent_result, 1)
+              elseif hitIndex[j].purpose == "vulnerability" and opponent_hitIndex[k].purpose == "vulnerability" then
+                -- Vulnerability on vulnerability contact is made. Slow approach velocities for both.
+                fighter_result = math.max(fighter_result, 1)
+                opponent_result = math.max(opponent_result, 1)
               end
             end
           end
         end
 
-        -- to do: consult specific moves for damage, knockback, etc
-        if collision == "reflect" then
-          if self.action == "resting" then
-            self.effects_thingy:randomDamage()
-            self:forceMoveAction(-1 * self.knockback * self.xScale, -5)
-            opponent:forceMoveAction(-1 * self.knockback * opponent.xScale, -5)
-          else
-            self:forceMoveAction(0, 0)
-            opponent:forceMoveAction(0, 0)
+        -- Now we have planned results for both the fighter and the opponent. Time to resolve the results.
+        symmetric_pair = {
+          {fighter_result, self, opponent},
+          {opponent_result, opponent, self},
+        }
+        if fighter_result >= 1 or opponent_result >= 1 then
+          print("new collision frame")
+        end
+        for p = 1, #symmetric_pair do
+          local result = symmetric_pair[p][1]
+          local A = symmetric_pair[p][2]
+          local B = symmetric_pair[p][3]
+          if result >= 1 then
+            print(A.name .. " gets " .. result)
           end
-        elseif collision == "block" then
-          self.effects_thingy:playSound("block")
-          self:forceMoveAction(-0.5 * self.knockback * self.xScale, -3)
-          opponent:forceMoveAction(-0.5 * self.knockback * opponent.xScale, -3)
-        elseif collision == "stop" then
-          self:forceMoveAction(self.x_vel / 2, self.y_vel)
-          opponent:forceMoveAction(opponent.x_vel / 2, opponent.y_vel)
-        elseif collision == "damage" then
-          self.effects_thingy:randomDamage()
-          self.damage_in_a_row = 0
-          opponent:damageAction(self, self.knockback * self.xScale)
+        
+          if result == 5 then
+            -- full damage and full knockback for the fighter
+            A.effects_thingy:randomDamageSound()
+            B.damage_in_a_row = 0
+            A.damage_in_a_row = A.damage_in_a_row + 1
+            A:damageAction("damaged", B.attack.power, B.attack.knockback, -5, 15)
+          elseif result == 4 then
+            -- partial damage and partial knockback for the fighter
+            -- (note this is one sided, because what happens to the other fighter is independent)
+            A.effects_thingy:randomDamageSound()
+            B.damage_in_a_row = 0
+            A:damageAction("knockback", B.attack.power / 2, A.attack.knockback / 2, 0, 0)
+          elseif result == 3 then
+            -- full knockback for the fighter
+            A.effects_thingy:randomDamageSound()
+            -- A:damageAction("knockback", 0, A.attack.knockback, 0, 0)
+            A:adjustVelocity(A.attack.knockback * -2 * A.xScale, 0)
+          elseif result == 2 then
+            -- partial knockback for the fighter
+            A.effects_thingy:randomDamageSound()
+            -- A:damageAction("knockback", 0, B.attack.knockback / 2, 0, 0)
+            A:adjustVelocity(B.attack.knockback * -0.5 * A.xScale, 0)
+          elseif result == 1 then
+            -- if the fighter's x velocity is approaching the opponent, curtail it.
+            -- BUT WHAT ABOUT ULTRA PUNCHING?
+            if A.x < B.x and A.x_vel > 0 then
+              A.x_vel = A.x_vel * 0.6
+            elseif A.x > B.x and A.x_vel < 0 then
+              A.x_vel = A.x_vel * 0.6
+            end
+          end
+        end
+
+        if opponent_result >= 4 or opponent_result == 2  or fighter_result == 3 then
+          self.attack = nil
+        end
+        if fighter_result >= 4 or fighter_result == 2  or opponent_result == 3 then
+          opponent_attack = nil
         end
       end
     end
+
   end
 
   return tim

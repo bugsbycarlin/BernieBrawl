@@ -7,8 +7,6 @@ local trumpSprite = graphics.newImageSheet("Art/trump_sprite.png", trumpSpriteIn
 trump = {}
 trump.__index = trump
 
-local blocking_max_frames = 30
-
 function trump:create(x, y, group, min_x, max_x, effects_thingy)
   local candidate = candidate_template:create(x, y, group, min_x, max_x, effects_thingy, 38)
 
@@ -16,8 +14,8 @@ function trump:create(x, y, group, min_x, max_x, effects_thingy)
   candidate.resting_rate = 60
   candidate.action_rate = 50
   candidate.automatic_rate = 450
-  candidate.ko_frame = 1
-  candidate:setMaxHealth(400)
+  candidate.ko_frame = 32
+  candidate:setMaxHealth(300)
 
   candidate.frames = {}
   for i = 1, #trumpSpriteInfo.sheet.frames do
@@ -35,20 +33,46 @@ function trump:create(x, y, group, min_x, max_x, effects_thingy)
   candidate.after_image.isVisible = false
 
   function candidate:automaticAction()
-    if self.target.action ~= "dizzy" and self.target.action ~= "ko" then
-      dice = math.random(1, 100)
-      if dice > 90 then
-        self:moveAction(10 * self.xScale, 0)
-      elseif dice > 45 then
-        self:punchingAction()
+    -- self:blockingAction()
+    if self.action == "resting" then
+      if self.target.action == "jump_kicking" then
+        self:blockingAction()
+      elseif self.target.action ~= "dizzy" and self.target.action ~= "ko" then
+        dice = math.random(1, 100)
+        if dice > 80 then
+          self:moveAction(10 * self.xScale, 0)
+        elseif dice > 25 and self.target.action ~= "resting" then
+          self:blockingAction()
+        elseif dice > 60 then
+          self:punchingAction()
+        elseif dice > 20 then
+          self:kickingAction()
+        elseif dice > 0 then
+          self:specialAction()
+        end
       else
-        self:kickingAction()
+        dice = math.random(1, 100)
+        if dice > 90 then
+          self:specialAction()
+        elseif math.abs(self.x - self.target.x) < 150 then
+          self:moveAction(-10 * self.xScale, 0)
+        end
       end
     end
   end
 
   function candidate:specialAction()
-    
+    local dice = math.random(1,100)
+    if dice > 75 then
+      self.action = "twitting"
+    elseif dice > 50 then
+      self.action = "phone_throwing"
+    elseif dice > 25 then
+      self.action = "steak_throwing"
+    elseif dice > 0 then
+      self.action = "gold_bar_throwing"
+    end
+    self.frame = 1
   end
 
   function candidate:checkSpecialAction(x_vel, y_vel)
@@ -75,24 +99,6 @@ function trump:create(x, y, group, min_x, max_x, effects_thingy)
     end
 
     return false
-  end
-
-  function candidate:damageAction(actor, extra_vel)
-    --self.sprite:setFrame(31)
-    self.after_image.isVisible = false
-    self.x_vel = -20 * self.xScale
-    if extra_vel ~= nil then
-      self.x_vel = self.x_vel + extra_vel * self.xScale
-    end
-    self.y_vel = -5
-    self.rotation = 15 * self.xScale
-    self.damage_timer = 4
-    self.health = self.health - actor.power
-    self.damage_in_a_row = self.damage_in_a_row + 1
-    self.action = "damaged"
-    if self.damage_in_a_row > 3 or self.health <= 0 then
-      self:koAction()
-    end
   end
 
   -- local resting_frames = {
@@ -189,29 +195,141 @@ function trump:create(x, y, group, min_x, max_x, effects_thingy)
     end
   end
 
+  local twitting_frames = {
+    1,
+    33, 33,
+    34, 34, 35,
+    34, 34, 35,
+    34, 34, 35,
+    34, 34, 35,
+    34, 34, 35,
+    34, 34, 35,
+    34,
+  }
+  candidate.animations["twitting"] = function(self)
+    self.sprite:setFrame(twitting_frames[self.frame])
+    if self.frame == 10 or self.frame == 13 or self.frame == 16 then
+      self.effects_thingy:addProjectileTwit(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.xScale)
+    end
+    self.frame = self.frame + 1
+    if (self.frame > #twitting_frames) then
+      self:restingAction()
+    end
+  end
+
+    local phone_throwing_frames = {
+    1,
+    33, 33,
+    34, 34, 35,
+    34, 34, 35,
+    34, 34, 35,
+    34, 34, 35,
+    24, 24,
+    25, 25,
+    26, 26,
+    27, 27,
+  }
+  candidate.animations["phone_throwing"] = function(self)
+    self.sprite:setFrame(phone_throwing_frames[self.frame])
+    if self.frame == 16 then
+      self.effects_thingy:addProjectilePhone(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.xScale)
+    end
+    self.frame = self.frame + 1
+    if (self.frame > #phone_throwing_frames) then
+      self:restingAction()
+    end
+  end
+
+  local steak_throwing_frames = {
+    1,
+    33, 33,
+    34, 34, 35,
+    34, 34, 35,
+    34, 34, 35,
+    34, 34, 35,
+    24, 24,
+    25, 25,
+    26, 26,
+    27, 27,
+  }
+  candidate.animations["steak_throwing"] = function(self)
+    self.sprite:setFrame(steak_throwing_frames[self.frame])
+    if self.frame == 16 then
+      self.effects_thingy:addProjectileSteak(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.xScale)
+    end
+    self.frame = self.frame + 1
+    if (self.frame > #steak_throwing_frames) then
+      self:restingAction()
+    end
+  end
+
+  local gold_bar_throwing_frames = {
+    1,
+    33, 33,
+    34, 34, 35,
+    34, 34, 35,
+    34, 34, 35,
+    34, 34, 35,
+    24, 24,
+    25, 25,
+    26, 26,
+    27, 27,
+  }
+  candidate.animations["gold_bar_throwing"] = function(self)
+    self.sprite:setFrame(gold_bar_throwing_frames[self.frame])
+    if self.frame == 16 then
+      self.effects_thingy:addProjectileGoldBar(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.xScale)
+    end
+    self.frame = self.frame + 1
+    if (self.frame > #gold_bar_throwing_frames) then
+      self:restingAction()
+    end
+  end
+
+  function candidate:jumpingAction()
+    self.action = "pre_jumping"
+    self.stored_y_vel = self.y_vel
+    self.stored_x_vel = self.x_vel
+    self.x_vel = 0
+    self.y_vel = 0
+    self.frame = 1
+  end
+
+  candidate.pre_jumping_frames = {
+    36, 36, 37, 37,
+  }
+  candidate.animations["pre_jumping"] = function(self)
+    self.sprite:setFrame(self.pre_jumping_frames[self.frame])
+    self.frame = self.frame + 1
+    if (self.frame > #self.pre_jumping_frames) then
+      self.action = "jumping"
+      self.y_vel = self.stored_y_vel
+      self.x_vel = self.stored_x_vel
+      self.frame = 1
+    end
+  end
+
   candidate.animations["jumping"] = function(self)
     if self.y_vel < 0 then
-      self.sprite:setFrame(22) -- go up
+      self.sprite:setFrame(38) -- go up
     elseif self.y_vel > 0 then
-      self.sprite:setFrame(24) -- go down
+      self.sprite:setFrame(39) -- go down
     end
   end
 
   candidate.animations["jump_kicking"] = function(self)
-    self.sprite:setFrame(23)
+    if self.frame == 1 or self.frame == 2 then
+      self.sprite:setFrame(40)
+    else
+      self.sprite:setFrame(41)
+    end
     self.frame = self.frame + 1
-    if (self.frame > 5) then
-      self:jumpingAction()
+    if (self.frame > 7) then
+      self.action = "jumping"
     end
   end
 
-  candidate.animations["blocking"] = function(self)
-    self.sprite:setFrame(30)
-    self.frame = self.frame + 1
-    if self.frame > blocking_max_frames then
-      self:restingAction()
-    end
-  end
+  candidate.blocking_frames = {31}
 
   candidate.damaged_frames = {
     28, 28, 29, 29, 30, 30, 29, 29,
@@ -237,29 +355,30 @@ function trump:create(x, y, group, min_x, max_x, effects_thingy)
   end
 
   local celebrating_frames = {
-    29, 29, 29, 29, 29, 29, 29,
+    1, 1,
+    42,
+    43, 43,
+    44,
+    45,
+    46, 46,
+    45,
+    44,
+    43, 43,
+    42,
   }
   candidate.animations["celebrating"] = function(self)
     self.sprite:setFrame(celebrating_frames[self.frame])
-    if self.frame == 1 then
-      -- create smoke
-      local number = math.random(1, 2)
-      local smoke_trail = display.newImageRect(self, "Art/smoke_0" .. number .. ".png", 64, 64)
-      smoke_trail.x = 16
-      smoke_trail.y = -51
-      smoke_trail.alpha = 1
-      function smoke_trail:update()
-        smoke_trail.alpha = smoke_trail.alpha * 0.99
-        smoke_trail.y = smoke_trail.y - 0.5
-      end
-      function smoke_trail:finished()
-        return self.alpha < 0.05
-      end
-      self.effects_thingy:add(smoke_trail)
-    end
     self.frame = self.frame + 1
     if (self.frame > #celebrating_frames) then
       self.frame = 1
+      -- celebrating_frames = { -- short loop
+      --   43, 43,
+      --   44, 44,
+      --   45, 45,
+      --   46,
+      --   45, 45,
+      --   44, 44,
+      -- }
     end
   end
 

@@ -56,6 +56,7 @@ local selectable_names = {"biden", "sanders", "warren",}
 
 local locations = {"Iowa", "New Hampshire", "Super Tuesday", "DNC - Milwaukee", "Vice Presidential Debate - Salt Lake City", "First Debate - South Bend", "Second Debate - Nashville", "Final Battle"}
 
+local selection_number = 1
 local selection = ""
 
 local function choose_player(event)
@@ -117,6 +118,51 @@ local function select_fighter(event)
 
   nameText.text = string.upper(selection)
   checkmark.isVisible = true
+end
+
+local function keyboard(event)
+
+  if event.keyName == "enter" and event.phase == "up" then
+    Runtime:removeEventListener("key", keyboard)
+    choose_player()
+  end
+
+  if event.keyName == "left" and event.phase == "up" then
+    selection_number = selection_number - 1
+    if selection_number == 0 then
+      selection_number = 3
+    elseif selection_number == 3 then
+      selection_number = 4
+    end
+  end
+  if event.keyName == "right" and event.phase == "up" then
+    selection_number = selection_number + 1
+    if selection_number == 4 then
+      selection_number = 1
+    elseif selection_number == 7 then
+      selection_number = 4
+    end
+  end
+  -- if event.keyName == "up" and event.phase == "up" then
+  --   selection_number = selection_number - 3
+  --   if selection_number < 1 then
+  --     selection_number = selection_number + 6
+  --   elseif selection_number > 6 then
+  --     selection_number = selection_number - 6
+  --   end
+  -- end
+  -- if event.keyName == "down" and event.phase == "up" then
+  --   selection_number = selection_number + 3
+  --   if selection_number < 1 then
+  --     selection_number = selection_number + 6
+  --   elseif selection_number > 6 then
+  --     selection_number = selection_number - 6
+  --   end
+  -- end
+
+  select_fighter({target={name=names[selection_number]}})
+
+  return true
 end
 
 target = {x=display.contentCenterX,y=display.contentCenterY}
@@ -244,6 +290,8 @@ function scene:create( event )
 
   checkmark:addEventListener("touch", choose_player)
 
+  Runtime:addEventListener("key", keyboard)
+
   -- fist:addEventListener("tap", player_punch)
   -- Runtime:addEventListener("touch", swipe)
 end
@@ -261,6 +309,8 @@ function scene:show( event )
     audio.play(select_music, { channel=1, loops=-1 })
 
     beatPulseTimer = timer.performWithDelay(306/2, beatPulse, 0)
+
+    select_fighter({target={name="warren"}})
 
   elseif ( phase == "did" ) then
     -- Code here runs when the scene is entirely on screen

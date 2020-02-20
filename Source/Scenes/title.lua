@@ -84,11 +84,13 @@ local grey_tone = 1
 
 local function gotoSelection()
   audio.stop(1)
+  Runtime:removeEventListener("key", keyboard)
   composer.gotoScene("Source.Scenes.selection")
 end
 
 local function gotoQuickTitle()
   audio.stop(1)
+  Runtime:removeEventListener("key", keyboard)
   composer.gotoScene("Source.Scenes.quick_title")
 end
 
@@ -144,8 +146,18 @@ local function addRandomSpeedLine()
   addSpeedLine(colors[math.random(1,3)], direction, speed_line_center)
 end
 
+local twit_frames = {34, 34, 34, 34, 35, 35,}
+local twit_frame_number = 1
 local function animationFunction()
   effects:update()
+
+  if beat_number == 0 then
+    false_trump.sprite:setFrame(twit_frames[twit_frame_number])
+    twit_frame_number = twit_frame_number + 1
+    if twit_frame_number > #twit_frames then
+      twit_frame_number = 1
+    end
+  end
 
   if beat_number > 0 and beat_number < 10 then
     satire.alpha = math.max(0, satire.alpha - 0.04)
@@ -177,8 +189,23 @@ local function immediateTitleCard(event)
   for i = 1, #timerTable do
     timer.cancel(timerTable[i])
   end
+  Runtime:removeEventListener("key", keyboard)
   Runtime:removeEventListener("tap", immediateTitleCard)
   gotoQuickTitle()
+end
+
+local function keyboard(event)
+  if event.keyName == "enter" and event.phase == "up" then
+    if beat_number < 10 then
+      immediateTitleCard()
+      beat_number = 10
+    elseif beat_number < 20 then
+      gotoSelection()
+      beat_number = 50
+    end
+  end
+
+  return true
 end
 
 -- -----------------------------------------------------------------------------------
@@ -680,6 +707,7 @@ function scene:show( event )
 
     -- display.getCurrentStage():setFocus(backgroundGroup)
     Runtime:addEventListener("tap", immediateTitleCard)
+    Runtime:addEventListener("key", keyboard)
 
   elseif ( phase == "did" ) then
     -- Code here runs when the scene is entirely on screen

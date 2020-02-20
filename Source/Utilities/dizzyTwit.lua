@@ -1,16 +1,16 @@
 
-twit = {}
-twit.__index = twit
+dizzyTwit = {}
+dizzyTwit.__index = dizzyTwit
 
 local twit_speed = 5
 local twit_period = 80
 local flutter_height = 7
 local twit_size = 32
 
-function twit:create(group, x_center, y_center, width, duration)
+function dizzyTwit:create(group, originator, x_center, y_center, width, duration)
 
   local object = {}
-  setmetatable(object, twit)
+  setmetatable(object, dizzyTwit)
 
   object.sprite = display.newImageRect(group, "Art/twit.png", twit_size, twit_size)
   object.sprite.x = x_center - width + math.random(1, 2 * width)
@@ -25,12 +25,13 @@ function twit:create(group, x_center, y_center, width, duration)
     object.sprite.xScale = -1
   end
   object.duration = duration
+  object.originator = originator
   object.start_time = system.getTimer()
 
   return object
 end
 
-function twit:update()
+function dizzyTwit:update()
   self.sprite.x = self.sprite.x + self.x_vel
   if self.sprite.x > self.x_center + self.width or self.sprite.x < self.x_center - self.width then
     self.x_vel = self.x_vel * -1
@@ -39,14 +40,16 @@ function twit:update()
   self.sprite.y = self.y_center + flutter_height * math.sin((system.getTimer() - self.start_time) / self.period)
 end
 
-function twit:finished()
+function dizzyTwit:finished()
   print("Time")
   print(system.getTimer() - self.start_time)
   if system.getTimer() - self.start_time > self.duration then
+    return true
+  elseif self.originator.action ~= "dizzy" then
     return true
   else
     return false
   end
 end
 
-return twit
+return dizzyTwit

@@ -2,7 +2,8 @@
 effects = {}
 effects.__index = effects
 
-local twit = require("Source.Utilities.twit")
+local dizzyTwit = require("Source.Utilities.dizzyTwit")
+local projectile = require("Source.Utilities.projectile")
 
 sounds = {}
 sounds["punch"] = audio.loadSound("Sound/punch.wav")
@@ -26,6 +27,8 @@ function effects:create()
 
   object.effect_list = {}
 
+  fighters = nil
+
   return object
 end
 
@@ -44,10 +47,61 @@ function effects:update()
   self.effect_list = copy_effect_list
 end
 
-function effects:addTwit(group, x_center, y_center, width, period, duration)
-  print("Adding a twit")
-  local x = twit:create(group, x_center, y_center, width, period, duration)
-  self:add(x)
+function effects:addDizzyTwit(group, originator, x_center, y_center, width, period, duration)
+  local twit = dizzyTwit:create(group, originator, x_center, y_center, width, period, duration)
+  self:add(twit)
+end
+
+projectileTwit_x_vel = 18
+projectileTwit_y_vel_max = 2
+function effects:addProjectileTwit(group, originator, x, y, xScale)
+  local x_vel = projectileTwit_x_vel * xScale
+  local y_vel = (math.random(1,200) - 100) / (100 / projectileTwit_y_vel_max)
+  local p = projectile:create("twit", group, originator, self.fighters, x, y, xScale, x_vel, y_vel)
+  self:add(p)
+end
+
+projectileSteak_x_vel = 30
+projectileSteak_y_vel_max = 2
+function effects:addProjectileSteak(group, originator, x, y, xScale)
+  local x_vel = projectileSteak_x_vel * xScale
+  local y_vel = (math.random(1,200) - 100) / (100 / projectileSteak_y_vel_max)
+  local p = projectile:create("steak", group, originator, self.fighters, x, y, xScale, x_vel, y_vel)
+  p.sprite.xScale = xScale / 2
+  p.sprite.yScale = 1/2
+  p.hit_radius = p.hit_radius / 1.5
+  p.gravity = 2
+  p.rotation_vel = 10 * xScale
+  self:add(p)
+end
+
+projectileGoldBar_x_vel = 28
+projectileGoldBar_y_vel_max = 2
+function effects:addProjectileGoldBar(group, originator, x, y, xScale)
+  local x_vel = projectileGoldBar_x_vel * xScale
+  local y_vel = (math.random(1,200) - 100) / (100 / projectileGoldBar_y_vel_max)
+  local p = projectile:create("gold_bar", group, originator, self.fighters, x, y, xScale, x_vel, y_vel)
+  p.sprite.xScale = xScale / 1.5
+  p.sprite.yScale = 1/1.5
+  p.hit_radius = p.hit_radius / 1.25
+  p.gravity = 2
+  p.y_vel = -8
+  p.rotation_vel = 10 * xScale
+  self:add(p)
+end
+
+projectilePhone_x_vel = 30
+projectilePhone_y_vel_max = 2
+function effects:addProjectilePhone(group, originator, x, y, xScale)
+  local x_vel = projectilePhone_x_vel * xScale
+  local y_vel = (math.random(1,200) - 100) / (100 / projectilePhone_y_vel_max)
+  local p = projectile:create("phone", group, originator, self.fighters, x, y, xScale, x_vel, y_vel)
+  p.sprite.xScale = xScale / 2
+  p.sprite.yScale = 1/2
+  p.hit_radius = p.hit_radius / 1.5
+  p.gravity = 2
+  p.rotation_vel = 10 * xScale
+  self:add(p)
 end
 
 function effects:addBro(group, player, x_center, y_center, x_vel, y_vel, min_x, max_x)
@@ -60,6 +114,7 @@ function effects:addBro(group, player, x_center, y_center, x_vel, y_vel, min_x, 
   fighter.target = player.target
   fighter.x_vel = x_vel
   fighter.y_vel = y_vel
+  fighter.ally = player
   fighter.action = "jumping"
   fighter:enable()
   fighter:enableAutomatic()
@@ -78,7 +133,7 @@ function effects:randomSwing()
   audio.play(sounds["swing_" .. math.random(1,3)], 0)
 end
 
-function effects:randomDamage()
+function effects:randomDamageSound()
   audio.play(sounds["damage_" .. math.random(1,6)], 0)
 end
 

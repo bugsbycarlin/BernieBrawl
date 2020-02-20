@@ -7,8 +7,6 @@ local bidenSprite = graphics.newImageSheet("Art/biden_sprite.png", bidenSpriteIn
 biden = {}
 biden.__index = biden
 
-local blocking_max_frames = 30
-
 function biden:create(x, y, group, min_x, max_x, effects_thingy)
   local candidate = candidate_template:create(x, y, group, min_x, max_x, effects_thingy, 47)
 
@@ -74,6 +72,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
   function candidate:specialAction()
     self.action = "ultra_punching"
     self.frame = 1
+    self.attack = {power=2*self.power, knockback=2*self.knockback}
   end
 
   function candidate:checkSpecialAction(x_vel, y_vel)
@@ -91,7 +90,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
         and math.abs(y_vel_1) < self.max_y_velocity / 5
         and math.abs(x_vel_2) > self.max_x_velocity / 3 and x_vel_2 * self.xScale < 0
         and math.abs(y_vel_2) < self.max_y_velocity / 5
-        and math.abs(x_vel_3) > self.max_x_velocity / 1.25 and x_vel_3 * self.xScale > 0 
+        and math.abs(x_vel_3) > self.max_x_velocity / 1.5 and x_vel_3 * self.xScale > 0 
         and math.abs(y_vel_3) < self.max_y_velocity / 5 then
 
         self.y_vel = 0
@@ -207,13 +206,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
     self.sprite:setFrame(33)
   end
 
-  candidate.animations["blocking"] = function(self)
-    self.sprite:setFrame(35)
-    self.frame = self.frame + 1
-    if self.frame > blocking_max_frames then
-      self:restingAction()
-    end
-  end
+  candidate.blocking_frames = {35}
 
   candidate.animations["dizzy"] = function(self)
     self.sprite:setFrame(29)

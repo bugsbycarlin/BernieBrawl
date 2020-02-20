@@ -10,8 +10,6 @@ local WhipSprite = graphics.newImageSheet("Art/whip_sprite.png", WhipSpriteInfo:
 warren = {}
 warren.__index = warren
 
-local blocking_max_frames = 30
-
 function warren:create(x, y, group, min_x, max_x, effects_thingy)
   local candidate = candidate_template:create(x, y, group, min_x, max_x, effects_thingy, 50)
 
@@ -257,13 +255,7 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
     end
   end
 
-  candidate.animations["blocking"] = function(self)
-    self.sprite:setFrame(25)
-    self.frame = self.frame + 1
-    if self.frame > blocking_max_frames then
-      self:restingAction()
-    end
-  end
+  candidate.blocking_frames = {25}
 
   candidate.animations["dizzy"] = function(self)
     self.sprite:setFrame(24)

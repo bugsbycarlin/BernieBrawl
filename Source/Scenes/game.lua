@@ -65,6 +65,8 @@ local paused = false
 
 local show_hitboxes = false
 
+local keyboard_use = true
+
 local state
 
 local camera = {
@@ -76,6 +78,16 @@ local camera = {
   max_x = 0,
   min_y = 0,
   max_y = 0,
+}
+
+local keydown = {
+  left=false,
+  right=false,
+  up=false,
+  down=false,
+  a=false,
+  s=false,
+  d=false,
 }
 
 local stage_music = audio.loadStream("Sound/BeiMir.mp3")
@@ -207,7 +219,11 @@ local function checkEnding()
     end
 
     Runtime:removeEventListener("touch", swipe)
-    Runtime:removeEventListener("key", debugKeyboard)
+    if keyboard_use == false then
+      Runtime:removeEventListener("key", debugKeyboard)
+    else
+      Runtime:removeEventListener("key", properKeyboard)
+    end
 
     player_wins = composer.getVariable("player_wins")
     opponent_wins = composer.getVariable("opponent_wins")
@@ -276,6 +292,56 @@ local function checkEnding()
   end
 end
 
+local function checkInput()
+
+  if keydown.left and keydown.up then
+    player:moveAction(-1 * player.xScale * player.max_x_velocity * 0.7, -1 * player.max_y_velocity)
+  elseif keydown.right and keydown.up then
+    player:moveAction(player.xScale * player.max_x_velocity * 0.7, -1 * player.max_y_velocity)
+  elseif keydown.up then
+    player:moveAction(0, -1 * player.max_y_velocity)
+  elseif keydown.down then
+    player:moveAction(0, player.max_y_velocity)
+  elseif keydown.left then
+    player:moveAction(-1 * player.xScale * player.max_x_velocity * 0.7, 0)
+  elseif keydown.right then
+    player:moveAction(player.xScale * player.max_x_velocity * 0.7, 0)
+  end
+
+  if keydown.a == true and player.action == "resting" then
+    player:blockingAction()
+  elseif keydown.a == false and player.action == "blocking" then
+    player:restingAction()
+  end
+
+  if keydown.s == true then
+    if player.action == "resting" then
+      player:punchingAction()
+    elseif player.action == "jumping" then
+      player:jumpAttackAction()
+    end
+  end
+
+  if keydown.d == true then
+    if player.action == "resting" then
+      player:kickingAction()
+    elseif player.action == "jumping" then
+      player:jumpAttackAction()
+    end
+  end
+
+
+
+  keydown = {
+    left=false,
+    right=false,
+    up=false,
+    down=false,
+    s=false,
+    d=false,
+  }
+end
+
 local function gameLoop()
   if audio.isChannelPlaying(1) == false and audio.isChannelPlaying(2) == false then
     audio.play(stage_music, {channel=2, loops=-1})
@@ -283,6 +349,8 @@ local function gameLoop()
 
   if state == "active" then
     checkEnding()
+
+    checkInput()
   end
 
   if camera.move then
@@ -370,6 +438,97 @@ local function player_red_button(event)
   end
 
   return true  -- Prevents touch propagation to underlying objects
+end
+
+local function properKeyboard(event)
+  if state ~= "active" then
+    return
+  end
+
+  -- if event.keyName == "h" then
+  --   if player.action == "resting" then
+  --     player:blockingAction()
+  --   end
+  -- end
+  -- if event.keyName == "j" then
+  --   player_green_button(event)
+  -- end
+  -- if event.keyName == "k" then
+  --   player_blue_button(event)
+  -- end
+
+  if event.keyName == "p" then
+    composer.setVariable("player_wins", 1)
+    player.target.health = 0
+  end
+
+  if event.keyName == "left" then
+    if event.phase == "down" then
+      keydown.left = true
+    elseif event.phase == "up" then
+      keydown.left = false
+    end
+  end
+
+  if event.keyName == "right" then
+    if event.phase == "down" then
+      keydown.right = true
+    elseif event.phase == "up" then
+      keydown.right = false
+    end
+  end
+
+  if event.keyName == "up" then
+    if event.phase == "down" then
+      keydown.up = true
+    elseif event.phase == "up" then
+      keydown.up = false
+    end
+  end
+
+  if event.keyName == "down" then
+    if event.phase == "down" then
+      keydown.down = true
+    elseif event.phase == "up" then
+      keydown.down = false
+    end
+  end
+
+  if event.keyName == "a" then
+    if event.phase == "down" then
+      keydown.a = true
+    elseif event.phase == "up" then
+      keydown.a = false
+    end
+  end
+
+  if event.keyName == "s" then
+    if event.phase == "down" then
+      keydown.s = true
+    elseif event.phase == "up" then
+      keydown.s = false
+    end
+  end
+
+  if event.keyName == "d" then
+    if event.phase == "down" then
+      keydown.d = true
+    elseif event.phase == "up" then
+      keydown.d = false
+    end
+  end
+
+  if event.keyName == "x" and event.phase == "up" then
+    if show_hitboxes == true then
+      show_hitboxes = false
+      hitBoxGroup.isVisible = false
+    else
+      show_hitboxes = true
+      hitBoxGroup.isVisible = true
+    end
+  end
+
+  return true
 end
 
 local function debugKeyboard(event)
@@ -617,7 +776,11 @@ function scene:create( event )
   red_button:addEventListener("touch", player_red_button)
   pause_button:addEventListener("tap", pause)
   Runtime:addEventListener("touch", swipe)
-  Runtime:addEventListener("key", debugKeyboard)
+  if keyboard_use == false then
+    Runtime:addEventListener("key", debugKeyboard)
+  else
+    Runtime:addEventListener("key", properKeyboard)
+  end
 
   state = "waiting"
 end

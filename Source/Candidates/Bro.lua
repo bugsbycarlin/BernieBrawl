@@ -31,7 +31,7 @@ function bro:create(x, y, group, min_x, max_x, effects)
 
   function candidate:automaticAction()
     dice = math.random(1, 100)
-    if dice > 90 then
+    if dice > 70 then
       self:moveAction(10 * self.xScale, 0)
     else 
       self:punchingAction()
@@ -52,6 +52,8 @@ function bro:create(x, y, group, min_x, max_x, effects)
       self.frame = 1
     end
   end
+
+  candidate.blocking_frames = {4}
 
   local punching_frames = {
     1, 1, 1, 1,

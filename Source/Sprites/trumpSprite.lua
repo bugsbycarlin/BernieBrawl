@@ -214,10 +214,122 @@ trumpSpriteInfo.sheet =
             height=256,
 
         },
+        {
+            x=1536,
+            y=768,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=1792,
+            y=768,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=0,
+            y=1024,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=256,
+            y=1024,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=512,
+            y=1024,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=768,
+            y=1024,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=1024,
+            y=1024,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=1280,
+            y=1024,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=1536,
+            y=1024,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=1792,
+            y=1024,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=0,
+            y=1280,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=256,
+            y=1280,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=512,
+            y=1280,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=768,
+            y=1280,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=1024,
+            y=1280,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=1280,
+            y=1280,
+            width=256,
+            height=256,
+
+        },
     },
 
     sheetContentWidth = 2048,
-    sheetContentHeight = 1024,
+    sheetContentHeight = 1536,
 }
 
 
@@ -228,6 +340,11 @@ trumpSpriteInfo.sheet =
 -- kicking frames: 20-23
 -- punching frames: 24-27
 -- damage frames: 28, 29, 30
+-- blocking frame: 31
+-- ko frame: 32
+-- tweeting frames: 33-35
+-- jumping frames: 36-41 (prep 36,37, up 38, down 39, kicking 40,41)
+-- celebrating frames: 42-46
 
 trumpSpriteInfo.hitIndex = 
 {
@@ -569,6 +686,132 @@ trumpSpriteInfo.hitIndex =
       {x=13.666666666667,y=29,type="circle",purpose="vulnerability",radius=18},
       {x=21,y=46,type="circle",purpose="vulnerability",radius=18},
       {x=17.333333333333,y=74,type="circle",purpose="vulnerability",radius=18},
+    },
+    {
+      {x=-30,y=-68.666666666667,type="circle",purpose="defense",radius=26},
+      {x=-10.333333333333,y=-24.333333333333,type="circle",purpose="defense",radius=36},
+      {x=-4.3333333333333,y=11.666666666667,type="circle",purpose="defense",radius=39},
+      {x=6,y=45.666666666667,type="circle",purpose="defense",radius=18},
+      {x=12.666666666667,y=70,type="circle",purpose="defense",radius=15},
+      {x=19,y=86.666666666667,type="circle",purpose="defense",radius=10},
+      {x=-26.666666666667,y=47.666666666667,type="circle",purpose="defense",radius=18},
+      {x=-23,y=69.666666666667,type="circle",purpose="defense",radius=15},
+      {x=-21.333333333333,y=86.333333333333,type="circle",purpose="defense",radius=14},
+    },
+    {
+    },
+    {
+      {x=-3.6666666666667,y=-71.333333333333,type="circle",purpose="vulnerability",radius=25},
+      {x=-6,y=-21.666666666667,type="circle",purpose="vulnerability",radius=37},
+      {x=-6.6666666666667,y=10.666666666667,type="circle",purpose="vulnerability",radius=38},
+      {x=-24.666666666667,y=45.333333333333,type="circle",purpose="vulnerability",radius=18},
+      {x=-30,y=67.333333333333,type="circle",purpose="vulnerability",radius=15},
+      {x=-33.666666666667,y=86,type="circle",purpose="vulnerability",radius=15},
+      {x=16.666666666667,y=39.333333333333,type="circle",purpose="vulnerability",radius=18},
+      {x=19,y=55.666666666667,type="circle",purpose="vulnerability",radius=18},
+      {x=19.666666666667,y=81,type="circle",purpose="vulnerability",radius=18},
+    },
+    {
+      {x=-2.6666666666667,y=-72,type="circle",purpose="vulnerability",radius=25},
+      {x=-5.6666666666667,y=-22.666666666667,type="circle",purpose="vulnerability",radius=37},
+      {x=-7.6666666666667,y=7.3333333333333,type="circle",purpose="vulnerability",radius=38},
+      {x=-24.333333333333,y=45.666666666667,type="circle",purpose="vulnerability",radius=18},
+      {x=-29.333333333333,y=67.666666666667,type="circle",purpose="vulnerability",radius=15},
+      {x=-33.333333333333,y=86.333333333333,type="circle",purpose="vulnerability",radius=15},
+      {x=16,y=38.333333333333,type="circle",purpose="vulnerability",radius=18},
+      {x=17,y=53.666666666667,type="circle",purpose="vulnerability",radius=18},
+      {x=16.666666666667,y=81,type="circle",purpose="vulnerability",radius=18},
+    },
+    {
+      {x=-2.3333333333333,y=-71.666666666667,type="circle",purpose="vulnerability",radius=25},
+      {x=-5.3333333333333,y=-21,type="circle",purpose="vulnerability",radius=38},
+      {x=-7,y=11.333333333333,type="circle",purpose="vulnerability",radius=39},
+      {x=-26,y=47.666666666667,type="circle",purpose="vulnerability",radius=18},
+      {x=-30,y=69.333333333333,type="circle",purpose="vulnerability",radius=14},
+      {x=-33.333333333333,y=87.333333333333,type="circle",purpose="vulnerability",radius=15},
+      {x=16,y=41.666666666667,type="circle",purpose="vulnerability",radius=18},
+      {x=18,y=55,type="circle",purpose="vulnerability",radius=18},
+      {x=18,y=80.666666666667,type="circle",purpose="vulnerability",radius=18},
+    },
+    {
+      {x=8,y=-66.333333333333,type="circle",purpose="vulnerability",radius=25},
+      {x=4.3333333333333,y=-22,type="circle",purpose="vulnerability",radius=36},
+      {x=1.3333333333333,y=6.3333333333333,type="circle",purpose="vulnerability",radius=38},
+      {x=-21.333333333333,y=40.666666666667,type="circle",purpose="vulnerability",radius=18},
+      {x=-27.666666666667,y=62,type="circle",purpose="vulnerability",radius=15},
+      {x=-34.666666666667,y=84.333333333333,type="circle",purpose="vulnerability",radius=15},
+      {x=30,y=37.333333333333,type="circle",purpose="vulnerability",radius=18},
+      {x=34.666666666667,y=51.666666666667,type="circle",purpose="vulnerability",radius=18},
+      {x=35,y=80,type="circle",purpose="vulnerability",radius=18},
+    },
+    {
+      {x=16.333333333333,y=-58.666666666667,type="circle",purpose="vulnerability",radius=24},
+      {x=9,y=-17.666666666667,type="circle",purpose="vulnerability",radius=36},
+      {x=4,y=7.3333333333333,type="circle",purpose="vulnerability",radius=37},
+      {x=-23,y=39.666666666667,type="circle",purpose="vulnerability",radius=20},
+      {x=-35.333333333333,y=60.333333333333,type="circle",purpose="vulnerability",radius=15},
+      {x=-41,y=82,type="circle",purpose="vulnerability",radius=15},
+      {x=36.666666666667,y=35,type="circle",purpose="vulnerability",radius=19},
+      {x=47.666666666667,y=48.666666666667,type="circle",purpose="vulnerability",radius=18},
+      {x=43.666666666667,y=68.666666666667,type="circle",purpose="vulnerability",radius=15},
+      {x=40.666666666667,y=82.333333333333,type="circle",purpose="vulnerability",radius=15},
+    },
+    {
+      {x=11.666666666667,y=-71,type="circle",purpose="vulnerability",radius=26},
+      {x=5.3333333333333,y=-24.666666666667,type="circle",purpose="vulnerability",radius=37},
+      {x=4.6666666666667,y=7.3333333333333,type="circle",purpose="vulnerability",radius=38},
+      {x=-21.333333333333,y=38,type="circle",purpose="vulnerability",radius=20},
+      {x=-28,y=63,type="circle",purpose="vulnerability",radius=15},
+      {x=-32,y=81.333333333333,type="circle",purpose="vulnerability",radius=15},
+      {x=37.666666666667,y=25,type="circle",purpose="vulnerability",radius=18},
+      {x=49,y=36.333333333333,type="circle",purpose="vulnerability",radius=18},
+      {x=45.666666666667,y=64,type="circle",purpose="vulnerability",radius=18},
+    },
+    {
+      {x=8.3333333333333,y=-80,type="circle",purpose="vulnerability",radius=25},
+      {x=4.3333333333333,y=-35.666666666667,type="circle",purpose="vulnerability",radius=36},
+      {x=6,y=-4.3333333333333,type="circle",purpose="vulnerability",radius=38},
+      {x=-14.666666666667,y=27.333333333333,type="circle",purpose="vulnerability",radius=18},
+      {x=-20,y=54,type="circle",purpose="vulnerability",radius=15},
+      {x=-20.333333333333,y=74.333333333333,type="circle",purpose="vulnerability",radius=15},
+      {x=42,y=15.666666666667,type="circle",purpose="vulnerability",radius=18},
+      {x=50.666666666667,y=25.666666666667,type="circle",purpose="vulnerability",radius=18},
+      {x=48,y=44.666666666667,type="circle",purpose="vulnerability",radius=15},
+      {x=48.666666666667,y=57.666666666667,type="circle",purpose="vulnerability",radius=15},
+    },
+    {
+      {x=8,y=-79.666666666667,type="circle",purpose="vulnerability",radius=24},
+      {x=4.3333333333333,y=-32.333333333333,type="circle",purpose="vulnerability",radius=37},
+      {x=5.3333333333333,y=-4.6666666666667,type="circle",purpose="vulnerability",radius=38},
+      {x=-12,y=31,type="circle",purpose="vulnerability",radius=18},
+      {x=-10.333333333333,y=53,type="circle",purpose="vulnerability",radius=15},
+      {x=-5.3333333333333,y=70.666666666667,type="circle",purpose="vulnerability",radius=15},
+      {x=45,y=9,type="circle",purpose="attack",radius=18},
+      {x=59.666666666667,y=14.666666666667,type="circle",purpose="attack",radius=18},
+      {x=70.333333333333,y=30.333333333333,type="circle",purpose="attack",radius=15},
+      {x=78.666666666667,y=42,type="circle",purpose="attack",radius=15},
+    },
+    {
+      {x=8,y=-79.666666666667,type="circle",purpose="vulnerability",radius=25},
+      {x=5,y=-37.666666666667,type="circle",purpose="vulnerability",radius=34},
+      {x=6.6666666666667,y=-7,type="circle",purpose="vulnerability",radius=38},
+      {x=-8.3333333333333,y=30.666666666667,type="circle",purpose="vulnerability",radius=18},
+      {x=-1.3333333333333,y=50.666666666667,type="circle",purpose="vulnerability",radius=15},
+      {x=8,y=68.333333333333,type="circle",purpose="vulnerability",radius=15},
+      {x=45.666666666667,y=2.6666666666667,type="circle",purpose="attack",radius=18},
+      {x=64.333333333333,y=4.3333333333333,type="circle",purpose="attack",radius=18},
+      {x=83.333333333333,y=9.6666666666667,type="circle",purpose="attack",radius=14},
+      {x=99,y=14,type="circle",purpose="attack",radius=15},
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
     },
 }
 
