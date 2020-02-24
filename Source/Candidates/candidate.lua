@@ -2,6 +2,8 @@
 candidate = {}
 candidate.__index = candidate
 
+local whooping_threshold = 7
+
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
@@ -207,7 +209,7 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
       self.sprite:setFrame(self.damaged_frames[1])
       self.damage_timer = 4
       self.action = "damaged"
-      if self.damage_in_a_row > 3 or self.health <= 0 then
+      if self.damage_in_a_row >= whooping_threshold or self.health <= 0 then
         self:koAction()
       end
     elseif type == "knockback" then
@@ -528,7 +530,8 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
             -- partial knockback for the fighter
             A.effects_thingy:randomDamageSound()
             -- A:damageAction("knockback", 0, B.attack.knockback / 2, 0, 0)
-            A:adjustVelocity(B.attack.knockback * -0.5 * A.xScale, 0)
+            -- A:adjustVelocity(B.attack.knockback * -0.5 * A.xScale, 0)
+            A:damageAction("knockback", B.attack.power / 8, B.attack.knockback * 0.5, 0, 0)
           elseif result == 1 then
             -- if the fighter's x velocity is approaching the opponent, curtail it.
             -- BUT WHAT ABOUT ULTRA PUNCHING?

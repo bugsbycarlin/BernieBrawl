@@ -182,6 +182,9 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
       self:forceMoveAction(13*self.xScale, 0)
     end
     self.frame = self.frame + 1
+    if self.frame == 13 and self.attack == nil then
+      self.attack = {power=self.power, knockback=self.knockback}
+    end
     if (self.frame > #kicking_frames) then
       self:restingAction()
     end
@@ -211,6 +214,10 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
       self:forceMoveAction(10*self.xScale, 0)
     end
     self.frame = self.frame + 1
+    -- second and third attacks
+    if (self.frame == 7 or self.frame == 13) and self.attack == nil then
+      self.attack = {power=self.power, knockback=self.knockback}
+    end
     if (self.frame > #punching_frames) then
       self:restingAction()
     end
@@ -249,7 +256,7 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
 
   candidate.animations["jump_kicking"] = function(self)
     if display.contentCenterY + self.y_offset - self.y > 60 or self.y_vel < 0 then
-      self.sprite:setFrame(11) -- kick
+      self.sprite:setFrame(27) -- kick
     else
       self.sprite:setFrame(20) -- go down
     end

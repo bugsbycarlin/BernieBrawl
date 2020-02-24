@@ -104,6 +104,21 @@ function effects:addProjectilePhone(group, originator, x, y, xScale)
   self:add(p)
 end
 
+projectileSoda_x_vel = 30
+projectileSoda_y_vel_max = 2
+function effects:addProjectileSoda(group, originator, x, y, xScale)
+  local x_vel = projectileSoda_x_vel * xScale
+  local y_vel = (math.random(1,200) - 100) / (100 / projectileSoda_y_vel_max)
+  local p = projectile:create("soda", group, originator, self.fighters, x, y, xScale, x_vel, y_vel)
+  p.sprite.xScale = xScale / 2
+  p.sprite.yScale = 1/2
+  p.hit_radius = p.hit_radius / 1.5
+  p.gravity = 2
+  p.y_vel = -5
+  p.rotation_vel = 10 * xScale
+  self:add(p)
+end
+
 function effects:addBro(group, player, x_center, y_center, x_vel, y_vel, min_x, max_x)
   print("Adding a bro")
   if self.fighters == nil then

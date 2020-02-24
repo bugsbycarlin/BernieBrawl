@@ -65,7 +65,11 @@ quips["warren"]["biden"] = {
     "I'm literally gonna make you pay for that, Liz.",
 }
 quips["warren"]["sanders"] = {
-  "Medicare for All!", "Medicare for All!", "Medicare for All!", "Medicare for All!",
+  "You said a woman could never be president!", "Bull! A woman can be president. It's just not gonna be you."
+}
+quips["warren"]["trump"] = {
+  "blah",
+  "blah",
 }
 
 quips["biden"]["warren"] = {
@@ -76,11 +80,33 @@ quips["biden"]["sanders"] = {
   "Put'cher hand down for a second, Bernie, okay?",
   "Just waving to you, Joe.",
 }
+quips["biden"]["trump"] = {
+  "blah",
+  "blah",
+}
 
 quips["sanders"]["warren"] = {
-  "Medicare for All!", "Medicare for All!", "Medicare for All!", "Medicare for All!",
+  "Medicare for All!", "Medicare for All!"
 }
 quips["sanders"]["biden"] = {
+  "blah",
+  "blah",
+}
+quips["sanders"]["trump"] = {
+  "blah",
+  "blah",
+}
+
+
+quips["trump"]["warren"] = {
+  "blah",
+  "blah",
+}
+quips["trump"]["biden"] = {
+  "blah",
+  "blah",
+}
+quips["trump"]["sanders"] = {
   "blah",
   "blah",
 }

@@ -4,7 +4,7 @@ projectile.__index = projectile
 
 local projectile_size = 64
 local projectile_knockback = 10
-local projectile_power = 5
+local projectile_power = 8
 
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
@@ -39,7 +39,7 @@ function projectile:update()
   self.sprite.y = self.sprite.y + self.y_vel
   self.sprite.rotation = self.sprite.rotation + self.rotation_vel
   self.y_vel = self.y_vel + self.gravity
-  
+
 
   local insensitivity = 4
 
@@ -75,7 +75,8 @@ function projectile:update()
           self.enabled = false
           self.sprite.isVisible = false
           opponent.effects_thingy:randomDamageSound()
-          opponent:adjustVelocity(projectile_knockback * -1 * opponent.xScale, 0)
+          -- opponent:adjustVelocity(projectile_knockback * -1 * opponent.xScale, 0)
+          opponent:damageAction("knockback", projectile_power / 8, projectile_knockback * 0.5, 0, 0)
         elseif opponent_result == 1 then
           self.enabled = false
           opponent.effects_thingy:randomDamageSound()

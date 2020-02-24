@@ -295,17 +295,17 @@ end
 local function checkInput()
 
   if keydown.left and keydown.up then
-    player:moveAction(-1 * player.xScale * player.max_x_velocity * 0.7, -1 * player.max_y_velocity)
+    player:moveAction(-1 * player.max_x_velocity * 0.7, -1 * player.max_y_velocity)
   elseif keydown.right and keydown.up then
-    player:moveAction(player.xScale * player.max_x_velocity * 0.7, -1 * player.max_y_velocity)
+    player:moveAction(player.max_x_velocity * 0.7, -1 * player.max_y_velocity)
   elseif keydown.up then
     player:moveAction(0, -1 * player.max_y_velocity)
   elseif keydown.down then
     player:moveAction(0, player.max_y_velocity)
   elseif keydown.left then
-    player:moveAction(-1 * player.xScale * player.max_x_velocity * 0.7, 0)
+    player:moveAction(-1 * player.max_x_velocity * 0.7, 0)
   elseif keydown.right then
-    player:moveAction(player.xScale * player.max_x_velocity * 0.7, 0)
+    player:moveAction(player.max_x_velocity * 0.7, 0)
   end
 
   if keydown.a == true and player.action == "resting" then

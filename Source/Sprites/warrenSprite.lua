@@ -185,6 +185,13 @@ warrenSpriteInfo.sheet =
             height=256,
 
         },
+        {
+            x=512, -- flip kicking sprite
+            y=1024,
+            width=256,
+            height=256,
+
+        },
     },
 
     sheetContentWidth = 1536,
@@ -460,6 +467,15 @@ warrenSpriteInfo.hitIndex = {
       {x=8,y=-60.666666666667,type="circle",purpose="defense",radius=21},
     },
     {
+    },
+    {
+      {x=21,y=-51.666666666667,type="circle",purpose="vulnerability",radius=21},
+      {x=14.666666666667,y=-21,type="circle",purpose="vulnerability",radius=16},
+      {x=5.6666666666667,y=1,type="circle",purpose="vulnerability",radius=18},
+      {x=9.3333333333333,y=25.333333333333,type="circle",purpose="attack",radius=10},
+      {x=28.666666666667,y=2.3333333333333,type="circle",purpose="attack",radius=10},
+      {x=41,y=8,type="circle",purpose="attack",radius=9},
+      {x=57.666666666667,y=11.666666666667,type="circle",purpose="attack",radius=10},
     },
 }
 

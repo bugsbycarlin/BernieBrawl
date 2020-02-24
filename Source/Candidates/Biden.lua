@@ -12,7 +12,7 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
 
   candidate.resting_rate = 60
   candidate.action_rate = 40
-  candidate.power = 16
+  candidate.power = 10
   candidate.knockback = 12
   candidate.automatic_rate = 400
 
@@ -171,7 +171,11 @@ function biden:create(x, y, group, min_x, max_x, effects_thingy)
       self:forceMoveAction(10*self.xScale, 0)
       self.effects_thingy:playSound("swing_1")
     end
+    -- second attack
     self.frame = self.frame + 1
+    if self.frame == 13 and self.attack == nil then
+      self.attack = {power=self.power, knockback=self.knockback}
+    end
     if (self.frame > #punching_frames) then
       self:restingAction()
     end

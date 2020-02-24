@@ -1,5 +1,6 @@
 
 local composer = require("composer")
+local gameplan = require("Source.Utilities.gameplan")
 
 local scene = composer.newScene()
 
@@ -48,6 +49,7 @@ local start_time
 local winning_fighter
 
 local ko_fighter
+local ko_fighter_name
 
 local quip_text
 
@@ -89,9 +91,15 @@ quips = {
 }
 
 local function gotoCutscene()
-  -- not ready until I have another fighter!
+  -- not ready until I have cutscenes. Meanwhile, go straight to next round
   -- composer.removeScene("Source.Scenes.game")
   -- composer.gotoScene("Source.Scenes.cutscene", {effect = "fade", time = 1000})
+
+  if ko_fighter_name ~= "trump" then
+    composer.removeScene("Source.Scenes.game")
+    gameplan:nextRound()
+    composer.gotoScene("Source.Scenes.flight", {effect = "fade", time = 500})
+  end
 end
 
 local function gotoPrefight()
@@ -105,6 +113,7 @@ local function gotoPrefight()
 end
 
 local function gotoTitle()
+  gameplan:setup()
   composer.gotoScene("Source.Scenes.title", {effect = "fade", time = 1000})
 end
 

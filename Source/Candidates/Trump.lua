@@ -43,9 +43,9 @@ function trump:create(x, y, group, min_x, max_x, effects_thingy)
           self:moveAction(10 * self.xScale, 0)
         elseif dice > 25 and self.target.action ~= "resting" then
           self:blockingAction()
-        elseif dice > 60 then
+        elseif dice > 65 then
           self:punchingAction()
-        elseif dice > 20 then
+        elseif dice > 30 then
           self:kickingAction()
         elseif dice > 0 then
           self:specialAction()
@@ -63,14 +63,16 @@ function trump:create(x, y, group, min_x, max_x, effects_thingy)
 
   function candidate:specialAction()
     local dice = math.random(1,100)
-    if dice > 75 then
+    if dice > 64 then
       self.action = "twitting"
-    elseif dice > 50 then
+    elseif dice > 48 then
       self.action = "phone_throwing"
-    elseif dice > 25 then
+    elseif dice > 32 then
       self.action = "steak_throwing"
-    elseif dice > 0 then
+    elseif dice >16 then
       self.action = "gold_bar_throwing"
+    else
+      self.action = "soda_throwing"
     end
     self.frame = 1
   end
@@ -217,7 +219,7 @@ function trump:create(x, y, group, min_x, max_x, effects_thingy)
     end
   end
 
-    local phone_throwing_frames = {
+  local phone_throwing_frames = {
     1,
     33, 33,
     34, 34, 35,
@@ -282,6 +284,29 @@ function trump:create(x, y, group, min_x, max_x, effects_thingy)
     end
     self.frame = self.frame + 1
     if (self.frame > #gold_bar_throwing_frames) then
+      self:restingAction()
+    end
+  end
+
+  local soda_throwing_frames = {
+    1,
+    33, 33,
+    34, 34, 35,
+    34, 34, 35,
+    34, 34, 35,
+    34, 34, 35,
+    24, 24,
+    25, 25,
+    26, 26,
+    27, 27,
+  }
+  candidate.animations["soda_throwing"] = function(self)
+    self.sprite:setFrame(soda_throwing_frames[self.frame])
+    if self.frame == 16 then
+      self.effects_thingy:addProjectileSoda(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.xScale)
+    end
+    self.frame = self.frame + 1
+    if (self.frame > #soda_throwing_frames) then
       self:restingAction()
     end
   end

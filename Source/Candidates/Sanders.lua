@@ -151,6 +151,9 @@ function sanders:create(x, y, group, min_x, max_x, effects_thingy)
       self.x = self.x + 20 * self.xScale
     end
     self.frame = self.frame + 1
+    if (self.frame == 25 or self.frame == 28) and self.attack == nil then
+      self.attack = {power=self.power, knockback=self.knockback}
+    end
     if (self.frame > #punching_frames) then
       self:restingAction()
     end

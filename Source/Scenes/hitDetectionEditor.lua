@@ -21,7 +21,7 @@ local current_frame
 
 local frameText
 
-local character = "trump"
+local character = "warren"
 
 local spriteInfo = require("Source.Sprites." .. character .. "Sprite")
 local sprite = graphics.newImageSheet("Art/" .. character .. "_sprite.png", spriteInfo:getSheet())

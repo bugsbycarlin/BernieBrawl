@@ -1,5 +1,6 @@
 
 local composer = require("composer")
+local gameplan = require("Source.Utilities.gameplan")
 
 local scene = composer.newScene()
 
@@ -23,6 +24,8 @@ local small_faces = {}
 local background
 local checkmark
 local selection_square
+
+local finished = false
 
 local nameText
 local nicknameText
@@ -54,33 +57,44 @@ local selectable_names = {"biden", "sanders", "warren",}
 -- local nicknames = {"the protector", "the populist", "chosen son", "the polyglot", "the founder", "the money", "determined", "unbelievable"}
 -- layout = {{8, 8}, {116, 8}, {224, 8}, {8, 116}, {116, 116}, {224, 116}, {8, 224}, {116, 224}}
 
-local locations = {"Iowa", "New Hampshire", "Super Tuesday", "DNC - Milwaukee", "Vice Presidential Debate - Salt Lake City", "First Debate - South Bend", "Second Debate - Nashville", "Final Battle"}
+-- local locations = {"Iowa", "New Hampshire", "Super Tuesday", "DNC - Milwaukee", "Vice Presidential Debate - Salt Lake City", "First Debate - South Bend", "Second Debate - Nashville", "Final Battle"}
 
 local selection_number = 1
 local selection = ""
 
 local function choose_player(event)
   composer.setVariable("candidate", selection)
-  local remaining_candidates = {}
-  for i = 1, #selectable_names do
-    if selection ~= selectable_names[i] then
-      table.insert(remaining_candidates, selectable_names[i])
-    end
-  end
-  local opponent = table.remove(remaining_candidates, math.random(1, #remaining_candidates))
-  composer.setVariable("opponent", opponent)
-  composer.setVariable("remaining_candidates", remaining_candidates)
-  location = table.remove(locations, 1)
-  composer.setVariable("location", location)
-  composer.setVariable("remaining_locations", locations)
-  composer.setVariable("player_wins", 0)
-  composer.setVariable("opponent_wins", 0)
-  composer.setVariable("round", 1)
+  gameplan:nextRound()
+
+  -- local remaining_candidates = {}
+  -- for i = 1, #selectable_names do
+  --   if selection ~= selectable_names[i] then
+  --     table.insert(remaining_candidates, selectable_names[i])
+  --   end
+  -- end
+  -- composer.setVariable("remaining_candidates", remaining_candidates)
+
+
+  -- local opponent = table.remove(remaining_candidates, math.random(1, #remaining_candidates))
+  -- composer.setVariable("opponent", opponent)
+  
+  -- location = table.remove(locations, 1)
+  -- composer.setVariable("location", location)
+  -- composer.setVariable("remaining_locations", locations)
+  -- composer.setVariable("player_wins", 0)
+  -- composer.setVariable("opponent_wins", 0)
+  -- composer.setVariable("round", 1)
   audio.play(punch_sound)
+  Runtime:removeEventListener("key", keyboard)
+  -- hack because removeEventListener doesn't appear to be working
+  finished = true
   gotoFlight()
 end
 
 local function select_fighter(event)
+  if finished then
+    return
+  end
   selection = event.target.name
   selectable = false
   for i = 1,#selectable_names,1 do
@@ -121,9 +135,10 @@ local function select_fighter(event)
 end
 
 local function keyboard(event)
-
+  if finished then
+    return
+  end
   if event.keyName == "enter" and event.phase == "up" then
-    Runtime:removeEventListener("key", keyboard)
     choose_player()
   end
 
