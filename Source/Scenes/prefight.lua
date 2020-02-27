@@ -6,10 +6,10 @@ local scene = composer.newScene()
 local effects_class = require("Source.Utilities.effects")
 
 candidates = {}
-candidates["warren"] = require("Source.Candidates.warren")
-candidates["trump"] = require("Source.Candidates.trump")
-candidates["biden"] = require("Source.Candidates.biden")
-candidates["sanders"] = require("Source.Candidates.sanders")
+candidates["warren"] = require("Source.Candidates.Warren")
+candidates["trump"] = require("Source.Candidates.Trump")
+candidates["biden"] = require("Source.Candidates.Biden")
+candidates["sanders"] = require("Source.Candidates.Sanders")
 
 local stage_music = audio.loadStream("Sound/BeiMir.mp3")
 
@@ -312,7 +312,7 @@ function scene:create( event )
 
   beat_number = 0
 
-  red_fighter = candidates[opponent]:create(384 + 38, display.contentCenterY + 250, mainGroup, -500, 1500, effects)
+  red_fighter = candidates[opponent]:create(384 + 38, display.contentCenterY + 250, mainGroup, -500, 1500, -100, 100, effects)
   red_fighter.xScale = -1
   red_fighter.ground_target = red_fighter.ground_target + 250
   red_fighter.max_y_velocity = 70
@@ -322,7 +322,7 @@ function scene:create( event )
   red_fighter.sprite.fill.effect.lightColor = { red_color.r / 3, red_color.r / 3, red_color.r / 3, 1 }
   red_fighter.sprite:setFillColor(red_color.r / 3, red_color.r / 3, red_color.r / 3)
 
-  blue_fighter = candidates[candidate]:create(184 - 38, display.contentCenterY + 250, mainGroup, -500, 1500, effects)
+  blue_fighter = candidates[candidate]:create(184 - 38, display.contentCenterY + 250, mainGroup, -500, 1500, -100, 100, effects)
   blue_fighter.ground_target = blue_fighter.ground_target + 250
   blue_fighter.max_y_velocity = 70
 

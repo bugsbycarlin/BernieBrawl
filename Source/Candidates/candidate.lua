@@ -3,12 +3,13 @@ candidate = {}
 candidate.__index = candidate
 
 local whooping_threshold = 7
+local z_threshold = 20
 
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
 
-function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offset)
+function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy, sprite_offset)
   local tim = display.newGroup()
 
   tim.name = "tim"
@@ -24,6 +25,8 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
   tim.x_vel = 0
   tim.y_vel = 0
   tim.y = y + tim.y_offset
+  tim.z = 0
+  tim.z_vel = 0
   tim.rotation_vel = 0
 
   -- default values if none other are supplied
@@ -33,6 +36,7 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
   tim.automatic_rate = 500
   tim.max_x_velocity = 20
   tim.max_y_velocity = 35
+  tim.max_z_velocity = 10
   tim.action_window = 1500
   tim.power = 10
   tim.knockback = 12
@@ -48,6 +52,9 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
 
   tim.min_x = min_x
   tim.max_x = max_x
+
+  tim.min_z = min_z
+  tim.max_z = max_z
 
   tim.action = "resting"
 
@@ -69,6 +76,18 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
   tim.animations = {}
 
   tim.attack = nil
+
+  function tim:setZ(z_value)
+    if z_value < min_z then
+      self:setZ(min_z)
+    elseif z_value > max_z then
+      self:setZ(max_z)
+    else
+      self.z = z_value
+      self.sprite.y = z_value
+      self.after_image.y = z_value
+    end
+  end
 
   function tim:setMaxHealth(max_health)
     self.max_health = max_health
@@ -148,6 +167,10 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
 
   function tim:checkSpecialAction()
 
+  end
+
+  function tim:zMoveAction(z_vel)
+    self.z_vel = math.max(-1 * self.max_z_velocity, math.min(self.max_z_velocity, z_vel))
   end
 
   function tim:moveAction(x_vel, y_vel)
@@ -321,12 +344,14 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
     if self.action ~= "pre_jumping" then
       self.y = self.y + self.y_vel
     end
+    self:setZ(self.z + self.z_vel)
 
     if math.abs(self.y_vel) < self.max_y_velocity / 4 and self.action ~= "ultra_punching" then
       self.x_vel = self.x_vel * 0.8
     else
       self.x_vel = self.x_vel * 0.9
     end
+    self.z_vel = self.z_vel * 0.8
 
     if (self.action == "jumping" or self.action == "jump_kicking") and math.abs(self.rotation_vel) > 0 then
       self.rotation = self.rotation + self.rotation_vel
@@ -435,7 +460,9 @@ function candidate:create(x, y, group, min_x, max_x, effects_thingy, sprite_offs
       fighter_result = -1
       opponent_result = -1
 
-      if opponent ~= self and (self.ally == nil or self.ally ~= opponent) and (opponent.ally == nil or opponent.ally ~= self) then
+      local z_diff = math.abs(opponent.z - self.z)
+
+      if opponent ~= self and z_diff < z_threshold and (self.ally == nil or self.ally ~= opponent) and (opponent.ally == nil or opponent.ally ~= self) then
         -- Get the opponent's hit detection circles
         opponent_frame = opponent.sprite.frame
         opponent_hitIndex = opponent.hitIndex[opponent_frame]

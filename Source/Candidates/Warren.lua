@@ -10,8 +10,8 @@ local WhipSprite = graphics.newImageSheet("Art/whip_sprite.png", WhipSpriteInfo:
 warren = {}
 warren.__index = warren
 
-function warren:create(x, y, group, min_x, max_x, effects_thingy)
-  local candidate = candidate_template:create(x, y, group, min_x, max_x, effects_thingy, 50)
+function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
+  local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy, 50)
 
   candidate.resting_rate = 50
   candidate.action_rate = 40
@@ -40,11 +40,19 @@ function warren:create(x, y, group, min_x, max_x, effects_thingy)
   candidate.ko_frame = 23
 
   function candidate:automaticAction()
-    self:punchingAction()
-    do return end
+    -- self:punchingAction()
+    -- do return end
     dice = math.random(1, 100)
-    if dice > 90 then
+    if dice > 93 then
       self:moveAction(10 * self.xScale, 0)
+    elseif dice > 85 then
+      double = math.random(1,100)
+      if double > 50 then
+        double = 1
+      else
+        double = -1
+      end
+      self:zMoveAction(double * self.max_z_velocity * 0.7)
     elseif dice > 45 then
       self:punchingAction()
     else

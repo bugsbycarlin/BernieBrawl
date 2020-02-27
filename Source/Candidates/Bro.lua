@@ -7,8 +7,8 @@ local broSprite = graphics.newImageSheet("Art/bro_sprite.png", broSpriteInfo:get
 bro = {}
 bro.__index = bro
 
-function bro:create(x, y, group, min_x, max_x, effects)
-  local candidate = candidate_template:create(x, y, group, min_x, max_x, effects, 50)
+function bro:create(x, y, group, min_x, max_x, min_z, max_z, effects)
+  local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects, 50)
 
   candidate.power = 10
   candidate.automatic_rate = 500

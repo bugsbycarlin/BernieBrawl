@@ -7,8 +7,8 @@ local bidenSprite = graphics.newImageSheet("Art/biden_sprite.png", bidenSpriteIn
 biden = {}
 biden.__index = biden
 
-function biden:create(x, y, group, min_x, max_x, effects_thingy)
-  local candidate = candidate_template:create(x, y, group, min_x, max_x, effects_thingy, 47)
+function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
+  local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy, 47)
 
   candidate.resting_rate = 60
   candidate.action_rate = 40

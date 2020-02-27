@@ -7,8 +7,8 @@ local sandersSprite = graphics.newImageSheet("Art/sanders_sprite.png", sandersSp
 sanders = {}
 sanders.__index = sanders
 
-function sanders:create(x, y, group, min_x, max_x, effects_thingy)
-  local candidate = candidate_template:create(x, y, group, min_x, max_x, effects_thingy, 47)
+function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
+  local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy, 47)
 
   candidate.power = 12
   candidate.automatic_rate = 450
@@ -173,13 +173,13 @@ function sanders:create(x, y, group, min_x, max_x, effects_thingy)
     self.frame = self.frame + 1
     if self.frame == 6 then
       if self.bros > 0 then
-        self.effects_thingy:addBro(self.parent_group, self, self.x - 250, self.y + 100, 10, -30, self.min_x, self.max_x)
+        self.effects_thingy:addBro(self.parent_group, self, self.x - 250, self.y + 100, 10, -30, self.min_x, self.max_x, self.min_z, self.max_z)
         self.bros = self.bros - 1
       end
     end
     if self.frame == 12 then
       if self.bros > 0 then
-        self.effects_thingy:addBro(self.parent_group, self, self.x + 250, self.y + 100, -10, -30, self.min_x, self.max_x)
+        self.effects_thingy:addBro(self.parent_group, self, self.x + 250, self.y + 100, -10, -30, self.min_x, self.max_x, self.min_z, self.max_z)
         self.bros = self.bros - 1
       end
     end

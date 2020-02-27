@@ -7,10 +7,10 @@ local scene = composer.newScene()
 local effects_class = require("Source.Utilities.effects")
 
 candidates = {}
-candidates["warren"] = require("Source.Candidates.warren")
-candidates["trump"] = require("Source.Candidates.trump")
-candidates["biden"] = require("Source.Candidates.biden")
-candidates["sanders"] = require("Source.Candidates.sanders")
+candidates["warren"] = require("Source.Candidates.Warren")
+candidates["trump"] = require("Source.Candidates.Trump")
+candidates["biden"] = require("Source.Candidates.Biden")
+candidates["sanders"] = require("Source.Candidates.Sanders")
 
 local effects
 
@@ -260,7 +260,7 @@ function scene:create( event )
   blue_cutout_1.x = 80
   blue_cutout_1.y = display.contentCenterY
 
-  blue_fighter = candidates["biden"]:create(-400, display.contentCenterY - 30, fightGroup, -2500, 2500, effects)
+  blue_fighter = candidates["biden"]:create(-400, display.contentCenterY - 30, fightGroup, -2500, 2500, -100, 100, effects)
   blue_fighter.xScale = 0.7
   blue_fighter.yScale = 0.7
   blue_fighter.ground_target = blue_fighter.y
@@ -278,7 +278,7 @@ function scene:create( event )
   white_slash.y = display.contentCenterY
   white_slash.isVisible = false
 
-  white_fighter = candidates["sanders"]:create(display.contentWidth + 400, display.contentCenterY - 30, fightGroup, -2500, 2500, effects)
+  white_fighter = candidates["sanders"]:create(display.contentWidth + 400, display.contentCenterY - 30, fightGroup, -2500, 2500, -100, 100, effects)
   white_fighter.xScale = -0.7
   white_fighter.yScale = 0.7
   white_fighter.ground_target = white_fighter.y
@@ -299,7 +299,7 @@ function scene:create( event )
   red_slash.y = display.contentCenterY
   red_slash.isVisible = false
 
-  red_fighter = candidates["warren"]:create(-400, display.contentCenterY - 30, fightGroup, -2500, 2500, effects)
+  red_fighter = candidates["warren"]:create(-400, display.contentCenterY - 30, fightGroup, -2500, 2500, -100, 100, effects)
   red_fighter.xScale = 0.7
   red_fighter.yScale = 0.7
   red_fighter.ground_target = red_fighter.y
@@ -312,7 +312,7 @@ function scene:create( event )
   yellow_slash.y = display.contentCenterY + 500
   yellow_slash.isVisible = false
 
-  yellow_fighter = candidates["biden"]:create(190, display.contentCenterY + 400, fightGroup, -2500, 2500, effects)
+  yellow_fighter = candidates["biden"]:create(190, display.contentCenterY + 400, fightGroup, -2500, 2500, -100, 100, effects)
   yellow_fighter.xScale = -0.7
   yellow_fighter.yScale = 0.7
   yellow_fighter.ground_target = yellow_fighter.y
@@ -325,7 +325,7 @@ function scene:create( event )
   yellow_cutout_1.y = display.contentCenterY
   yellow_cutout_1.isVisible = false
 
-  grey_fighter = candidates["sanders"]:create(display.contentCenterX - 50, display.contentCenterY - 30, fightGroup, -2500, 2500, effects)
+  grey_fighter = candidates["sanders"]:create(display.contentCenterX - 50, display.contentCenterY - 30, fightGroup, -2500, 2500, -100, 100, effects)
   grey_fighter.xScale = 0.7
   grey_fighter.yScale = 0.7
   grey_fighter.ground_target = grey_fighter.y
@@ -355,7 +355,7 @@ function scene:create( event )
   purple_slash.y = display.contentCenterY
   purple_slash.isVisible = false
 
-  purple_fighter = candidates["warren"]:create(display.contentCenterX + 60, display.contentCenterY - 30, fightGroup, -2500, 2500, effects)
+  purple_fighter = candidates["warren"]:create(display.contentCenterX + 60, display.contentCenterY - 30, fightGroup, -2500, 2500, -100, 100, effects)
   purple_fighter.xScale = 0.7
   purple_fighter.yScale = 0.7
   purple_fighter.ground_target = purple_fighter.y
@@ -374,7 +374,7 @@ function scene:create( event )
   black_cutout.y = display.contentCenterY + 40
   black_cutout.isVisible = false
 
-  trump = candidates["trump"]:create(display.contentCenterX, display.contentCenterY - 30, fightGroup, -500, 1500, effects)
+  trump = candidates["trump"]:create(display.contentCenterX, display.contentCenterY - 30, fightGroup, -500, 1500, -100, 100, effects)
   trump.xScale = -0.7
   trump.yScale = 0.7
   trump.ground_target = trump.y
@@ -382,7 +382,7 @@ function scene:create( event )
   trump.sprite.fill.effect = "filter.duotone"
   -- trump.alpha = 0
 
-  false_trump = candidates["trump"]:create(display.contentCenterX, display.contentCenterY - 30, fightGroup, -500, 1500, effects)
+  false_trump = candidates["trump"]:create(display.contentCenterX, display.contentCenterY - 30, fightGroup, -500, 1500, -100, 100, effects)
   false_trump.xScale = -0.7
   false_trump.yScale = 0.7
   false_trump.ground_target = false_trump.y

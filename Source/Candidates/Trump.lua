@@ -7,8 +7,8 @@ local trumpSprite = graphics.newImageSheet("Art/trump_sprite.png", trumpSpriteIn
 trump = {}
 trump.__index = trump
 
-function trump:create(x, y, group, min_x, max_x, effects_thingy)
-  local candidate = candidate_template:create(x, y, group, min_x, max_x, effects_thingy, 38)
+function trump:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
+  local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy, 38)
 
   candidate.power = 12
   candidate.resting_rate = 60

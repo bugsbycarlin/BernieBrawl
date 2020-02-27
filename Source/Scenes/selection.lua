@@ -5,10 +5,10 @@ local gameplan = require("Source.Utilities.gameplan")
 local scene = composer.newScene()
 
 candidates = {}
-candidates["warren"] = require("Source.Candidates.warren")
-candidates["trump"] = require("Source.Candidates.trump")
-candidates["biden"] = require("Source.Candidates.biden")
-candidates["sanders"] = require("Source.Candidates.sanders")
+candidates["warren"] = require("Source.Candidates.Warren")
+candidates["trump"] = require("Source.Candidates.Trump")
+candidates["biden"] = require("Source.Candidates.Biden")
+candidates["sanders"] = require("Source.Candidates.Sanders")
 
 local effects_class = require("Source.Utilities.effects")
 

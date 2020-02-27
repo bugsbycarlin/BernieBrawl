@@ -11,13 +11,14 @@ local max_radius = 3
 local floor_width = 60
 
 
-function snow:create(group)
+function snow:create(group, max_x)
 
   local object = {}
   setmetatable(object, snow)
 
   object.flakes = {}
   object.group = group
+  object.max_x = max_x
 
   return object
 end
@@ -45,7 +46,11 @@ function snow:update()
 end
 
 function snow:finished(flake)
+  x, y = self.group:localToContent(flake.x, flake.y)
   if flake.y > flake.target_y then
+    return true
+  elseif x < -100 or x > display.contentWidth + 100 then
+    print("offscreen flake")
     return true
   else
     return false
@@ -53,6 +58,10 @@ function snow:finished(flake)
 end
 
 function snow:create_flake()
+  if (-1 * self.group.x) > self.max_x then
+    print("no flakes this far out")
+    return
+  end
   local x = math.random(0, display.contentWidth) - self.group.x
   local y = -1 * math.random(10, 20) - self.group.y
   local radius = math.random(min_radius, max_radius)

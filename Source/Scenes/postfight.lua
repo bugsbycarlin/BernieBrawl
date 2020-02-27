@@ -7,10 +7,10 @@ local scene = composer.newScene()
 local effects_class = require("Source.Utilities.effects")
 
 candidates = {}
-candidates["warren"] = require("Source.Candidates.warren")
-candidates["trump"] = require("Source.Candidates.trump")
-candidates["biden"] = require("Source.Candidates.biden")
-candidates["sanders"] = require("Source.Candidates.sanders")
+candidates["warren"] = require("Source.Candidates.Warren")
+candidates["trump"] = require("Source.Candidates.Trump")
+candidates["biden"] = require("Source.Candidates.Biden")
+candidates["sanders"] = require("Source.Candidates.Sanders")
 
 
 number_sheet =
@@ -241,7 +241,7 @@ function scene:create( event )
 
   print(ko_fighter_name)
   print(ko_location.y)
-  ko_fighter = candidates[ko_fighter_name]:create(ko_location.x, ko_location.y, mainGroup, -1500, 1500, effects)
+  ko_fighter = candidates[ko_fighter_name]:create(ko_location.x, ko_location.y, mainGroup, -1500, 1500, -100, 100, effects)
   ko_fighter.y = ko_fighter.y - ko_fighter.y_offset
   ko_fighter.xScale = ko_location.xScale
   ko_fighter.sprite:setFrame(ko_fighter.ko_frame)

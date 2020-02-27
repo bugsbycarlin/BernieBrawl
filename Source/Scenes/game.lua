@@ -55,11 +55,11 @@ number_sheet =
 local numbers = graphics.newImageSheet("Art/number_sheet.png", number_sheet)
 
 candidates = {}
-candidates["warren"] = require("Source.Candidates.warren")
-candidates["trump"] = require("Source.Candidates.trump")
-candidates["biden"] = require("Source.Candidates.biden")
-candidates["sanders"] = require("Source.Candidates.sanders")
-candidates["bro"] = require("Source.Candidates.bro")
+candidates["warren"] = require("Source.Candidates.Warren")
+candidates["trump"] = require("Source.Candidates.Trump")
+candidates["biden"] = require("Source.Candidates.Biden")
+candidates["sanders"] = require("Source.Candidates.Sanders")
+candidates["bro"] = require("Source.Candidates.Bro")
 
 local paused = false
 
@@ -69,15 +69,47 @@ local keyboard_use = true
 
 local state
 
+local game_scale = 0.75
+
+local min_x = 0
+local max_x = 12000
+local min_z = -90
+local max_z = 100
+
 local camera = {
   x = 0,
   y = 0,
   move = true,
-  speed = 0.4,
+  speed = 0.2,
   min_x = 0,
-  max_x = 0,
-  min_y = 0,
+  max_x = max_x - display.contentWidth,
+  min_y = -163,
   max_y = 0,
+  target_center_x = display.contentCenterX,
+  target_center_y = display.contentCenterY + 120,
+
+  setToTarget = function(self, drift, object_x, object_y, reference, groups, parallax_values)
+    diff_x = object_x - self.target_center_x
+    diff_y = object_y - self.target_center_y
+    print("hey")
+    print(diff_y)
+
+    if drift then
+      -- blend with old camera position
+      self.x = math.min(self.max_x, math.max(self.min_x, self.speed * diff_x + (1 - self.speed) * self.x))
+      self.y = math.min(self.max_y, math.max(self.min_y, self.speed * diff_y + (1 - self.speed) * self.y))
+    else
+      -- set new camera position
+      self.x = math.min(self.max_x, math.max(self.min_x, diff_x))
+      self.y = math.min(self.max_y, math.max(self.min_y, diff_y))
+    end
+
+    -- assign to groups
+    for i = 1,#groups do
+      groups[i].x = -1 * parallax_values[i] * self.x
+      groups[i].y = -1 * self.y
+    end
+  end,
 }
 
 local keydown = {
@@ -96,12 +128,13 @@ local iowa_snow
 local effects_thingy
 
 local sceneGroup
+local contentGroup
 local bgGroup
 local mainGroup
 local uiGroup
 local hitBoxGroup
 
-local sky
+-- local sky
 local parallax_background
 local background
 
@@ -299,9 +332,11 @@ local function checkInput()
   elseif keydown.right and keydown.up then
     player:moveAction(player.max_x_velocity * 0.7, -1 * player.max_y_velocity)
   elseif keydown.up then
-    player:moveAction(0, -1 * player.max_y_velocity)
+    -- player:moveAction(0, -1 * player.max_y_velocity)
+    player:zMoveAction(-1 * player.max_z_velocity * 0.7)
   elseif keydown.down then
-    player:moveAction(0, player.max_y_velocity)
+    player:zMoveAction(player.max_z_velocity * 0.7)
+    -- player:moveAction(0, player.max_y_velocity)
   elseif keydown.left then
     player:moveAction(-1 * player.max_x_velocity * 0.7, 0)
   elseif keydown.right then
@@ -354,38 +389,28 @@ local function gameLoop()
   end
 
   if camera.move then
-    -- Calculate new camera position
-    x = -1 * ((fighters[1].x + fighters[2].x) / 2.0 - display.contentCenterX)
-    y = -1 * ((fighters[1].y - fighters[1].y_offset + fighters[2].y - fighters[2].y_offset) / 2.0 - display.contentCenterY)
-
-    -- blend with old camera position
-    if x >= camera.min_x and x <= camera.max_x then
-      camera.x = camera.speed * x + (1 - camera.speed) * camera.x
-    end
-    if y >= camera.min_y and y <= camera.max_y then
-      camera.y = camera.speed * y + (1 - camera.speed) * camera.y
-    end
-
-    -- assign to groups
-    skyGroup.x = camera.x
-    skyGroup.y = camera.y
-    parallaxBackgroundGroup.x = 0.8 * display.contentCenterX + 0.2 * camera.x
-    parallaxBackgroundGroup.y = camera.y
-    mainGroup.x = camera.x
-    mainGroup.y = camera.y
-    -- hitBoxGroup.x = camera.x
-    -- hitBoxGroup.y = camera.y
-    bgGroup.x = camera.x
-    bgGroup.y = camera.y
-    foregroundGroup.x = camera.x
-    foregroundGroup.y = camera.y
+    camera:setToTarget(true, fighters[2].x, fighters[2].y + fighters[2].z, contentGroup, {parallaxBackgroundGroup, mainGroup, bgGroup, foregroundGroup}, {0.2, 1,1,1})
   end
 
   iowa_snow:update()
   effects_thingy:update()
 
-  -- to do: ditch bros from the fighters list, or recycle them
+  -- sort draw order for fighters
+  -- todo: fix everything else in this list, effects, etc
+  local display_fighters = {}
+  for i = 1, #fighters do
+    table.insert(display_fighters, fighters[i])
+  end
+  table.sort(display_fighters,  
+    function(a, b)
+      return a.z < b.z
+    end
+  )
+  for i = 1, #display_fighters do
+    mainGroup:insert(display_fighters[i])
+  end
 
+  -- update health bars
   for i = 1, #fighters do
     if fighters[i].healthbar ~= nil then
       if (fighters[i].health < fighters[i].visible_health - 5) then
@@ -397,6 +422,8 @@ local function gameLoop()
       end
     end
   end
+
+  -- to do: ditch bros from the fighters list, or recycle them
 
   checkPlayerActions()
 
@@ -627,58 +654,60 @@ function scene:create( event )
   sceneGroup = self.view
   -- Code here runs when the scene is first created but has not yet appeared on screen
 
-  skyGroup = display.newGroup()
-  sceneGroup:insert(skyGroup)
+  contentGroup = display.newGroup()
+  sceneGroup:insert(contentGroup)
+
+  contentGroup.xScale = game_scale
+  contentGroup.yScale = game_scale
+
+  -- skyGroup = display.newGroup()
+  -- contentGroup:insert(skyGroup)
 
   parallaxBackgroundGroup = display.newGroup()
-  sceneGroup:insert(parallaxBackgroundGroup)
+  contentGroup:insert(parallaxBackgroundGroup)
 
   bgGroup = display.newGroup()
-  sceneGroup:insert(bgGroup)
+  contentGroup:insert(bgGroup)
 
   mainGroup = display.newGroup()
-  sceneGroup:insert(mainGroup)
+  contentGroup:insert(mainGroup)
 
   foregroundGroup = display.newGroup()
-  sceneGroup:insert(foregroundGroup)
+  contentGroup:insert(foregroundGroup)
 
   hitBoxGroup = display.newGroup()
-  sceneGroup:insert(hitBoxGroup)
+  contentGroup:insert(hitBoxGroup)
 
   uiGroup = display.newGroup()
   sceneGroup:insert(uiGroup)
 
-  iowa_stage_width = 1800
-  min_x = display.contentCenterX - (iowa_stage_width / 2 - display.contentWidth / 2)
-  max_x = display.contentCenterX + (iowa_stage_width / 2 - display.contentWidth / 2)
+  -- sky = display.newImageRect(skyGroup, "Art/iowa_sky.png", iowa_stage_width, 512)
+  -- sky.x = display.contentCenterX
+  -- sky.y = display.contentHeight
+  -- sky.anchorY = 1
 
-  camera.min_x = min_x - 300
-  camera.max_x = max_x + 300
-  camera.min_y = 0
-  camera.max_y = 150
-
-  sky = display.newImageRect(skyGroup, "Art/iowa_sky.png", iowa_stage_width, 512)
-  sky.x = display.contentCenterX
-  sky.y = display.contentHeight
-  sky.anchorY = 1
-
-  parallax_background = display.newImageRect(parallaxBackgroundGroup, "Art/iowa_skyline.png", 2820, 405)
-  parallax_background.x = display.contentCenterX
-  parallax_background.y = display.contentHeight + 30
+  parallax_background = display.newImageRect(parallaxBackgroundGroup, "Art/primary_parallax_background.png", 12000, 800)
+  parallax_background.anchorX = 0
+  parallax_background.x = 0
+  -- parallax_background.x = display.contentCenterX
   parallax_background.anchorY = 1
+  parallax_background.y = display.contentHeight / game_scale
 
-  background = display.newImageRect(mainGroup, "Art/iowa_snow.png", iowa_stage_width, 512)
-  background.x = display.contentCenterX
-  background.y = display.contentHeight + 20
+  background = display.newImageRect(mainGroup, "Art/primary_background.png", 12000, 800)
+  -- background.x = display.contentCenterX
+  background.anchorX = 0
+  background.x = 0
+  -- background.y = display.contentHeight + 20
   background.anchorY = 1
+  background.y = display.contentHeight / game_scale
 
-  traffic_cone = display.newImageRect(foregroundGroup, "Art/traffic_cone.png", 128, 128)
-  traffic_cone.x = background.x - 676
-  traffic_cone.y = background.y - 52
+  -- traffic_cone = display.newImageRect(foregroundGroup, "Art/traffic_cone.png", 128, 128)
+  -- traffic_cone.x = background.x - 676
+  -- traffic_cone.y = background.y - 52
 
-  traffic_cone_2 = display.newImageRect(foregroundGroup, "Art/traffic_cone.png", 128, 128)
-  traffic_cone_2.x = background.x + 698
-  traffic_cone_2.y = background.y - 49
+  -- traffic_cone_2 = display.newImageRect(foregroundGroup, "Art/traffic_cone.png", 128, 128)
+  -- traffic_cone_2.x = background.x + 698
+  -- traffic_cone_2.y = background.y - 49
 
   effects_thingy = effects:create()
   effects_thingy.fighters = fighters
@@ -687,12 +716,12 @@ function scene:create( event )
   local opponent = composer.getVariable("opponent")
   local location = composer.getVariable("location")
 
-  fighters[1] = candidates[opponent]:create(384, display.contentCenterY, mainGroup, min_x, max_x, effects_thingy)
+  fighters[1] = candidates[opponent]:create(384, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
   -- fighters[1] = candidates["trump"]:create(384, display.contentCenterY, mainGroup, min_x, max_x, effects_thingy)
   fighters[1].xScale = -1
   fighters[1].healthbar = healthBar:create(display.contentWidth - 240 - 10, 10, 0.8, uiGroup)
 
-  fighters[2] = candidates[candidate]:create(184, display.contentCenterY, mainGroup, min_x, max_x, effects_thingy)
+  fighters[2] = candidates[candidate]:create(184, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
   fighters[2].healthbar = healthBar:create(60, 10, 0.8, uiGroup)
 
   fighters[1].target = fighters[2]
@@ -703,7 +732,7 @@ function scene:create( event )
   player = fighters[2]
   other_fighters = {fighters[1]}
 
-  iowa_snow = snow:create(foregroundGroup)
+  iowa_snow = snow:create(foregroundGroup, 4000)
 
   player_headshot = display.newImageRect(uiGroup, "Art/" .. candidate .. "_face.png", 50, 50)
   player_headshot.x = 27
@@ -781,6 +810,9 @@ function scene:create( event )
   else
     Runtime:addEventListener("key", properKeyboard)
   end
+
+  camera:setToTarget(false, fighters[2].x, fighters[2].y + fighters[2].z, contentGroup, {parallaxBackgroundGroup, mainGroup, bgGroup, foregroundGroup}, {0.2, 1,1,1})
+
 
   state = "waiting"
 end

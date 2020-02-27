@@ -38,6 +38,27 @@ settings =
 	},
 
 	--
+	-- window section
+	--
+	window =
+    {
+        defaultMode = "fullscreen",
+        defaultViewWidth = 320,
+        defaultViewHeight = 568,
+    },
+
+    --
+    -- macOS section
+    --
+    macos =
+    {
+        plist =
+        {
+            NSHumanReadableCopyright = "Copyright © 2020 Good X Y LLC"
+        },
+    },
+
+	--
 	-- Plugins section
 	--
 	plugins = {

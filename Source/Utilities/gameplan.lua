@@ -76,11 +76,11 @@ end
 function gameplan:quick_setup(candidate, opponent)
   composer.setVariable("candidate", candidate)
   local remaining_candidates = {}
-  local names = composer.getVariable("names")
+  local candidates = composer.getVariable("candidates")
   local locations = composer.getVariable("locations")
-  for i = 1, #names do
-    if candidate ~= names[i] and opponent ~= names[i] then
-      table.insert(remaining_candidates, names[i])
+  for i = 1, #candidates do
+    if candidate ~= candidates[i] and opponent ~= candidates[i] then
+      table.insert(remaining_candidates, candidates[i])
     end
   end
   composer.setVariable("opponent", opponent)
