@@ -5,20 +5,26 @@ projectile.__index = projectile
 local projectile_size = 64
 local projectile_knockback = 10
 local projectile_power = 8
+local z_threshold = 20
 
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
 
-function projectile:create(projectile_type, group, originator, fighters, x, y, xScale, x_vel, y_vel)
+function projectile:create(projectile_type, group, originator, fighters, x, y, z, xScale, x_vel, y_vel)
 
   local object = {}
   setmetatable(object, projectile)
   print(group)
 
+  object.type = "projectile"
+
   object.sprite = display.newImageRect(group, "Art/" .. projectile_type .. ".png", projectile_size, projectile_size)
+  object.y = y
+  object.z = z
   object.sprite.x = x
-  object.sprite.y = y
+  object.sprite.y = y + z
+  object.sprite.z = z
   object.sprite.xScale = xScale
   object.x_vel = x_vel
   object.y_vel = y_vel
@@ -47,7 +53,9 @@ function projectile:update()
     for i = 1, #self.fighters do
       opponent = self.fighters[i]
 
-      if self.enabled == true and opponent ~= self.originator then
+      local z_diff = math.abs(opponent.z - self.z)
+
+      if z_diff < z_threshold and self.enabled == true and opponent ~= self.originator then
 
         -- Get the opponent's hit detection circles
         opponent_frame = opponent.sprite.frame

@@ -20,12 +20,13 @@ sounds["damage_4"] = audio.loadSound("Sound/damage_4.wav")
 sounds["damage_5"] = audio.loadSound("Sound/damage_5.wav")
 sounds["damage_6"] = audio.loadSound("Sound/damage_6.wav")
 
-function effects:create()
+function effects:create(top_level_group)
 
   local object = {}
   setmetatable(object, effects)
 
   object.effect_list = {}
+  object.top_level_group = top_level_group
 
   fighters = nil
 
@@ -47,26 +48,57 @@ function effects:update()
   self.effect_list = copy_effect_list
 end
 
-function effects:addDizzyTwit(group, originator, x_center, y_center, width, period, duration)
-  local twit = dizzyTwit:create(group, originator, x_center, y_center, width, period, duration)
+function effects:shakeScreen(intensity, duration)
+  local shake = {}
+  shake.start_time = system.getTimer()
+  shake.intensity = intensity
+  shake.duration = duration
+  shake.target = self.top_level_group
+
+  function shake:update()
+    print("updating a shake")
+    print(self.intensity)
+    shake.target.x = math.random(0, 2 * self.intensity) - self.intensity
+    -- shake.target.y = math.random(0, 2 * self.intensity) - self.intensity
+    print(shake.target.x)
+  end
+
+  function shake:finished()
+    print("checking finished")
+    print(system.getTimer() - self.start_time)
+    if system.getTimer() - self.start_time > self.duration then
+      shake.target.x = 0
+      shake.target.y = 0
+      return true
+    else
+      return false
+    end
+  end
+
+  print("adding a shake")
+  self:add(shake)
+end
+
+function effects:addDizzyTwit(group, originator, x_center, y_center, width, duration)
+  local twit = dizzyTwit:create(group, originator, x_center, y_center, width, duration)
   self:add(twit)
 end
 
 projectileTwit_x_vel = 18
 projectileTwit_y_vel_max = 2
-function effects:addProjectileTwit(group, originator, x, y, xScale)
+function effects:addProjectileTwit(group, originator, x, y, z, xScale)
   local x_vel = projectileTwit_x_vel * xScale
   local y_vel = (math.random(1,200) - 100) / (100 / projectileTwit_y_vel_max)
-  local p = projectile:create("twit", group, originator, self.fighters, x, y, xScale, x_vel, y_vel)
+  local p = projectile:create("twit", group, originator, self.fighters, x, y, z, xScale, x_vel, y_vel)
   self:add(p)
 end
 
 projectileSteak_x_vel = 30
 projectileSteak_y_vel_max = 2
-function effects:addProjectileSteak(group, originator, x, y, xScale)
+function effects:addProjectileSteak(group, originator, x, y, z, xScale)
   local x_vel = projectileSteak_x_vel * xScale
   local y_vel = (math.random(1,200) - 100) / (100 / projectileSteak_y_vel_max)
-  local p = projectile:create("steak", group, originator, self.fighters, x, y, xScale, x_vel, y_vel)
+  local p = projectile:create("steak", group, originator, self.fighters, x, y, z, xScale, x_vel, y_vel)
   p.sprite.xScale = xScale / 2
   p.sprite.yScale = 1/2
   p.hit_radius = p.hit_radius / 1.5
@@ -77,10 +109,10 @@ end
 
 projectileGoldBar_x_vel = 28
 projectileGoldBar_y_vel_max = 2
-function effects:addProjectileGoldBar(group, originator, x, y, xScale)
+function effects:addProjectileGoldBar(group, originator, x, y, z, xScale)
   local x_vel = projectileGoldBar_x_vel * xScale
   local y_vel = (math.random(1,200) - 100) / (100 / projectileGoldBar_y_vel_max)
-  local p = projectile:create("gold_bar", group, originator, self.fighters, x, y, xScale, x_vel, y_vel)
+  local p = projectile:create("gold_bar", group, originator, self.fighters, x, y, z, xScale, x_vel, y_vel)
   p.sprite.xScale = xScale / 1.5
   p.sprite.yScale = 1/1.5
   p.hit_radius = p.hit_radius / 1.25
@@ -92,10 +124,10 @@ end
 
 projectilePhone_x_vel = 30
 projectilePhone_y_vel_max = 2
-function effects:addProjectilePhone(group, originator, x, y, xScale)
+function effects:addProjectilePhone(group, originator, x, y, z, xScale)
   local x_vel = projectilePhone_x_vel * xScale
   local y_vel = (math.random(1,200) - 100) / (100 / projectilePhone_y_vel_max)
-  local p = projectile:create("phone", group, originator, self.fighters, x, y, xScale, x_vel, y_vel)
+  local p = projectile:create("phone", group, originator, self.fighters, x, y, z, xScale, x_vel, y_vel)
   p.sprite.xScale = xScale / 2
   p.sprite.yScale = 1/2
   p.hit_radius = p.hit_radius / 1.5
@@ -106,10 +138,10 @@ end
 
 projectileSoda_x_vel = 30
 projectileSoda_y_vel_max = 2
-function effects:addProjectileSoda(group, originator, x, y, xScale)
+function effects:addProjectileSoda(group, originator, x, y, z, xScale)
   local x_vel = projectileSoda_x_vel * xScale
   local y_vel = (math.random(1,200) - 100) / (100 / projectileSoda_y_vel_max)
-  local p = projectile:create("soda", group, originator, self.fighters, x, y, xScale, x_vel, y_vel)
+  local p = projectile:create("soda", group, originator, self.fighters, x, y, z, xScale, x_vel, y_vel)
   p.sprite.xScale = xScale / 2
   p.sprite.yScale = 1/2
   p.hit_radius = p.hit_radius / 1.5

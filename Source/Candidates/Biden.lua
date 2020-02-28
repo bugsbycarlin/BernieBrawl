@@ -14,7 +14,8 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.action_rate = 40
   candidate.power = 10
   candidate.knockback = 12
-  candidate.automatic_rate = 400
+  candidate.automatic_rate = 750
+  candidate:setMaxHealth(30)
 
   -- to do: lots of knockback for ultra punching
 
@@ -37,17 +38,28 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
 
   function candidate:automaticAction()
     -- do return end
+
+    if self.health <= 0 then
+      return
+    end
     
-    if self.target.action ~= "dizzy" and self.target.action ~= "ko" then
+    print("Joe Biden HP is " .. self.health)
+    if math.abs(self.target.x - self.x) > 350 then
+      self:basicAutomaticMove()
+    elseif self.target.action ~= "dizzy" and self.target.action ~= "ko" then
       dice = math.random(1, 100)
-      if dice > 80 then
-        self:moveAction(10 * self.xScale, 0)
-      elseif dice > 35 then
-        self:punchingAction()
-      elseif dice > 5 then
-        self:kickingAction()
-      else
-        self:specialAction()
+      moved = false
+      if dice > 70 then
+        moved = self:basicAutomaticMove()
+      end
+      if moved == false then
+        if dice > 60 then
+          self:punchingAction()
+        elseif dice > 20 then
+          self:kickingAction()
+        else
+          self:specialAction()
+        end
       end
     else
       local dice = math.random(1, 100)

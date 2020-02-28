@@ -33,29 +33,35 @@ function trump:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.after_image.isVisible = false
 
   function candidate:automaticAction()
+    do return end
     -- self:blockingAction()
     if self.action == "resting" then
       if self.target.action == "jump_kicking" then
         self:blockingAction()
       elseif self.target.action ~= "dizzy" and self.target.action ~= "ko" then
         dice = math.random(1, 100)
-        if dice > 80 then
-          self:moveAction(10 * self.xScale, 0)
-        elseif dice > 25 and self.target.action ~= "resting" then
-          self:blockingAction()
-        elseif dice > 65 then
-          self:punchingAction()
-        elseif dice > 30 then
-          self:kickingAction()
-        elseif dice > 0 then
-          self:specialAction()
+        local moved = false
+        if dice > 50 then
+          moved = self:basicAutomaticMove()
+        end
+        print(moved)
+        if moved == false then
+          if dice > 70 and self.target.action ~= "resting" then
+            self:blockingAction()
+          elseif dice > 55 then
+            self:punchingAction()
+          elseif dice > 40 then
+            self:kickingAction()
+          elseif dice > 0 then
+            self:specialAction()
+          end
         end
       else
         dice = math.random(1, 100)
         if dice > 90 then
+          self:basicAutomaticMove()
+        else
           self:specialAction()
-        elseif math.abs(self.x - self.target.x) < 150 then
-          self:moveAction(-10 * self.xScale, 0)
         end
       end
     end
@@ -211,7 +217,7 @@ function trump:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.animations["twitting"] = function(self)
     self.sprite:setFrame(twitting_frames[self.frame])
     if self.frame == 10 or self.frame == 13 or self.frame == 16 then
-      self.effects_thingy:addProjectileTwit(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.xScale)
+      self.effects_thingy:addProjectileTwit(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.z, self.xScale)
     end
     self.frame = self.frame + 1
     if (self.frame > #twitting_frames) then
@@ -234,7 +240,7 @@ function trump:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.animations["phone_throwing"] = function(self)
     self.sprite:setFrame(phone_throwing_frames[self.frame])
     if self.frame == 16 then
-      self.effects_thingy:addProjectilePhone(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.xScale)
+      self.effects_thingy:addProjectilePhone(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.z, self.xScale)
     end
     self.frame = self.frame + 1
     if (self.frame > #phone_throwing_frames) then
@@ -257,7 +263,7 @@ function trump:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.animations["steak_throwing"] = function(self)
     self.sprite:setFrame(steak_throwing_frames[self.frame])
     if self.frame == 16 then
-      self.effects_thingy:addProjectileSteak(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.xScale)
+      self.effects_thingy:addProjectileSteak(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.z, self.xScale)
     end
     self.frame = self.frame + 1
     if (self.frame > #steak_throwing_frames) then
@@ -280,7 +286,7 @@ function trump:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.animations["gold_bar_throwing"] = function(self)
     self.sprite:setFrame(gold_bar_throwing_frames[self.frame])
     if self.frame == 16 then
-      self.effects_thingy:addProjectileGoldBar(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.xScale)
+      self.effects_thingy:addProjectileGoldBar(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.z, self.xScale)
     end
     self.frame = self.frame + 1
     if (self.frame > #gold_bar_throwing_frames) then
@@ -303,7 +309,7 @@ function trump:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.animations["soda_throwing"] = function(self)
     self.sprite:setFrame(soda_throwing_frames[self.frame])
     if self.frame == 16 then
-      self.effects_thingy:addProjectileSoda(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.xScale)
+      self.effects_thingy:addProjectileSoda(self.parent_group, self, self.x + 20 * self.xScale, self.y - 30, self.z, self.xScale)
     end
     self.frame = self.frame + 1
     if (self.frame > #soda_throwing_frames) then

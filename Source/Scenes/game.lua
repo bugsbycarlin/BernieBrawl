@@ -76,13 +76,17 @@ local max_x = 12000
 local min_z = -90
 local max_z = 100
 
+local time_since_last_bad
+local bad_time_gap = 9000
+local warren_has_appeared = false
+
 local camera = {
   x = 0,
   y = 0,
   move = true,
   speed = 0.2,
   min_x = 0,
-  max_x = max_x - display.contentWidth,
+  max_x = max_x - display.contentWidth - 200,
   min_y = -163,
   max_y = 0,
   target_center_x = display.contentCenterX,
@@ -91,8 +95,6 @@ local camera = {
   setToTarget = function(self, drift, object_x, object_y, reference, groups, parallax_values)
     diff_x = object_x - self.target_center_x
     diff_y = object_y - self.target_center_y
-    print("hey")
-    print(diff_y)
 
     if drift then
       -- blend with old camera position
@@ -122,7 +124,7 @@ local keydown = {
   d=false,
 }
 
-local stage_music = audio.loadStream("Sound/BeiMir.mp3")
+local stage_music = audio.loadStream("Sound/robot_loop.mp3")
 
 local iowa_snow
 local effects_thingy
@@ -159,8 +161,10 @@ local player
 local other_fighters
 
 local function activateGame()
-  for i = 1, #other_fighters do
-    other_fighters[i]:enableAutomatic()
+  for i = 1, #fighters do
+    if fighters[i] ~= player then
+      fighters[i]:enableAutomatic()
+    end
   end
   state = "active"
 end
@@ -232,6 +236,35 @@ local function showHitBoxes()
       end
     end
   end
+end
+
+local function addBad()
+
+  local fighter = candidates[composer.getVariable("opponent")]:create(player.x + 800, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
+  fighter.target = player
+  fighter.side = "bad"
+  fighter.fighters = fighters
+  fighter:enable()
+
+  table.insert(fighters, fighter)
+
+  time_since_last_bad = system.getTimer()
+
+  return fighter
+end
+
+local function addWarren()
+  warren_has_appeared = true
+
+  local fighter = candidates["warren"]:create(8300, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
+  fighter.target = player
+  fighter.side = "bad"
+  fighter.fighters = fighters
+  fighter:enable()
+
+  table.insert(fighters, fighter)
+
+  return fighter
 end
 
 local function checkEnding()
@@ -383,31 +416,74 @@ local function gameLoop()
   end
 
   if state == "active" then
-    checkEnding()
+    -- checkEnding()
 
     checkInput()
   end
 
   if camera.move then
-    camera:setToTarget(true, fighters[2].x, fighters[2].y + fighters[2].z, contentGroup, {parallaxBackgroundGroup, mainGroup, bgGroup, foregroundGroup}, {0.2, 1,1,1})
+    camera:setToTarget(true, player.x, player.y + player.z, contentGroup, {parallaxBackgroundGroup, mainGroup, bgGroup, foregroundGroup}, {0.2, 1,1,1})
   end
 
   iowa_snow:update()
   effects_thingy:update()
 
+  -- potentially add a bad
+  if (system.getTimer() - time_since_last_bad > bad_time_gap) and (player.x < 7200 or player.x > 8500) then
+    num_bad = 0
+    for i = 1, #fighters do
+      if fighters[i].side == "bad" then
+        num_bad = num_bad + 1
+      end
+    end
+    if num_bad < 4 then
+      fighter = addBad()
+      fighter:enableAutomatic()
+    end
+  end
+
+  if warren_has_appeared == false and player.x >= 7200 then
+    fighter = addWarren()
+    fighter:enableAutomatic()
+  end
+
+  -- remove dead bads from the stage
+  new_fighters = {}
+  for i = 1, #fighters do
+    fighter = fighters[i]
+    if fighter ~= player and fighter.action == "blinking" and fighter.blinking_start_time ~= nil and system.getTimer() - fighter.blinking_start_time > 3000 then
+      fighter:disable()
+      display.remove(fighter)
+    else
+      table.insert(new_fighters, fighter)
+    end
+  end
+  fighters = new_fighters
+  for i = 1, #fighters do
+    fighters[i].fighters = fighters
+  end
+
+  print("Number of fighters is " .. #fighters)
+
   -- sort draw order for fighters
   -- todo: fix everything else in this list, effects, etc
-  local display_fighters = {}
+  local display_objects = {}
   for i = 1, #fighters do
-    table.insert(display_fighters, fighters[i])
+    table.insert(display_objects, fighters[i])
   end
-  table.sort(display_fighters,  
+  for i = 1, #effects_thingy.effect_list do
+    item = effects_thingy.effect_list[i]
+    if item.type == "projectile" then
+      table.insert(display_objects, item.sprite)
+    end
+  end
+  table.sort(display_objects,  
     function(a, b)
       return a.z < b.z
     end
   )
-  for i = 1, #display_fighters do
-    mainGroup:insert(display_fighters[i])
+  for i = 1, #display_objects do
+    mainGroup:insert(display_objects[i])
   end
 
   -- update health bars
@@ -709,28 +785,32 @@ function scene:create( event )
   -- traffic_cone_2.x = background.x + 698
   -- traffic_cone_2.y = background.y - 49
 
-  effects_thingy = effects:create()
+  effects_thingy = effects:create(sceneGroup)
   effects_thingy.fighters = fighters
 
   local candidate = composer.getVariable("candidate")
   local opponent = composer.getVariable("opponent")
   local location = composer.getVariable("location")
 
-  fighters[1] = candidates[opponent]:create(384, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
-  -- fighters[1] = candidates["trump"]:create(384, display.contentCenterY, mainGroup, min_x, max_x, effects_thingy)
-  fighters[1].xScale = -1
-  fighters[1].healthbar = healthBar:create(display.contentWidth - 240 - 10, 10, 0.8, uiGroup)
 
-  fighters[2] = candidates[candidate]:create(184, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
-  fighters[2].healthbar = healthBar:create(60, 10, 0.8, uiGroup)
-
-  fighters[1].target = fighters[2]
+  fighters[1] = candidates[candidate]:create(3084, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
+  fighters[1].healthbar = healthBar:create(60, 10, 0.8, uiGroup)
+  fighters[1].shake_screen_on_contact = true
   fighters[1].fighters = fighters
-  fighters[2].target = fighters[1]
-  fighters[2].fighters = fighters
+  fighters[1].flexible_target = true
+  fighters[1].side = "good"
+  player = fighters[1]
 
-  player = fighters[2]
-  other_fighters = {fighters[1]}
+  -- fighters[2] = candidates[opponent]:create(384, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
+  -- fighters[2].xScale = -1
+  -- fighters[2].healthbar = healthBar:create(display.contentWidth - 240 - 10, 10, 0.8, uiGroup)
+
+  -- fighters[1].target = fighters[2]
+  -- fighters[1].fighters = fighters
+  -- fighters[2].target = fighters[1]
+  -- fighters[2].fighters = fighters
+
+  other_fighters = {}
 
   iowa_snow = snow:create(foregroundGroup, 4000)
 
@@ -739,9 +819,9 @@ function scene:create( event )
   player_headshot.y = 27
   player_headshot.xScale = -1
 
-  opponent_headshot = display.newImageRect(uiGroup, "Art/" .. opponent .. "_face.png", 50, 50)
-  opponent_headshot.x = display.contentWidth - 27
-  opponent_headshot.y = 27
+  -- opponent_headshot = display.newImageRect(uiGroup, "Art/" .. opponent .. "_face.png", 50, 50)
+  -- opponent_headshot.x = display.contentWidth - 27
+  -- opponent_headshot.y = 27
 
   player_wins = composer.getVariable("player_wins")
   opponent_wins = composer.getVariable("opponent_wins")
@@ -752,10 +832,10 @@ function scene:create( event )
   player_checkmark.y = player_headshot.y + 45
   player_checkmark.isVisible = (player_wins > 0)
 
-  opponent_checkmark = display.newImageRect( uiGroup, "Art/checkmark.png", 40, 40)
-  opponent_checkmark.x = opponent_headshot.x + 5
-  opponent_checkmark.y = opponent_headshot.y + 45
-  opponent_checkmark.isVisible = (opponent_wins > 0)
+  -- opponent_checkmark = display.newImageRect( uiGroup, "Art/checkmark.png", 40, 40)
+  -- opponent_checkmark.x = opponent_headshot.x + 5
+  -- opponent_checkmark.y = opponent_headshot.y + 45
+  -- opponent_checkmark.isVisible = (opponent_wins > 0)
 
   announcement_text = display.newImageRect(uiGroup, "Art/round.png", 568/1.5, 320/1.5)
   announcement_text.x = display.contentCenterX + 30
@@ -811,7 +891,7 @@ function scene:create( event )
     Runtime:addEventListener("key", properKeyboard)
   end
 
-  camera:setToTarget(false, fighters[2].x, fighters[2].y + fighters[2].z, contentGroup, {parallaxBackgroundGroup, mainGroup, bgGroup, foregroundGroup}, {0.2, 1,1,1})
+  camera:setToTarget(false, player.x, player.y + player.z, contentGroup, {parallaxBackgroundGroup, mainGroup, bgGroup, foregroundGroup}, {0.2, 1,1,1})
 
 
   state = "waiting"
@@ -828,8 +908,9 @@ function scene:show( event )
     -- Code here runs when the scene is still off screen (but is about to come on screen)
     gameLoopTimer = timer.performWithDelay(33, gameLoop, 0)
     -- backgroundAnimationTimer = timer.performWithDelay(500, backgroundAnimation, 0)
-    fighters[1]:enable()
-    fighters[2]:enable()
+    player:enable()
+    addBad()
+    -- fighters[2]:enable()
     timer.performWithDelay(2500, function() activateGame() end)
 
   elseif ( phase == "did" ) then

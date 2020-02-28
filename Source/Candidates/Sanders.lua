@@ -14,7 +14,7 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.automatic_rate = 450
   candidate.bros = 4
   candidate.ko_frame = 33
-  -- candidate:setMaxHealth(400)
+  candidate:setMaxHealth(300)
 
   candidate.frames = {}
   for i = 1, #sandersSpriteInfo.sheet.frames do

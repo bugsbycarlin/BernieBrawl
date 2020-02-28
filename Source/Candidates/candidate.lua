@@ -56,6 +56,8 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
   tim.min_z = min_z
   tim.max_z = max_z
 
+  tim.shake_screen_on_contact = false
+
   tim.action = "resting"
 
   tim.damage_timer = 0
@@ -77,6 +79,12 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
 
   tim.attack = nil
 
+  tim.flexible_target = false
+  tim.side = ""
+
+  -- tim.shadow = display.newImageRect(tim, "Art/shadow.png", 128, 128)
+  -- tim.shadow.y = tim.ground_target - tim.y
+
   function tim:setZ(z_value)
     if z_value < min_z then
       self:setZ(min_z)
@@ -86,6 +94,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
       self.z = z_value
       self.sprite.y = z_value
       self.after_image.y = z_value
+      -- self.shadow.y = self.ground_target - self.y + self.y_offset + z_value
     end
   end
 
@@ -127,6 +136,37 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
 
   function tim:automaticAction()
     
+  end
+
+  function tim:basicAutomaticMove()
+    local moved = false
+
+    if self.target == nil then
+      dice = math.random(1, 100)
+      if dice > 50 then
+        self:moveAction(10, 0)
+      else
+        self:moveAction(-10, 0)
+      end
+    end
+
+    if self.x < self.target.x - 256 then
+      self:moveAction(10, 0)
+      moved = true
+    elseif self.x > self.target.x + 256 then
+      self:moveAction(-10, 0)
+      moved = true
+    end
+
+    if self.z < self.target.z - z_threshold then
+      self:zMoveAction(self.max_z_velocity * 0.7)
+      moved = true
+    elseif self.z > self.target.z + z_threshold then
+      self:zMoveAction(-1 * self.max_z_velocity * 0.7)
+      moved = true
+    end
+
+    return moved
   end
 
   function tim:punchingAction()
@@ -179,6 +219,14 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     end
 
     self:forceMoveAction(x_vel, y_vel)
+
+    if self.target == nil then
+      if self.x_vel < 0 then
+        self.xScale = -1
+      else
+        self.xScale = 1
+      end
+    end
   end
 
   function tim:forceMoveAction(x_vel, y_vel)
@@ -194,6 +242,12 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     
     -- check if there's substantial upward velocity, and if so, make this a jump
     if self.y_vel < -1 * self.max_y_velocity / 2 then
+      -- do this for much stronger jumps
+      if self.x_vel < 0 then
+        self.x_vel = -1 * self.max_x_velocity
+      else
+        self.x_vel = self.max_x_velocity
+      end
       self:jumpingAction()
     elseif math.abs(self.y_vel) < self.max_y_velocity / 6 then
       self.y_vel = 0
@@ -266,6 +320,11 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     self.x_vel = -25 * self.xScale
   end
 
+  function tim:blinkingAction()
+    self.action = "blinking"
+    self.blinking_start_time = system.getTimer()
+  end
+
   function tim:dizzyAction()
     if self.action == "ko" then
       self.y = self.y - 60
@@ -275,7 +334,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     self.damage_timer = 45
     self.damage_in_a_row = 0
     for i = 1, 3, 1 do
-      self.effects_thingy:addDizzyTwit(self, self, 0, -110 + math.random(1,20), 40 + math.random(1,20), 2250)
+      self.effects_thingy:addDizzyTwit(self, self, 0, -110 + math.random(1,20) + self.z, 40 + math.random(1,20), 2250)
     end
   end
 
@@ -302,11 +361,15 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
 
     if (self.damage_timer > 0) then
       self.damage_timer = self.damage_timer - 1  
-      if self.damage_timer <= 0 and self.health > 0 then
-        if self.action == "ko" then
-          self:dizzyAction()
-        else
-          self:restingAction()
+      if self.damage_timer <= 0 then
+        if self.health > 0 then
+          if self.action == "ko" then
+            self:dizzyAction()
+          else
+            self:restingAction()
+          end
+        elseif self.health <= 0 then
+          self:blinkingAction()
         end
       end
     end
@@ -330,6 +393,18 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
 
   tim.animations["knockback"] = function(self)
     self.sprite:setFrame(self.blocking_frames[1])
+  end
+
+  tim.animations["blinking"] = function(self)
+    if self.blinking_start_time == nil then
+      return
+    end
+    blinking_time = system.getTimer() - self.blinking_start_time
+    if math.floor(blinking_time / 150) % 2 == 0 then
+      self.sprite.isVisible = false
+    else
+      self.sprite.isVisible = true
+    end
   end
 
   function tim:physicsLoop()
@@ -388,6 +463,33 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
       end
     end
 
+    local acquire_target_threshold = 256
+    local switch_target_threshold = 100
+    local close_enough_to_target = false
+
+    for i = 1, #self.fighters do
+      fighter = self.fighters[i]
+      if fighter.enabled == true and fighter.action ~= "ko" and fighter.action ~= "blinking" and fighter ~= self and self.side ~= fighter.side then
+        if self.target == nil then
+          if distance(self.x, self.y, fighter.x, fighter.y) < acquire_target_threshold then
+            self.target = fighter
+            close_enough_to_target = true
+          end
+        else
+          if distance(self.x, self.y, fighter.x, fighter.y) < acquire_target_threshold then
+            close_enough_to_target = true
+          end
+          if distance(self.x, self.y, fighter.x, fighter.y) < distance(self.x, self.y, self.target.x, self.target.y) - switch_target_threshold then
+            self.target = fighter
+          end
+        end
+      end
+    end
+    if close_enough_to_target == false and self.flexible_target == true then
+      self.target = nil
+    end
+
+    -- face the current target, if there is one
     if self.target ~= nil then
       if self.x > self.target.x + 10 and self.xScale == 1 and self.action == "resting" then
         self.xScale = -1
@@ -462,7 +564,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
 
       local z_diff = math.abs(opponent.z - self.z)
 
-      if opponent ~= self and z_diff < z_threshold and (self.ally == nil or self.ally ~= opponent) and (opponent.ally == nil or opponent.ally ~= self) then
+      if opponent ~= self and z_diff < z_threshold and self.side ~= opponent.side and (self.ally == nil or self.ally ~= opponent) and (opponent.ally == nil or opponent.ally ~= self) then
         -- Get the opponent's hit detection circles
         opponent_frame = opponent.sprite.frame
         opponent_hitIndex = opponent.hitIndex[opponent_frame]
@@ -542,6 +644,12 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
             B.damage_in_a_row = 0
             A.damage_in_a_row = A.damage_in_a_row + 1
             A:damageAction("damaged", B.attack.power, B.attack.knockback, -5, 15)
+            print(B.short_name)
+            print(B.shake_screen_on_contact)
+            if B.shake_screen_on_contact then
+              effects_thingy:shakeScreen(1, 200)
+              effects_thingy:shakeScreen(10, 100)
+            end
           elseif result == 4 then
             -- partial damage and partial knockback for the fighter
             -- (note this is one sided, because what happens to the other fighter is independent)
