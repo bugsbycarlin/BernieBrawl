@@ -79,6 +79,29 @@ function effects:shakeScreen(intensity, duration)
   self:add(shake)
 end
 
+function effects:addArrow(group, x, y, duration)
+  local arrow = display.newImageRect(group, "Art/arrow.png", 128, 128)
+  arrow.x = x
+  arrow.y = y
+  arrow.start_time = system.getTimer()
+  arrow.duration = duration
+
+  function arrow:update()
+    blinking_time = system.getTimer() - self.start_time
+    if math.floor(blinking_time / 150) % 2 == 0 then
+      self.isVisible = false
+    else
+      self.isVisible = true
+    end
+  end
+
+  function arrow:finished()
+    return (system.getTimer() - self.start_time > self.duration)
+  end
+
+  self:add(arrow)
+end
+
 function effects:addDizzyTwit(group, originator, x_center, y_center, width, duration)
   local twit = dizzyTwit:create(group, originator, x_center, y_center, width, duration)
   self:add(twit)

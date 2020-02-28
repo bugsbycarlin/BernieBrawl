@@ -39,13 +39,18 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   function candidate:automaticAction()
     -- do return end
 
-    if self.health <= 0 then
+    if self.health <= 0 or self.action ~= "resting" then
       return
     end
     
-    print("Joe Biden HP is " .. self.health)
+    -- print("Joe Biden HP is " .. self.health)
     if math.abs(self.target.x - self.x) > 350 then
-      self:basicAutomaticMove()
+      dice = math.random(1, 100)
+      if dice > 70 then
+        self:basicAutomaticMove()
+      else
+        self:specialAction()
+      end
     elseif self.target.action ~= "dizzy" and self.target.action ~= "ko" then
       dice = math.random(1, 100)
       moved = false
@@ -82,9 +87,11 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   end
 
   function candidate:specialAction()
-    self.action = "ultra_punching"
-    self.frame = 1
-    self.attack = {power=2*self.power, knockback=2*self.knockback}
+    if self.action == "resting" then
+      self.action = "ultra_punching"
+      self.frame = 1
+      self.attack = {power=2*self.power, knockback=2*self.knockback}
+    end
   end
 
   function candidate:checkSpecialAction(x_vel, y_vel)

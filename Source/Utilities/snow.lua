@@ -50,7 +50,6 @@ function snow:finished(flake)
   if flake.y > flake.target_y then
     return true
   elseif x < -100 or x > display.contentWidth + 100 then
-    print("offscreen flake")
     return true
   else
     return false

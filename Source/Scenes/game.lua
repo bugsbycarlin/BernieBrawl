@@ -77,7 +77,8 @@ local min_z = -90
 local max_z = 100
 
 local time_since_last_bad
-local bad_time_gap = 9000
+local early_bad_time_gap = 6000
+local late_bad_time_gap = 12000
 local warren_has_appeared = false
 
 local camera = {
@@ -113,6 +114,28 @@ local camera = {
     end
   end,
 }
+
+-- your max_x is artificially set at the right side of the current zone.
+-- your min_x is set at either 0, or your highest right value minus 1000.
+-- min_x also won't go over 10,000, so you can always walk around the hotel area.
+-- I don't want to have to worry about whether you can go back and revisit shops,
+-- so they're intentionally set so that once you cross the next boundary, you
+-- can't actually backtrack to them anyway.
+-- camera maxes are also set to match.
+local zones = {
+  {0, 1200, "goons"},
+  {1200, 2700, "goons"},
+  {2700, 4000, "shop"},
+  {4000, 5600, "goons"},
+  {5600, 7200, "goons"},
+  {7200, 8500, "warren"},
+  {8500, 10100, "shop"},
+  {10100, 12000, "goons"},
+  {10100, 12000, "hotel"},
+}
+local num_beaten_in_current_zone = 0
+local current_zone = 0
+local player_furthest_x = 0
 
 local keydown = {
   left=false,
@@ -240,7 +263,8 @@ end
 
 local function addBad()
 
-  local fighter = candidates[composer.getVariable("opponent")]:create(player.x + 800, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
+  local start_x = math.min(player.max_x + 180, player.x + 700)
+  local fighter = candidates[composer.getVariable("opponent")]:create(start_x, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
   fighter.target = player
   fighter.side = "bad"
   fighter.fighters = fighters
@@ -265,6 +289,101 @@ local function addWarren()
   table.insert(fighters, fighter)
 
   return fighter
+end
+
+local function checkZonesAndEnemies()
+-- local zones = {
+--   {0, 1200, "goons"},
+--   {1200, 2700, "goons"},
+--   {2700, 4000, "shop"},
+--   {4000, 5600, "goons"},
+--   {5600, 7200, "goons"},
+--   {7200, 8500, "warren"},
+--   {8500, 10100, "shop"},
+--   {10100, 12000, "goons"},
+--   {10100, 12000, "hotel"},
+-- }
+-- local num_beaten_in_current_zone = 0
+-- local current_zone = 0
+-- local player_furthest_x = 0
+
+  if current_zone > 0 then
+    -- remove dead bads from the stage
+    local new_fighters = {}
+    local current_ko = 0
+    for i = 1, #fighters do
+      fighter = fighters[i]
+      if fighter ~= player and fighter.action == "blinking" and fighter.blinking_start_time ~= nil and system.getTimer() - fighter.blinking_start_time > 3000 then
+        fighter:disable()
+        display.remove(fighter)
+        num_beaten_in_current_zone = num_beaten_in_current_zone + 1
+        print("I've beaten up " .. num_beaten_in_current_zone)
+      else
+        table.insert(new_fighters, fighter)
+        if fighter.health <= 0 then
+          current_ko = current_ko + 1
+        end
+      end
+    end
+    fighters = new_fighters
+    for i = 1, #fighters do
+      fighters[i].fighters = fighters
+    end
+    print("There are currently " .. #fighters .. " fighters including me.")
+
+    -- count bads
+    num_bad = 0
+    for i = 1, #fighters do
+      if fighters[i].side == "bad" then
+        num_bad = num_bad + 1
+      end
+    end
+    print("There are currently " .. num_bad .. " bads.")
+    
+    -- potentially add a bad
+    local gap = early_bad_time_gap
+    if num_bad > 2 or num_beaten_in_current_zone > 3 then
+      gap = late_bad_time_gap
+    end
+    if current_ko == 0 and zones[current_zone][3] == "goons" and system.getTimer() - time_since_last_bad > gap and num_bad < 4 then
+      fighter = addBad()
+      fighter:enableAutomatic()
+    end
+
+    -- if the zone is warren, and warren has not appeared, add warren
+    if zones[current_zone][3] == "warren" and warren_has_appeared == false and player.x >= 7200 then
+      fighter = addWarren()
+      fighter:enableAutomatic()
+    end
+  end
+
+  -- check if the zone needs to be progressed, and update max_x for all fighters and the camera.
+  if current_zone == 0
+    or (zones[current_zone][3] == "goons" and num_beaten_in_current_zone >= 4 and num_bad == 0) 
+    or (zones[current_zone][3] == "warren" and num_beaten_in_current_zone >= 1 and num_bad == 0) 
+    or (zones[current_zone][3] == "shop" and player.x > zones[current_zone][2] - 200) then
+    current_zone = current_zone + 1
+    num_beaten_in_current_zone = 0
+    -- here do the arrow effect
+    print("dawg")
+    print(current_zone)
+    print(zones[current_zone][2])
+    if current_zone > 1 then
+      effects_thingy:addArrow(foregroundGroup, zones[current_zone - 1][2] - 60, display.contentCenterY, 3000)
+    end
+    for i = 1, #fighters do
+      fighters[i].max_x = zones[current_zone][2]
+    end
+    camera.max_x = zones[current_zone][2] - display.contentWidth - 200
+  end
+
+  -- update min x for good guys.
+  player_furthest_x = math.max(player_furthest_x, player.x)
+  for i = 1, #fighters do
+    if fighters[i].side == "good" then
+      fighters[i].min_x = math.min(10000, player_furthest_x - 1000)
+    end
+  end
 end
 
 local function checkEnding()
@@ -417,8 +536,8 @@ local function gameLoop()
 
   if state == "active" then
     -- checkEnding()
-
     checkInput()
+    checkZonesAndEnemies()
   end
 
   if camera.move then
@@ -428,42 +547,7 @@ local function gameLoop()
   iowa_snow:update()
   effects_thingy:update()
 
-  -- potentially add a bad
-  if (system.getTimer() - time_since_last_bad > bad_time_gap) and (player.x < 7200 or player.x > 8500) then
-    num_bad = 0
-    for i = 1, #fighters do
-      if fighters[i].side == "bad" then
-        num_bad = num_bad + 1
-      end
-    end
-    if num_bad < 4 then
-      fighter = addBad()
-      fighter:enableAutomatic()
-    end
-  end
-
-  if warren_has_appeared == false and player.x >= 7200 then
-    fighter = addWarren()
-    fighter:enableAutomatic()
-  end
-
-  -- remove dead bads from the stage
-  new_fighters = {}
-  for i = 1, #fighters do
-    fighter = fighters[i]
-    if fighter ~= player and fighter.action == "blinking" and fighter.blinking_start_time ~= nil and system.getTimer() - fighter.blinking_start_time > 3000 then
-      fighter:disable()
-      display.remove(fighter)
-    else
-      table.insert(new_fighters, fighter)
-    end
-  end
-  fighters = new_fighters
-  for i = 1, #fighters do
-    fighters[i].fighters = fighters
-  end
-
-  print("Number of fighters is " .. #fighters)
+  -- print("Number of fighters is " .. #fighters)
 
   -- sort draw order for fighters
   -- todo: fix everything else in this list, effects, etc
@@ -793,13 +877,13 @@ function scene:create( event )
   local location = composer.getVariable("location")
 
 
-  fighters[1] = candidates[candidate]:create(3084, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
-  fighters[1].healthbar = healthBar:create(60, 10, 0.8, uiGroup)
-  fighters[1].shake_screen_on_contact = true
-  fighters[1].fighters = fighters
-  fighters[1].flexible_target = true
-  fighters[1].side = "good"
-  player = fighters[1]
+  player = candidates[candidate]:create(184, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
+  player.healthbar = healthBar:create(60, 10, 0.8, uiGroup)
+  player.shake_screen_on_contact = true
+  player.fighters = fighters
+  player.flexible_target = true
+  player.side = "good"
+  fighters[1] = player
 
   -- fighters[2] = candidates[opponent]:create(384, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
   -- fighters[2].xScale = -1

@@ -413,7 +413,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
       self.swipe_history = {}
     end
 
-    if self.x + self.x_vel > self.min_x and self.x + self.x_vel < self.max_x then
+    if (self.x + self.x_vel > self.min_x or self.x_vel > 0) and (self.x + self.x_vel < self.max_x or self.x_vel < 0) then
       self.x = self.x + self.x_vel
     end
     if self.action ~= "pre_jumping" then
