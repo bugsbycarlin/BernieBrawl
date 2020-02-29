@@ -157,6 +157,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
       else
         self:moveAction(-10, 0)
       end
+      return true
     end
 
     if self.x < self.target.x - 256 then
@@ -207,7 +208,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
   function tim:jumpAttackAction()
     self.action = "jump_kicking"
     self.frame = 1
-    self.attack = {power=tim.kicking_power, knockback=tim.knockback}
+    self.attack = {power=2 * tim.kicking_power, knockback=tim.knockback}
   end
 
   function tim:specialAction()
@@ -219,6 +220,10 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
   end
 
   function tim:zMoveAction(z_vel)
+    if self.action ~= "resting" then
+      return
+    end
+
     self.z_vel = math.max(-1 * self.max_z_velocity, math.min(self.max_z_velocity, z_vel))
   end
 
@@ -372,11 +377,15 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
       self.damage_timer = self.damage_timer - 1  
       if self.damage_timer <= 0 then
         if self.health > 0 then
+          -- if self.action == "ko" then
+          --   self:dizzyAction()
+          -- else
+          --   self:restingAction()
+          -- end
           if self.action == "ko" then
-            self:dizzyAction()
-          else
-            self:restingAction()
+            self.y = self.y - 60
           end
+          self:restingAction()
         elseif self.health <= 0 then
           self:blinkingAction()
         end
@@ -580,14 +589,6 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
         opponent_frame = opponent.sprite.frame
         opponent_hitIndex = opponent.hitIndex[opponent_frame]
 
-        -- if self.name == "bro" then
-        --   print("ally")
-        --   print(self.ally.name)
-        --   print("opponent")
-        --   print(opponent.name)
-        --   print(self.ally == opponent)
-        -- end
-
         for j = 1, #hitIndex do
           for k = 1, #opponent_hitIndex do
             x1, y1 = self:localToContent(hitIndex[j].x, hitIndex[j].y)
@@ -638,16 +639,11 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
           {fighter_result, self, opponent},
           {opponent_result, opponent, self},
         }
-        if fighter_result >= 1 or opponent_result >= 1 then
-          print("new collision frame")
-        end
+
         for p = 1, #symmetric_pair do
           local result = symmetric_pair[p][1]
           local A = symmetric_pair[p][2]
           local B = symmetric_pair[p][3]
-          if result >= 1 then
-            print(A.name .. " gets " .. result)
-          end
         
           if result == 5 then
             -- full damage and full knockback for the fighter
@@ -655,8 +651,6 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
             B.damage_in_a_row = 0
             A.damage_in_a_row = A.damage_in_a_row + 1
             A:damageAction("damaged", B.attack.power, B.attack.knockback, -5, 15)
-            print(B.short_name)
-            print(B.shake_screen_on_contact)
             if B.shake_screen_on_contact then
               effects_thingy:shakeScreen(1, 200)
               effects_thingy:shakeScreen(10, 100)

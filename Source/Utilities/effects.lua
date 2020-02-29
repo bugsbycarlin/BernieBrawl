@@ -56,16 +56,10 @@ function effects:shakeScreen(intensity, duration)
   shake.target = self.top_level_group
 
   function shake:update()
-    print("updating a shake")
-    print(self.intensity)
     shake.target.x = math.random(0, 2 * self.intensity) - self.intensity
-    -- shake.target.y = math.random(0, 2 * self.intensity) - self.intensity
-    print(shake.target.x)
   end
 
   function shake:finished()
-    print("checking finished")
-    print(system.getTimer() - self.start_time)
     if system.getTimer() - self.start_time > self.duration then
       shake.target.x = 0
       shake.target.y = 0
@@ -75,14 +69,14 @@ function effects:shakeScreen(intensity, duration)
     end
   end
 
-  print("adding a shake")
   self:add(shake)
 end
 
-function effects:addArrow(group, x, y, duration)
-  local arrow = display.newImageRect(group, "Art/arrow.png", 128, 128)
+function effects:addArrow(group, x, y, size, rotation, duration)
+  local arrow = display.newImageRect(group, "Art/arrow.png", size, size)
   arrow.x = x
   arrow.y = y
+  arrow.rotation = rotation
   arrow.start_time = system.getTimer()
   arrow.duration = duration
 
@@ -96,7 +90,7 @@ function effects:addArrow(group, x, y, duration)
   end
 
   function arrow:finished()
-    return (system.getTimer() - self.start_time > self.duration)
+    return self.duration > 0 and (system.getTimer() - self.start_time > self.duration)
   end
 
   self:add(arrow)
@@ -184,6 +178,7 @@ function effects:addBro(group, player, x_center, y_center, x_vel, y_vel, min_x, 
   table.insert(player.fighters, fighter)
   fighter.fighters = player.fighters
   fighter.target = player.target
+  fighter.side = "good"
   fighter.x_vel = x_vel
   fighter.y_vel = y_vel
   fighter.ally = player

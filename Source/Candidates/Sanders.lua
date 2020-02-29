@@ -14,7 +14,7 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.kicking_power = 12
   candidate.automatic_rate = 450
   candidate.action_rate = 30
-  candidate.bros = 8
+  candidate.bros = 80
   candidate.ko_frame = 33
   candidate:setMaxHealth(1600)
 
@@ -201,7 +201,7 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.animations["jump_kicking"] = function(self)
     self.sprite:setFrame(23)
     self.frame = self.frame + 1
-    if (self.frame > 5) then
+    if (self.frame > 9) then
       self:jumpingAction()
     end
   end

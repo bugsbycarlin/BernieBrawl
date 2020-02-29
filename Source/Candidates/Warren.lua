@@ -14,12 +14,14 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy, 50)
 
   candidate.resting_rate = 50
-  candidate.action_rate = 40
+  candidate.action_rate = 35
   -- candidate.power = 7
   candidate.punching_power = 6
   candidate.kicking_power = 9
   candidate.knockback = 10
-  candidate.automatic_rate = 350
+  candidate.automatic_rate = 300
+  candidate:setMaxHealth(250)
+  candidate.whooping_threshold = 4
 
   candidate.frames = {}
   for i = 1, #warrenSpriteInfo.sheet.frames do
