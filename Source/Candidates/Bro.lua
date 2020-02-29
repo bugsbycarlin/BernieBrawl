@@ -30,10 +30,17 @@ function bro:create(x, y, group, min_x, max_x, min_z, max_z, effects)
   candidate.after_image.isVisible = false
 
   function candidate:automaticAction()
+    -- dice = math.random(1, 100)
+    -- if dice > 70 then
+    --   self:moveAction(10 * self.xScale, 0)
+    -- else 
+    --   self:punchingAction()
+    -- end
     dice = math.random(1, 100)
+    moved = false
     if dice > 70 then
-      self:moveAction(10 * self.xScale, 0)
-    else 
+      self:basicAutomaticMove()
+    else
       self:punchingAction()
     end
   end

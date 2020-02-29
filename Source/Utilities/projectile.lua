@@ -5,7 +5,7 @@ projectile.__index = projectile
 local projectile_size = 64
 local projectile_knockback = 10
 local projectile_power = 8
-local z_threshold = 20
+local z_threshold = 30
 
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)

@@ -10,11 +10,13 @@ sanders.__index = sanders
 function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy, 47)
 
-  candidate.power = 12
+  candidate.punching_power = 9
+  candidate.kicking_power = 12
   candidate.automatic_rate = 450
-  candidate.bros = 4
+  candidate.action_rate = 30
+  candidate.bros = 8
   candidate.ko_frame = 33
-  candidate:setMaxHealth(300)
+  candidate:setMaxHealth(1600)
 
   candidate.frames = {}
   for i = 1, #sandersSpriteInfo.sheet.frames do
@@ -152,7 +154,7 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     end
     self.frame = self.frame + 1
     if (self.frame == 25 or self.frame == 28) and self.attack == nil then
-      self.attack = {power=self.power, knockback=self.knockback}
+      self.attack = {power=self.punching_power, knockback=self.knockback}
     end
     if (self.frame > #punching_frames) then
       self:restingAction()

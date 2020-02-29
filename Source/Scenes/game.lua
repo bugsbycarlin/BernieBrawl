@@ -77,8 +77,7 @@ local min_z = -90
 local max_z = 100
 
 local time_since_last_bad
-local early_bad_time_gap = 6000
-local late_bad_time_gap = 12000
+local max_bads_at_once = 2
 local warren_has_appeared = false
 
 local camera = {
@@ -123,17 +122,16 @@ local camera = {
 -- can't actually backtrack to them anyway.
 -- camera maxes are also set to match.
 local zones = {
-  {0, 1200, "goons"},
-  {1200, 2700, "goons"},
-  {2700, 4000, "shop"},
-  {4000, 5600, "goons"},
-  {5600, 7200, "goons"},
-  {7200, 8500, "warren"},
-  {8500, 10100, "shop"},
-  {10100, 12000, "goons"},
-  {10100, 12000, "hotel"},
+  {min=0, max=1200, type="goons", num=4, pace=8000},
+  {min=1200, max=2700, type="goons", num=5, pace=8000},
+  {min=2700, max=4000, type="shop", num=0},
+  {min=4000, max=5600, type="goons", num=5, pace=8000},
+  {min=5600, max=7200, type="goons", num=5, pace=8000},
+  {min=7200, max=8500, type="warren", num=5},
+  {min=8500, max=10100, type="shop", num=0},
+  {min=10100, max=12000, type="goons", num=8, pace=9000},
+  {min=10100, max=12000, type="hotel", num=0},
 }
-local num_beaten_in_current_zone = 0
 local current_zone = 0
 local player_furthest_x = 0
 
@@ -264,7 +262,17 @@ end
 local function addBad()
 
   local start_x = math.min(player.max_x + 180, player.x + 700)
+  dice = math.random(1, 99)
+  if dice > 80 then
+    start_x = player.x - 700
+  elseif dice > 40 then
+    start_x = player.x + 300
+  end
+  
   local fighter = candidates[composer.getVariable("opponent")]:create(start_x, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
+  if dice > 33 then
+    fighter:setZ(300)
+  end
   fighter.target = player
   fighter.side = "bad"
   fighter.fighters = fighters
@@ -288,10 +296,112 @@ local function addWarren()
 
   table.insert(fighters, fighter)
 
+  time_since_last_bad = system.getTimer()
+
   return fighter
 end
 
 local function checkZonesAndEnemies()
+
+  -- local zones = {
+  --   {min=0, max=1200, type="goons", num=5, pace=6000},
+  --   {min=1200, max=2700, type="goons", num=5, pace=6000},
+  --   {min=2700, max=4000, type="shop"},
+  --   {min=4000, max=5600, type="goons", num=5, pace=6000},
+  --   {min=5600, max=7200, type="goons", num=5, pace=6000},
+  --   {min=7200, max=8500, type="warren"},
+  --   {min=8500, max=10100, type="shop"},
+  --   {min=10100, max=12000, type="goons", num=8, pace=7000},
+  --   {min=10100, max=12000, type="hotel"},
+  -- }
+  -- local current_zone = 0
+  -- local player_furthest_x = 0
+
+  if current_zone > 0 then
+    -- remove dead bads from the stage
+    local new_fighters = {}
+    for i = 1, #fighters do
+      fighter = fighters[i]
+      if fighter ~= player and fighter.action == "blinking" and fighter.blinking_start_time ~= nil and system.getTimer() - fighter.blinking_start_time > 3000 then
+        fighter:disable()
+        display.remove(fighter)
+      else
+        table.insert(new_fighters, fighter)
+      end
+    end
+    fighters = new_fighters
+    for i = 1, #fighters do
+      fighters[i].fighters = fighters
+    end
+
+    -- count bads and active bads
+    num_bads = 0
+    num_active_bads = 0
+    for i = 1, #fighters do
+      if fighters[i].side == "bad" then
+        num_bads = num_bads + 1
+        if fighters[i].health > 0 then
+          num_active_bads = num_active_bads + 1
+        end
+      end
+    end
+
+    if zones[current_zone].type == "goons" 
+      and (system.getTimer() - time_since_last_bad > zones[current_zone].pace or num_active_bads == 0)
+      and zones[current_zone].num > 0
+      and num_active_bads < max_bads_at_once then
+      fighter = addBad()
+      fighter:enableAutomatic()
+      zones[current_zone].num = zones[current_zone].num - 1
+    end
+
+    -- if the zone is warren, and warren has not appeared, add warren
+    if zones[current_zone].type == "warren" and warren_has_appeared == false and player.x >= zones[current_zone].min + 200 then
+      fighter = addWarren()
+      fighter:enableAutomatic()
+      zones[current_zone].num = 0
+    end
+
+  end
+
+  -- check if the zone needs to be progressed, and update max_x for all fighters and the camera.
+  if current_zone == 0
+    or (zones[current_zone].type == "goons" and zones[current_zone].num <= 0 and num_active_bads == 0) 
+    or (zones[current_zone].type == "warren" and num_bads == 0) 
+    or (zones[current_zone].type == "shop" and player.x > zones[current_zone].max - 200) then
+    current_zone = current_zone + 1
+    time_since_last_bad = system.getTimer()
+    if zones[current_zone].type == "goons" then
+      fighter = addBad()
+      fighter:enableAutomatic()
+      zones[current_zone].num = zones[current_zone].num - 1
+    end
+    -- if current_zone == 1 then
+    --   time_since_last_bad = system.getTimer() - zones[current_zone].pace
+    -- end
+    -- here do the arrow effect
+    if current_zone > 1 then
+      effects_thingy:addArrow(uiGroup, display.contentWidth - 64, display.contentCenterY, 3000)
+    end
+    for i = 1, #fighters do
+      fighters[i].max_x = zones[current_zone].max
+    end
+    camera.max_x = zones[current_zone].max - display.contentWidth - 200
+  end
+
+  -- update min x for good guys.
+  player_furthest_x = math.max(player_furthest_x, player.x)
+  for i = 1, #fighters do
+    if fighters[i].side == "good" then
+      fighters[i].min_x = math.min(10000, player_furthest_x - 1000)
+    end
+  end
+end
+
+
+
+
+-- local function checkZonesAndEnemies()
 -- local zones = {
 --   {0, 1200, "goons"},
 --   {1200, 2700, "goons"},
@@ -307,84 +417,90 @@ local function checkZonesAndEnemies()
 -- local current_zone = 0
 -- local player_furthest_x = 0
 
-  if current_zone > 0 then
-    -- remove dead bads from the stage
-    local new_fighters = {}
-    local current_ko = 0
-    for i = 1, #fighters do
-      fighter = fighters[i]
-      if fighter ~= player and fighter.action == "blinking" and fighter.blinking_start_time ~= nil and system.getTimer() - fighter.blinking_start_time > 3000 then
-        fighter:disable()
-        display.remove(fighter)
-        num_beaten_in_current_zone = num_beaten_in_current_zone + 1
-        print("I've beaten up " .. num_beaten_in_current_zone)
-      else
-        table.insert(new_fighters, fighter)
-        if fighter.health <= 0 then
-          current_ko = current_ko + 1
-        end
-      end
-    end
-    fighters = new_fighters
-    for i = 1, #fighters do
-      fighters[i].fighters = fighters
-    end
-    print("There are currently " .. #fighters .. " fighters including me.")
+--   if current_zone > 0 then
+--     -- remove dead bads from the stage
+--     local new_fighters = {}
+--     for i = 1, #fighters do
+--       fighter = fighters[i]
+--       if fighter ~= player and fighter.action == "blinking" and fighter.blinking_start_time ~= nil and system.getTimer() - fighter.blinking_start_time > 3000 then
+--         fighter:disable()
+--         display.remove(fighter)
+--         num_beaten_in_current_zone = num_beaten_in_current_zone + 1
+--       else
+--         table.insert(new_fighters, fighter)
+--       end
+--     end
+--     fighters = new_fighters
+--     for i = 1, #fighters do
+--       fighters[i].fighters = fighters
+--     end
 
-    -- count bads
-    num_bad = 0
-    for i = 1, #fighters do
-      if fighters[i].side == "bad" then
-        num_bad = num_bad + 1
-      end
-    end
-    print("There are currently " .. num_bad .. " bads.")
+--     -- count bads
+--     num_active_bads = 0
+--     num_recently_ko = 0
+--     for i = 1, #fighters do
+--       if fighters[i].side == "bad" then
+--         if fighter.health <= 0 then
+--           num_recently_ko = num_recently_ko + 1
+--         else
+--           num_active_bads = num_active_bads + 1
+--         end
+--       end
+--     end
+
+--     num_ko_in_current_zone = num_beaten_in_current_zone + num_recently_ko
     
-    -- potentially add a bad
-    local gap = early_bad_time_gap
-    if num_bad > 2 or num_beaten_in_current_zone > 3 then
-      gap = late_bad_time_gap
-    end
-    if current_ko == 0 and zones[current_zone][3] == "goons" and system.getTimer() - time_since_last_bad > gap and num_bad < 4 then
-      fighter = addBad()
-      fighter:enableAutomatic()
-    end
+--     -- potentially add a bad
+--     -- if num_created
+--     local limit = 4
+--     if system.getTimer() - current_zone_start_time >= 7 * bad_time_gap then
+--       limit = 6
+--     end
+--     if zones[current_zone][3] == "goons" 
+--       and system.getTimer() - time_since_last_bad > bad_time_gap
+--       and num_created_in_current_zone < limit
+--       and num_active_bads < 2 then
+--       fighter = addBad()
+--       fighter:enableAutomatic()
+--       num_created_in_current_zone = num_created_in_current_zone + 1
+--     end  
 
-    -- if the zone is warren, and warren has not appeared, add warren
-    if zones[current_zone][3] == "warren" and warren_has_appeared == false and player.x >= 7200 then
-      fighter = addWarren()
-      fighter:enableAutomatic()
-    end
-  end
+--     -- if the zone is warren, and warren has not appeared, add warren
+--     if zones[current_zone][3] == "warren" and warren_has_appeared == false and player.x >= zones[current_zone][2] then
+--       fighter = addWarren()
+--       fighter:enableAutomatic()
+--       num_created_in_current_zone = num_created_in_current_zone + 1
+--     end
+--   end
 
-  -- check if the zone needs to be progressed, and update max_x for all fighters and the camera.
-  if current_zone == 0
-    or (zones[current_zone][3] == "goons" and num_beaten_in_current_zone >= 4 and num_bad == 0) 
-    or (zones[current_zone][3] == "warren" and num_beaten_in_current_zone >= 1 and num_bad == 0) 
-    or (zones[current_zone][3] == "shop" and player.x > zones[current_zone][2] - 200) then
-    current_zone = current_zone + 1
-    num_beaten_in_current_zone = 0
-    -- here do the arrow effect
-    print("dawg")
-    print(current_zone)
-    print(zones[current_zone][2])
-    if current_zone > 1 then
-      effects_thingy:addArrow(foregroundGroup, zones[current_zone - 1][2] - 60, display.contentCenterY, 3000)
-    end
-    for i = 1, #fighters do
-      fighters[i].max_x = zones[current_zone][2]
-    end
-    camera.max_x = zones[current_zone][2] - display.contentWidth - 200
-  end
+--   -- check if the zone needs to be progressed, and update max_x for all fighters and the camera.
+--   if current_zone == 0
+--     or (zones[current_zone][3] == "goons" and num_ko_in_current_zone >= 4 and num_active_bads == 0) 
+--     or (zones[current_zone][3] == "warren" and num_ko_in_current_zone >= 1 and num_active_bads == 0) 
+--     or (zones[current_zone][3] == "shop" and player.x > zones[current_zone][2] - 200) then
+--     current_zone = current_zone + 1
+--     num_beaten_in_current_zone = 0
+--     num_created_in_current_zone = 0
+--     current_zone_start_time = system.getTimer()
+--     time_since_last_bad = system.getTimer() - 4000
+--     -- here do the arrow effect
+--     if current_zone > 1 then
+--       effects_thingy:addArrow(uiGroup, display.contentWidth - 128, display.contentCenterY, 3000)
+--     end
+--     for i = 1, #fighters do
+--       fighters[i].max_x = zones[current_zone][2]
+--     end
+--     camera.max_x = zones[current_zone][2] - display.contentWidth - 200
+--   end
 
-  -- update min x for good guys.
-  player_furthest_x = math.max(player_furthest_x, player.x)
-  for i = 1, #fighters do
-    if fighters[i].side == "good" then
-      fighters[i].min_x = math.min(10000, player_furthest_x - 1000)
-    end
-  end
-end
+--   -- update min x for good guys.
+--   player_furthest_x = math.max(player_furthest_x, player.x)
+--   for i = 1, #fighters do
+--     if fighters[i].side == "good" then
+--       fighters[i].min_x = math.min(10000, player_furthest_x - 1000)
+--     end
+--   end
+-- end
 
 local function checkEnding()
 
@@ -477,31 +593,40 @@ local function checkEnding()
   end
 end
 
+local key_history = {}
 local function checkInput()
 
   if keydown.left and keydown.up then
+    table.insert(key_history, "left-up")
     player:moveAction(-1 * player.max_x_velocity * 0.7, -1 * player.max_y_velocity)
   elseif keydown.right and keydown.up then
+    table.insert(key_history, "right-up")
     player:moveAction(player.max_x_velocity * 0.7, -1 * player.max_y_velocity)
   elseif keydown.up then
+    table.insert(key_history, "up")
     -- player:moveAction(0, -1 * player.max_y_velocity)
     player:zMoveAction(-1 * player.max_z_velocity * 0.7)
   elseif keydown.down then
+    table.insert(key_history, "down")
     player:zMoveAction(player.max_z_velocity * 0.7)
     -- player:moveAction(0, player.max_y_velocity)
   elseif keydown.left then
+    table.insert(key_history, "left")
     player:moveAction(-1 * player.max_x_velocity * 0.7, 0)
   elseif keydown.right then
+    table.insert(key_history, "right")
     player:moveAction(player.max_x_velocity * 0.7, 0)
   end
 
   if keydown.a == true and player.action == "resting" then
+    table.insert(key_history, "a")
     player:blockingAction()
   elseif keydown.a == false and player.action == "blocking" then
     player:restingAction()
   end
 
   if keydown.s == true then
+    table.insert(key_history, "s")
     if player.action == "resting" then
       player:punchingAction()
     elseif player.action == "jumping" then
@@ -510,6 +635,7 @@ local function checkInput()
   end
 
   if keydown.d == true then
+    table.insert(key_history, "d")
     if player.action == "resting" then
       player:kickingAction()
     elseif player.action == "jumping" then
@@ -517,7 +643,27 @@ local function checkInput()
     end
   end
 
+  key_output = ""
+  for i = 1,#key_history do
+    key_output = key_output .. "," .. key_history[i]
+  end
+  -- print(key_output)
+  -- print(key_history[#key_history - 2])
 
+  if #key_history > 3 then
+    if key_history[#key_history - 2] == "a" and key_history[#key_history - 1] == "d" and key_history[#key_history] == "up" then
+      player:specialAction()
+      key_history = {}
+    end
+  end
+
+  if #key_history > 5 then
+    new_key_history = {}
+    for i = 2,#key_history do
+      table.insert(new_key_history, key_history[i])
+    end
+    key_history = new_key_history
+  end
 
   keydown = {
     left=false,
@@ -537,6 +683,9 @@ local function gameLoop()
   if state == "active" then
     -- checkEnding()
     checkInput()
+  end
+
+  if state == "active" or state == "waiting" then
     checkZonesAndEnemies()
   end
 
@@ -644,10 +793,10 @@ local function properKeyboard(event)
   --   player_blue_button(event)
   -- end
 
-  if event.keyName == "p" then
-    composer.setVariable("player_wins", 1)
-    player.target.health = 0
-  end
+  -- if event.keyName == "p" then
+  --   composer.setVariable("player_wins", 1)
+  --   player.target.health = 0
+  -- end
 
   if event.keyName == "left" then
     if event.phase == "down" then
@@ -993,7 +1142,7 @@ function scene:show( event )
     gameLoopTimer = timer.performWithDelay(33, gameLoop, 0)
     -- backgroundAnimationTimer = timer.performWithDelay(500, backgroundAnimation, 0)
     player:enable()
-    addBad()
+    -- addBad()
     -- fighters[2]:enable()
     timer.performWithDelay(2500, function() activateGame() end)
 

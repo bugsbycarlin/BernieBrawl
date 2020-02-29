@@ -15,7 +15,9 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
 
   candidate.resting_rate = 50
   candidate.action_rate = 40
-  candidate.power = 7
+  -- candidate.power = 7
+  candidate.punching_power = 6
+  candidate.kicking_power = 9
   candidate.knockback = 10
   candidate.automatic_rate = 350
 
@@ -191,7 +193,7 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     end
     self.frame = self.frame + 1
     if self.frame == 13 and self.attack == nil then
-      self.attack = {power=self.power, knockback=self.knockback}
+      self.attack = {power=self.kicking_power, knockback=self.knockback}
     end
     if (self.frame > #kicking_frames) then
       self:restingAction()
@@ -224,7 +226,7 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     self.frame = self.frame + 1
     -- second and third attacks
     if (self.frame == 7 or self.frame == 13) and self.attack == nil then
-      self.attack = {power=self.power, knockback=self.knockback}
+      self.attack = {power=self.punching_power, knockback=self.knockback}
     end
     if (self.frame > #punching_frames) then
       self:restingAction()

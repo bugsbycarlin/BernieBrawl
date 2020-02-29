@@ -14,7 +14,7 @@ display.setStatusBar( display.HiddenStatusBar )
 math.randomseed( os.time() )
 
 -- Master control volume for muting while debugging
-master_volume = 0
+master_volume = 1
 -- Reserve channel 1 for background music
 audio.reserveChannels(1)
 audio.reserveChannels(1)

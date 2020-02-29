@@ -12,10 +12,11 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
 
   candidate.resting_rate = 60
   candidate.action_rate = 40
-  candidate.power = 10
+  candidate.punching_power = 9
+  candidate.kicking_power = 12
   candidate.knockback = 12
   candidate.automatic_rate = 750
-  candidate:setMaxHealth(30)
+  candidate:setMaxHealth(36)
 
   -- to do: lots of knockback for ultra punching
 
@@ -43,10 +44,19 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
       return
     end
     
+    if self.z > max_z then
+      self.automaticActionTimer._delay = self.automatic_rate / 2
+      self:zMoveAction(-1 * self.max_z_velocity)
+      return
+    else
+      self.automaticActionTimer._delay = self.automatic_rate
+    end
+
     -- print("Joe Biden HP is " .. self.health)
     if math.abs(self.target.x - self.x) > 350 then
+      self.automaticActionTimer._delay = self.automatic_rate / 2
       dice = math.random(1, 100)
-      if dice > 70 then
+      if dice > 80 then
         self:basicAutomaticMove()
       else
         self:specialAction()
@@ -90,7 +100,20 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     if self.action == "resting" then
       self.action = "ultra_punching"
       self.frame = 1
-      self.attack = {power=2*self.power, knockback=2*self.knockback}
+      self.attack = {power=2*self.punching_power, knockback=2*self.knockback}
+    end
+  end
+
+  function candidate:dizzyAction()
+    if self.action == "ko" then
+      self.y = self.y - 60
+    end
+    self.action = "dizzy"
+    self.animations["dizzy"](self)
+    self.damage_timer = 25
+    self.damage_in_a_row = 0
+    for i = 1, 3, 1 do
+      self.effects_thingy:addDizzyTwit(self, self, 0, -110 + math.random(1,20) + self.z, 40 + math.random(1,20), 2250)
     end
   end
 
@@ -193,7 +216,7 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     -- second attack
     self.frame = self.frame + 1
     if self.frame == 13 and self.attack == nil then
-      self.attack = {power=self.power, knockback=self.knockback}
+      self.attack = {power=self.punching_power, knockback=self.knockback}
     end
     if (self.frame > #punching_frames) then
       self:restingAction()
@@ -212,7 +235,7 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
       self.x_vel = 40 * self.xScale
       self.y_vel = -7
     end
-    if self.frame == 7 and self.x_vel < 2 then
+    if self.frame == 7 and math.abs(self.x_vel) < 3 then
       self:restingAction()
     end
   end

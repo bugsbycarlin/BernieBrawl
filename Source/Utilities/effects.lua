@@ -181,6 +181,8 @@ function effects:addBro(group, player, x_center, y_center, x_vel, y_vel, min_x, 
     return
   end
   local fighter = candidates["bro"]:create(x_center, y_center, group, min_x, max_x, min_z, max_z, self)
+  table.insert(player.fighters, fighter)
+  fighter.fighters = player.fighters
   fighter.target = player.target
   fighter.x_vel = x_vel
   fighter.y_vel = y_vel

@@ -2,10 +2,13 @@
 candidate = {}
 candidate.__index = candidate
 
-local whooping_threshold = 7
-local z_threshold = 20
+local z_threshold = 40
 
 local function distance(x1, y1, x2, y2)
+  -- whyyyyy?
+  if x2 == nil then
+    return 100000
+  end
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
 
@@ -38,9 +41,12 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
   tim.max_y_velocity = 35
   tim.max_z_velocity = 10
   tim.action_window = 1500
-  tim.power = 10
+  tim.punching_power = 9
+  tim.kicking_power = 12
   tim.knockback = 12
   tim.blocking_max_frames = 30
+
+  tim.whooping_threshold = 7
 
   tim.max_health = 100
   tim.health = tim.max_health
@@ -86,16 +92,19 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
   -- tim.shadow.y = tim.ground_target - tim.y
 
   function tim:setZ(z_value)
-    if z_value < min_z then
-      self:setZ(min_z)
-    elseif z_value > max_z then
-      self:setZ(max_z)
-    else
-      self.z = z_value
-      self.sprite.y = z_value
-      self.after_image.y = z_value
-      -- self.shadow.y = self.ground_target - self.y + self.y_offset + z_value
-    end
+    -- if z_value < min_z then
+    --   self:setZ(min_z)
+    -- elseif z_value > max_z then
+    --   self:setZ(max_z)
+    -- else
+    --   self.z = z_value
+    --   self.sprite.y = z_value
+    --   self.after_image.y = z_value
+    --   -- self.shadow.y = self.ground_target - self.y + self.y_offset + z_value
+    -- end
+    self.z = z_value
+    self.sprite.y = z_value
+    self.after_image.y = z_value
   end
 
   function tim:setMaxHealth(max_health)
@@ -174,7 +183,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
       self.frame = 1
       self.animationTimer._delay = self.action_rate
       self.action = "punching"
-      self.attack = {power=tim.power, knockback=tim.knockback}
+      self.attack = {power=tim.punching_power, knockback=tim.knockback}
     elseif self.action == "jumping" then
       self:jumpAttackAction()
     end
@@ -185,7 +194,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
       self.frame = 1
       self.animationTimer._delay = self.action_rate
       self.action = "kicking"
-      self.attack = {power=tim.power, knockback=tim.knockback}
+      self.attack = {power=tim.kicking_power, knockback=tim.knockback}
     elseif self.action == "jumping" then
       self:jumpAttackAction()
     end
@@ -198,7 +207,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
   function tim:jumpAttackAction()
     self.action = "jump_kicking"
     self.frame = 1
-    self.attack = {power=tim.power, knockback=tim.knockback}
+    self.attack = {power=tim.kicking_power, knockback=tim.knockback}
   end
 
   function tim:specialAction()
@@ -286,7 +295,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
       self.sprite:setFrame(self.damaged_frames[1])
       self.damage_timer = 4
       self.action = "damaged"
-      if self.damage_in_a_row >= whooping_threshold or self.health <= 0 then
+      if self.damage_in_a_row >= self.whooping_threshold or self.health <= 0 then
         self:koAction()
       end
     elseif type == "knockback" then
@@ -419,7 +428,9 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     if self.action ~= "pre_jumping" then
       self.y = self.y + self.y_vel
     end
-    self:setZ(self.z + self.z_vel)
+    if (self.z + self.z_vel > self.min_z or self.z_vel > 0) and (self.z + self.z_vel < self.max_z or self.z_vel < 0) then
+      self:setZ(self.z + self.z_vel)
+    end
 
     if math.abs(self.y_vel) < self.max_y_velocity / 4 and self.action ~= "ultra_punching" then
       self.x_vel = self.x_vel * 0.8
@@ -682,7 +693,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
           self.attack = nil
         end
         if fighter_result >= 4 or fighter_result == 2  or opponent_result == 3 then
-          opponent_attack = nil
+          opponent.attack = nil
         end
       end
     end
