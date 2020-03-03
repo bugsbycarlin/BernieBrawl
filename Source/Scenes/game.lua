@@ -77,10 +77,6 @@ local max_x = 12000
 local min_z = -90
 local max_z = 100
 
-local time_since_last_bad
-local max_bads_at_once = 2
-local warren_has_appeared = false
-
 local camera = {
   x = 0,
   y = 0,
@@ -123,19 +119,22 @@ local camera = {
 -- can't actually backtrack to them anyway.
 -- camera maxes are also set to match.
 local zones = {
-  {min=0, max=1200, type="goons", num=4, pace=4000},
-  {min=1200, max=2700, type="goons", num=5, pace=4000},
-  {min=2700, max=4000, type="shop", num=0, arrow={x=2948, y=0}},
-  {min=4000, max=5600, type="goons", num=5, pace=4000},
-  {min=5600, max=7200, type="goons", num=5, pace=4000},
-  {min=7200, max=8500, type="warren", num=5},
-  {min=8500, max=10100, type="shop", num=0},
-  {min=10100, max=12000, type="goons", num=8, pace=5000},
-  {min=10100, max=12000, type="hotel", num=0},
+  {min=0, max=1200, type="goons", num=5, pace=4000, max_bads=3},
+  {min=1200, max=2700, type="goons", num=5, pace=4000, max_bads=3},
+  {min=2700, max=4000, type="shop", num=0, arrow={x=2948, y=0}, max_bads=3},
+  {min=4000, max=5600, type="goons", num=5, pace=4000, max_bads=3},
+  {min=5600, max=7200, type="goons", num=5, pace=4000, max_bads=3},
+  {min=7200, max=8500, type="warren", num=5, max_bads=3},
+  {min=8500, max=10100, type="shop", num=0, max_bads=3},
+  {min=10100, max=12000, type="goons", num=8, pace=5000, max_bads=4},
+  {min=10100, max=12000, type="hotel", num=0, max_bads=3},
 }
 local current_zone = 0
 local player_furthest_x = 0
 local time_since_last_bad = 0
+-- local max_bads_at_once = 2
+local warren_has_appeared = false
+
 -- 184
 local player_starting_x = 184
 
@@ -305,7 +304,7 @@ local function addBad(val)
   local start_x = math.min(player.max_x + 180, player.x + 700)
   dice = math.random(1, 99)
   if dice > 80 then
-    start_x = player.x - 700
+    start_x = player.x - 400
   elseif dice > 40 then
     start_x = player.x + 300
   end
@@ -405,7 +404,7 @@ local function checkZonesAndEnemies()
     if zones[current_zone].type == "goons" 
       and (system.getTimer() - time_since_last_bad > zones[current_zone].pace or num_active_bads == 0)
       and zones[current_zone].num > 0
-      and num_active_bads < max_bads_at_once then
+      and num_active_bads < zones[current_zone].max_bads then
       print("adding regular dude")
       fighter = addBad()
       fighter:enableAutomatic()
@@ -1011,7 +1010,7 @@ function scene:create( event )
   temporary_shop_selector.y = display.contentCenterY
 
 
-  effects_thingy = effects:create(sceneGroup)
+  effects_thingy = effects:create(sceneGroup, foregroundGroup)
   effects_thingy.fighters = fighters
 
   local candidate = composer.getVariable("candidate")

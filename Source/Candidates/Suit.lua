@@ -5,20 +5,37 @@ local suitSpriteInfo = require("Source.Sprites.suitSprite")
 local suitSprite_1 = graphics.newImageSheet("Art/suit_sprite_1.png", suitSpriteInfo:getSheet())
 local suitSprite_2 = graphics.newImageSheet("Art/suit_sprite_2.png", suitSpriteInfo:getSheet())
 
+local textBubble = require("Source.Utilities.textBubble")
 
 suit = {}
 suit.__index = suit
+
+death_phrases = {
+  "I endorse you, Bernie!",
+  "I endorse you, Bernie!",
+  "I endorse you, Bernie!",
+  "But I spent a billion dollars",
+  "I'm too rich to lose!",
+  "But I polled so well last year",
+  "You're unelectable!",
+  "I'm secretly socialist",
+  "I'm gonna vote for Trump",
+  "Avenge me, Uncle Joe!",
+  "I'm suspending my campaign",
+  "I'm suspending my campaign",
+  "I'm suspending my campaign",
+}
 
 function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy, 50)
 
   candidate.resting_rate = 45
   candidate.action_rate = 35
-  candidate.moving_rate = 20
+  candidate.moving_rate = 18
   candidate.punching_power = 9
   candidate.kicking_power = 12
   candidate.knockback = 12
-  candidate.automatic_rate = 350
+  candidate.automatic_rate = 300
   candidate.blocking_max_frames = 10
   candidate:setMaxHealth(36)
 
@@ -47,49 +64,34 @@ function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.ko_frame = 33
 
   function candidate:automaticAction()
-    -- do return end
 
     if self.health <= 0 or self.action ~= "resting" then
       return
     end
     
     if self.z > max_z then
-      self.automaticActionTimer._delay = self.automatic_rate / 2
       self:zMoveAction(-1 * self.max_z_velocity)
       return
-    else
-      self.automaticActionTimer._delay = self.automatic_rate
     end
 
     if self.target == nil then
       return
     end
 
-    -- print("Joe suit HP is " .. self.health)
-    if math.abs(self.target.x - self.x) > 250 then
-      self.automaticActionTimer._delay = self.automatic_rate / 2
-      dice = math.random(1, 100)
-      if dice > 90 then
-        self:basicAutomaticMove()
-      else
-        --self:restingAction()
-      end
+    if self.target.x - self.x > 700 then
+      self:forceMoveAction(15, 0)
+    elseif self.x - self.target.x > 700 then
+      self:forceMoveAction(-15, 0)
+    elseif math.abs(self.target.x - self.x) > 250 then
+      self:basicAutomaticMove()
     elseif self.target.action ~= "dizzy" and self.target.action ~= "ko" then
       dice = math.random(1, 100)
-      moved = false
-      if dice > 70 then
+      if dice > 80 then
         moved = self:basicAutomaticMove()
-      elseif dice > 50 then
-        --self:restingAction()
-      end
-      if moved == false then
-        if dice > 80 then
-          self:punchingAction()
-        elseif dice > 40 then
-          self:kickingAction()
-        else
-          self:blockingAction()
-        end
+      elseif dice > 40 then
+        self:punchingAction()
+      else
+        self:kickingAction()
       end
     else
       local dice = math.random(1, 100)
@@ -102,6 +104,67 @@ function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
       end
     end
   end
+
+  -- function candidate:automaticAction()
+  --   -- do return end
+
+  --   if self.health <= 0 or self.action ~= "resting" then
+  --     return
+  --   end
+    
+  --   if self.z > max_z then
+  --     -- self.automaticActionTimer._delay = self.automatic_rate / 2
+  --     self:zMoveAction(-1 * self.max_z_velocity)
+  --     return
+  --   else
+  --     -- self.automaticActionTimer._delay = self.automatic_rate
+  --   end
+
+  --   if self.target == nil then
+  --     return
+  --   end
+
+  --   -- print("Joe suit HP is " .. self.health)
+  --   if self.target.x - self.x > 700 then
+  --     self:forceMoveAction(10, 0)
+  --   elseif self.x - self.target.x > 700 then
+  --     self:forceMoveAction(-10, 0)
+  --   elseif math.abs(self.target.x - self.x) > 250 then
+  --     self.automaticActionTimer._delay = self.automatic_rate / 2
+  --     dice = math.random(1, 100)
+  --     if dice > 90 then
+  --       self:basicAutomaticMove()
+  --     else
+  --       --self:restingAction()
+  --     end
+  --   elseif self.target.action ~= "dizzy" and self.target.action ~= "ko" then
+  --     dice = math.random(1, 100)
+  --     moved = false
+  --     if dice > 70 then
+  --       moved = self:basicAutomaticMove()
+  --     elseif dice > 50 then
+  --       --self:restingAction()
+  --     end
+  --     if moved == false then
+  --       if dice > 80 then
+  --         self:punchingAction()
+  --       elseif dice > 40 then
+  --         self:kickingAction()
+  --       else
+  --         self:blockingAction()
+  --       end
+  --     end
+  --   else
+  --     local dice = math.random(1, 100)
+  --     if dice > 90 then
+  --       self:moveAction(10 * self.xScale, 0)
+  --     elseif dice > 60 then
+  --       self:moveAction(-10 * self.xScale, 0)
+  --     elseif dice > 55 then
+  --       self:punchingAction()
+  --     end
+  --   end
+  -- end
 
   -- big override. use animation for moves.
   function candidate:moveAction(x_vel, y_vel)
@@ -138,6 +201,22 @@ function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     -- end
   end
 
+  candidate.parentKoAction = candidate.koAction
+  function candidate:koAction()
+    candidate:parentKoAction()
+
+    dice = math.random(1, 100)
+    if self.target ~= nil and dice > 70 then
+      if self.target.x < self.x then
+        death_bubble = textBubble:create(candidate, effects_thingy.foreground_group, death_phrases[math.random(1, #death_phrases)], "left", -64, -64, 2000)
+        candidate.effects_thingy:add(death_bubble)
+      else
+        death_bubble = textBubble:create(candidate, effects_thingy.foreground_group, death_phrases[math.random(1, #death_phrases)], "right", 64, -64, 2000)
+        candidate.effects_thingy:add(death_bubble)
+      end
+    end
+  end
+
   function candidate:checkSpecialAction(x_vel, y_vel)
     return false
   end
@@ -170,8 +249,8 @@ function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     1, 1,
     23, 23,
     24, 24,
-    25, 25,
-    26, 26,
+    25,
+    26, 26, 26,
     27, 27,
     28, 28,
     29, 29,

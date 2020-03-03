@@ -241,7 +241,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
 
     self:forceMoveAction(x_vel, y_vel)
 
-    if self.target == nil then
+    if self.target == nil or self.target.action == "ko" or self.target.action == "blinking" then
       if self.x_vel < 0 then
         self.xScale = -1
       else
@@ -522,7 +522,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     -- end
 
     -- face the current target, if there is one
-    if self.target ~= nil and self.target.x ~= nil and self.x ~= nil then
+    if self.target ~= nil and self.target.x ~= nil and self.target.action ~= "ko" and self.target.action ~= "blinking" and self.x ~= nil then
       if self.x > self.target.x + 10 and self.xScale == 1 and self.action == "resting" then
         self.xScale = -1
       end

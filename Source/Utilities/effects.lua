@@ -20,13 +20,14 @@ sounds["damage_4"] = audio.loadSound("Sound/damage_4.wav")
 sounds["damage_5"] = audio.loadSound("Sound/damage_5.wav")
 sounds["damage_6"] = audio.loadSound("Sound/damage_6.wav")
 
-function effects:create(top_level_group)
+function effects:create(top_level_group, foreground_group)
 
   local object = {}
   setmetatable(object, effects)
 
   object.effect_list = {}
   object.top_level_group = top_level_group
+  object.foreground_group = foreground_group
 
   fighters = nil
 
@@ -42,7 +43,11 @@ function effects:update()
     if self.effect_list[i]:finished() ~= true then
       table.insert(copy_effect_list, self.effect_list[i])
     else
-      display.remove(self.effect_list[i].sprite)
+      if display.type == "textBubble" then
+
+      else
+        display.remove(self.effect_list[i].sprite)
+      end
     end
   end
   self.effect_list = copy_effect_list

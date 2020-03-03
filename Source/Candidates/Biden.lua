@@ -3,6 +3,7 @@ local candidate_template = require("Source.Candidates.candidate")
 
 local bidenSpriteInfo = require("Source.Sprites.bidenSprite")
 local bidenSprite = graphics.newImageSheet("Art/biden_sprite.png", bidenSpriteInfo:getSheet())
+local bidenSprite2 = graphics.newImageSheet("Art/biden_sprite_2.png", bidenSpriteInfo:getSheet())
 
 biden = {}
 biden.__index = biden
@@ -27,11 +28,18 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
 
   candidate.name = "Joe Biden"
   candidate.short_name = "biden"
-  
-  candidate.sprite = display.newSprite(candidate, bidenSprite, {frames=candidate.frames})
+
+  sprite_choice = math.random(1,100)
+  if sprite_choice > 50 then
+    candidate.sprite = display.newSprite(candidate, bidenSprite, {frames=candidate.frames})
+    candidate.after_image = display.newSprite(candidate, bidenSprite, {frames=candidate.frames})
+  else
+    candidate.sprite = display.newSprite(candidate, bidenSprite2, {frames=candidate.frames})
+    candidate.after_image = display.newSprite(candidate, bidenSprite2, {frames=candidate.frames})
+  end
+
   candidate.hitIndex = bidenSpriteInfo.hitIndex
-  
-  candidate.after_image = display.newSprite(candidate, bidenSprite, {frames=candidate.frames})
+
   candidate.after_image.alpha = 0.5
   candidate.after_image.isVisible = false
 
