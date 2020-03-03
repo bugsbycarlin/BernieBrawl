@@ -60,6 +60,7 @@ candidates["trump"] = require("Source.Candidates.Trump")
 candidates["biden"] = require("Source.Candidates.Biden")
 candidates["sanders"] = require("Source.Candidates.Sanders")
 candidates["bro"] = require("Source.Candidates.Bro")
+candidates["suit"] = require("Source.Candidates.Suit")
 
 local paused = false
 
@@ -269,6 +270,32 @@ local function showHitBoxes()
           circle:setFillColor( 0.5, 0.8, 0.5 )
         end
       end
+    end
+  end
+end
+
+local function debugGrid()
+  for x = 0, 12000, 50 do
+    line = display.newLine(foregroundGroup, x, -400, x, 800)
+    line:setStrokeColor(0.5, 0.5, 0.5, 0.5)
+  end
+
+  for y = -400, 800, 50 do
+    line = display.newLine(foregroundGroup, 0, y, 12000, y)
+    line:setStrokeColor(0.5, 0.5, 0.5, 0.5)
+  end
+
+  for x = 0, 12000, 200 do
+    for y = -400, 800, 200 do
+      text = display.newText(
+        foregroundGroup,
+        x .. "," .. y,
+        x, y,
+        "Georgia-Bold", 8)
+      text.anchorX = 0
+      text.anchorY = 0
+      text:setTextColor(0.5, 0.5, 0.5)
+      text.alpha = 0.5
     end
   end
 end
@@ -1092,6 +1119,7 @@ function scene:create( event )
 
   camera:setToTarget(false, player.x, player.y + player.z, contentGroup, {parallaxBackgroundGroup, mainGroup, bgGroup, foregroundGroup}, {0.2, 1,1,1})
 
+  -- debugGrid()
 
   state = "waiting"
 end

@@ -27,7 +27,7 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
 
   candidate.name = "Joe Biden"
   candidate.short_name = "biden"
-
+  
   candidate.sprite = display.newSprite(candidate, bidenSprite, {frames=candidate.frames})
   candidate.hitIndex = bidenSpriteInfo.hitIndex
   

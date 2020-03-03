@@ -130,6 +130,11 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     if self.automaticActionTimer ~= nil then
       timer.cancel(self.automaticActionTimer)
     end
+    for i = 1,#self.fighters do
+      if self.fighters[i].target == self then
+        self.fighters[i].target = nil
+      end
+    end
   end
 
   function tim:enableAutomatic()
@@ -160,20 +165,22 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
       return true
     end
 
-    if self.x < self.target.x - 256 then
+    if self.x < self.target.x - 96 then
       self:moveAction(10, 0)
       moved = true
-    elseif self.x > self.target.x + 256 then
+    elseif self.x > self.target.x + 96 then
       self:moveAction(-10, 0)
       moved = true
     end
 
-    if self.z < self.target.z - z_threshold then
-      self:zMoveAction(self.max_z_velocity * 0.7)
-      moved = true
-    elseif self.z > self.target.z + z_threshold then
-      self:zMoveAction(-1 * self.max_z_velocity * 0.7)
-      moved = true
+    if self.action == "resting" then
+      if self.z < self.target.z - z_threshold then
+        self:zMoveAction(self.max_z_velocity * 0.7)
+        moved = true
+      elseif self.z > self.target.z + z_threshold then
+        self:zMoveAction(-1 * self.max_z_velocity * 0.7)
+        moved = true
+      end
     end
 
     return moved
@@ -509,8 +516,13 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
       self.target = nil
     end
 
+    -- -- Don't try to 
+    -- if self.x == nil or (self.target ~= nil and self.target.x == nil) then
+    --   return
+    -- end
+
     -- face the current target, if there is one
-    if self.target ~= nil then
+    if self.target ~= nil and self.target.x ~= nil and self.x ~= nil then
       if self.x > self.target.x + 10 and self.xScale == 1 and self.action == "resting" then
         self.xScale = -1
       end
@@ -584,7 +596,13 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
 
       local z_diff = math.abs(opponent.z - self.z)
 
-      if opponent ~= self and z_diff < z_threshold and self.side ~= opponent.side and (self.ally == nil or self.ally ~= opponent) and (opponent.ally == nil or opponent.ally ~= self) then
+      if opponent ~= self 
+        and z_diff < z_threshold 
+        and self.side ~= opponent.side 
+        and (self.ally == nil or self.ally ~= opponent) 
+        and (opponent.ally == nil or opponent.ally ~= self)
+        and self.action ~= "ko" and opponent.action ~= "ko" 
+        and self.action ~= "blinking" and opponent.action ~= "blinking" then
         -- Get the opponent's hit detection circles
         opponent_frame = opponent.sprite.frame
         opponent_hitIndex = opponent.hitIndex[opponent_frame]

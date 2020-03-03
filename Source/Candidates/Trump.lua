@@ -34,7 +34,7 @@ function trump:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.after_image.isVisible = false
 
   function candidate:automaticAction()
-    do return end
+    -- do return end
     -- self:blockingAction()
     if self.action == "resting" then
       if self.target.action == "jump_kicking" then

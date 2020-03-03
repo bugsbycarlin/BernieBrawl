@@ -31,7 +31,7 @@ end
 -- audio.play( stage_music, { channel=1, loops=-1 } )
 
 gameplan:setup()
-gameplan:quick_setup("sanders", "biden")
+gameplan:quick_setup("sanders", "suit")
 
 -- -- Go to the menu screen
 -- composer.gotoScene("Source.Scenes.intro", {effect = "fade", time = 2000})
