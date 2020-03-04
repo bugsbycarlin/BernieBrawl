@@ -318,10 +318,11 @@ local function addBad(val)
   end
   fighter.target = player
   fighter.side = "bad"
-  fighter.fighters = fighters
   fighter:enable()
 
   table.insert(fighters, fighter)
+
+  fighter.fighters = fighters
 
   time_since_last_bad = system.getTimer()
 
@@ -334,10 +335,11 @@ local function addWarren()
   local fighter = candidates["warren"]:create(8300, display.contentCenterY, mainGroup, min_x, max_x, min_z, max_z, effects_thingy)
   fighter.target = player
   fighter.side = "bad"
-  fighter.fighters = fighters
   fighter:enable()
 
   table.insert(fighters, fighter)
+
+  fighter.fighters = fighters
 
   time_since_last_bad = system.getTimer()
 
@@ -561,16 +563,16 @@ local function checkInput()
     elseif keydown.right and keydown.up then
       table.insert(key_history, "right-up")
       player:moveAction(player.max_x_velocity * 0.7, -1 * player.max_y_velocity)
-    elseif keydown.up and (player.move_direction ~= "up" or player.move_decay == 0 or player.move_decay > 3) then
+    elseif keydown.up and (player.move_direction ~= "up" or player.move_decay == 0 or player.move_decay > 5) then
       table.insert(key_history, "up")
       player:zMoveAction(-1 * player.max_z_velocity * 0.7)
-    elseif keydown.down and (player.move_direction ~= "down" or player.move_decay == 0 or player.move_decay > 3) then
+    elseif keydown.down and (player.move_direction ~= "down" or player.move_decay == 0 or player.move_decay > 5) then
       table.insert(key_history, "down")
       player:zMoveAction(player.max_z_velocity * 0.7)
-    elseif keydown.left and (player.move_direction ~= "left" or player.move_decay == 0 or player.move_decay > 3) then
+    elseif keydown.left and (player.move_direction ~= "left" or player.move_decay == 0 or player.move_decay > 5) then
       table.insert(key_history, "left")
       player:moveAction(-1 * player.max_x_velocity * 0.7, 0)
-    elseif keydown.right and (player.move_direction ~= "right" or player.move_decay == 0 or player.move_decay > 3) then
+    elseif keydown.right and (player.move_direction ~= "right" or player.move_decay == 0 or player.move_decay > 5) then
       table.insert(key_history, "right")
       player:moveAction(player.max_x_velocity * 0.7, 0)
     end
@@ -614,6 +616,14 @@ local function checkInput()
       end
     end
 
+    if #key_history > 3 then
+      if key_history[#key_history - 2] == "a" and key_history[#key_history - 1] == "a" 
+        and ((key_history[#key_history] == "right" and player.xScale == 1)  or (key_history[#key_history] == "left" and player.xScale == -1)) then
+        player:specialThrow()
+        key_history = {}
+      end
+    end
+
     if #key_history > 5 then
       new_key_history = {}
       for i = 2,#key_history do
@@ -643,7 +653,7 @@ end
 
 local function gameLoop()
 
-  print(player.x)
+  -- print(player.x)
 
   if audio.isChannelPlaying(1) == false and audio.isChannelPlaying(2) == false then
     audio.play(stage_music, {channel=2, loops=-1})
@@ -663,6 +673,7 @@ local function gameLoop()
   end
 
   iowa_snow:update()
+  effects_thingy.fighters = fighters
   effects_thingy:update()
 
   -- print("Number of fighters is " .. #fighters)

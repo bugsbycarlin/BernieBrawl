@@ -360,6 +360,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     self.moving = false
     self.action = "ko"
     self.damage_timer = self.ko_time
+    self.damage_in_a_row = 0
     self.y_vel = -20
     self.x_vel = -25 * self.xScale
   end
@@ -468,7 +469,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     end
 
     if (self.x + self.x_vel > self.min_x or self.x_vel > 0) and (self.x + self.x_vel < self.max_x or self.x_vel < 0) then
-      print("Moving from " .. self.x .. " to " .. (self.x + self.x_vel) .. " .. at speed " .. self.x_vel)
+      -- print("Moving from " .. self.x .. " to " .. (self.x + self.x_vel) .. " .. at speed " .. self.x_vel)
       self.x = self.x + self.x_vel
     end
     if self.action ~= "pre_jumping" then

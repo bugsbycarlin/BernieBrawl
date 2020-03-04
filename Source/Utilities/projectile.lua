@@ -5,7 +5,7 @@ projectile.__index = projectile
 local projectile_size = 64
 local projectile_knockback = 10
 local projectile_power = 8
-local z_threshold = 30
+local z_threshold = 40
 
 local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
@@ -50,6 +50,7 @@ function projectile:update()
   local insensitivity = 4
 
   if self.fighters ~= nil then
+    print("Checking " .. #self.fighters .. " fighters")
     for i = 1, #self.fighters do
       opponent = self.fighters[i]
 

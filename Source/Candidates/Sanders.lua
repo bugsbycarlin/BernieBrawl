@@ -18,7 +18,7 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.bros = 80
   candidate.ko_frame = 33
   candidate.ko_time = 35
-  candidate:setMaxHealth(1600)
+  candidate:setMaxHealth(600)
 
   candidate.animate_move = true
 
@@ -85,6 +85,15 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     self.moving = false
     self.action = "summoning"
     self.frame = 1
+    self.effects_thingy:playSound("help_me_bros")
+  end
+
+  function candidate:specialThrow()
+    self.move_decay = 0
+    self.moving = false
+    self.action = "manifesto_throwing"
+    self.frame = 1
+    self.effects_thingy:playSound("manifesto")
   end
 
   function candidate:checkSpecialAction(x_vel, y_vel)
@@ -194,34 +203,37 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   local punching_frames = {
     10, 10,
     11, 11,
-    12, 12,
+    12, 12, 12,
     13, 13,
     14, 14,
     15, 15,
-    16, 16,
+    16, 16, 16,
     17, 17,
     18, 18,
     19, 19,
-    11, 11,
-    12, 12,
-    20, 20, 20,
-    21, 21,
-    14, 14,
-    15, 15,
-    11, 11,
+    -- 11, 11,
+    -- 12, 12,
+    -- 20, 20, 20,
+    -- 21, 21,
+    -- 14, 14,
+    -- 15, 15,
+    -- 11, 11,
 
   }
   candidate.animations["punching"] = function(self)
     self.sprite:setFrame(punching_frames[self.frame])
-    if self.frame == 25 then
-      self.x = self.x + 40 * self.xScale
-    elseif self.frame == 28 then
-      self.x = self.x + 20 * self.xScale
-    end
+    -- if self.frame == 25 then
+    --   self.x = self.x + 40 * self.xScale
+    -- elseif self.frame == 28 then
+    --   self.x = self.x + 20 * self.xScale
+    -- end
     self.frame = self.frame + 1
-    if (self.frame == 25 or self.frame == 28) and self.attack == nil then
+    if self.frame == 14 and self.attack == nil then
       self.attack = {power=self.punching_power, knockback=self.knockback}
     end
+    -- if (self.frame == 25 or self.frame == 28) and self.attack == nil then
+    --   self.attack = {power=self.punching_power, knockback=self.knockback}
+    -- end
     if (self.frame > #punching_frames) then
       self:restingAction()
     end
@@ -252,6 +264,24 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
       end
     end
     if (self.frame > #summoning_frames) then
+      self:restingAction()
+    end
+  end
+
+  local manifesto_throwing_frames = {
+    1, 1,
+    48, 48,
+    49, 50,
+    49, 49,
+    1, 1,
+  }
+  candidate.animations["manifesto_throwing"] = function(self)
+    self.sprite:setFrame(manifesto_throwing_frames[self.frame])
+    if self.frame == 5 then
+      self.effects_thingy:addProjectileManifesto(self.parent_group, self, self.x + 64 * self.xScale, self.y - 36, self.z, self.xScale)
+    end
+    self.frame = self.frame + 1
+    if (self.frame > #manifesto_throwing_frames) then
       self:restingAction()
     end
   end
