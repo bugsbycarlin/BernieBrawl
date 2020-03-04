@@ -381,13 +381,13 @@ local function checkZonesAndEnemies()
     or (zones[current_zone].type == "shop" and player.x > zones[current_zone].max - 200) then
     current_zone = current_zone + 1
     time_since_last_bad = system.getTimer()
-    if zones[current_zone].type == "goons" then
-      print("Adding the special first goon for zone " .. current_zone .. " (which has type " .. zones[current_zone].type .. ")")
-      fighter = addBad(math.max(zones[current_zone].min + 400, player.x + 700))
-      fighter:enableAutomatic()
-      zones[current_zone].num = zones[current_zone].num - 1
-      num_active_bads = num_active_bads + 1
-    end
+    -- if zones[current_zone].type == "goons" then
+    --   print("Adding the special first goon for zone " .. current_zone .. " (which has type " .. zones[current_zone].type .. ")")
+    --   fighter = addBad(math.max(zones[current_zone].min + 400, player.x + 700))
+    --   fighter:enableAutomatic()
+    --   zones[current_zone].num = zones[current_zone].num - 1
+    --   num_active_bads = num_active_bads + 1
+    -- end
     -- if current_zone == 1 then
     --   time_since_last_bad = system.getTimer() - zones[current_zone].pace
     -- end
@@ -404,7 +404,8 @@ local function checkZonesAndEnemies()
     if zones[current_zone].type == "goons" 
       and (system.getTimer() - time_since_last_bad > zones[current_zone].pace or num_active_bads == 0)
       and zones[current_zone].num > 0
-      and num_active_bads < zones[current_zone].max_bads then
+      and num_active_bads < zones[current_zone].max_bads
+      and player_furthest_x >= zones[current_zone].min then
       print("adding regular dude")
       fighter = addBad()
       fighter:enableAutomatic()
@@ -560,23 +561,21 @@ local function checkInput()
     elseif keydown.right and keydown.up then
       table.insert(key_history, "right-up")
       player:moveAction(player.max_x_velocity * 0.7, -1 * player.max_y_velocity)
-    elseif keydown.up then
+    elseif keydown.up and (player.move_direction ~= "up" or player.move_decay == 0 or player.move_decay > 3) then
       table.insert(key_history, "up")
-      -- player:moveAction(0, -1 * player.max_y_velocity)
       player:zMoveAction(-1 * player.max_z_velocity * 0.7)
-    elseif keydown.down then
+    elseif keydown.down and (player.move_direction ~= "down" or player.move_decay == 0 or player.move_decay > 3) then
       table.insert(key_history, "down")
       player:zMoveAction(player.max_z_velocity * 0.7)
-      -- player:moveAction(0, player.max_y_velocity)
-    elseif keydown.left then
+    elseif keydown.left and (player.move_direction ~= "left" or player.move_decay == 0 or player.move_decay > 3) then
       table.insert(key_history, "left")
       player:moveAction(-1 * player.max_x_velocity * 0.7, 0)
-    elseif keydown.right then
+    elseif keydown.right and (player.move_direction ~= "right" or player.move_decay == 0 or player.move_decay > 3) then
       table.insert(key_history, "right")
       player:moveAction(player.max_x_velocity * 0.7, 0)
     end
 
-    if keydown.a == true and player.action == "resting" then
+    if keydown.a == true and (player.action == "resting") then
       table.insert(key_history, "a")
       player:blockingAction()
     elseif keydown.a == false and player.action == "blocking" then
@@ -587,6 +586,7 @@ local function checkInput()
       table.insert(key_history, "s")
       if player.action == "resting" then
         player:punchingAction()
+
       elseif player.action == "jumping" then
         player:jumpAttackAction()
       end
@@ -596,6 +596,7 @@ local function checkInput()
       table.insert(key_history, "d")
       if player.action == "resting" then
         player:kickingAction()
+
       elseif player.action == "jumping" then
         player:jumpAttackAction()
       end
@@ -605,8 +606,6 @@ local function checkInput()
     for i = 1,#key_history do
       key_output = key_output .. "," .. key_history[i]
     end
-    -- print(key_output)
-    -- print(key_history[#key_history - 2])
 
     if #key_history > 3 then
       if key_history[#key_history - 2] == "a" and key_history[#key_history - 1] == "d" and key_history[#key_history] == "up" then
@@ -643,6 +642,9 @@ local function checkInput()
 end
 
 local function gameLoop()
+
+  print(player.x)
+
   if audio.isChannelPlaying(1) == false and audio.isChannelPlaying(2) == false then
     audio.play(stage_music, {channel=2, loops=-1})
   end

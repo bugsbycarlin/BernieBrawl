@@ -58,7 +58,6 @@ end
 
 function snow:create_flake()
   if (-1 * self.group.x) > self.max_x then
-    print("no flakes this far out")
     return
   end
   local x = math.random(0, display.contentWidth) - self.group.x

@@ -105,67 +105,6 @@ function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     end
   end
 
-  -- function candidate:automaticAction()
-  --   -- do return end
-
-  --   if self.health <= 0 or self.action ~= "resting" then
-  --     return
-  --   end
-    
-  --   if self.z > max_z then
-  --     -- self.automaticActionTimer._delay = self.automatic_rate / 2
-  --     self:zMoveAction(-1 * self.max_z_velocity)
-  --     return
-  --   else
-  --     -- self.automaticActionTimer._delay = self.automatic_rate
-  --   end
-
-  --   if self.target == nil then
-  --     return
-  --   end
-
-  --   -- print("Joe suit HP is " .. self.health)
-  --   if self.target.x - self.x > 700 then
-  --     self:forceMoveAction(10, 0)
-  --   elseif self.x - self.target.x > 700 then
-  --     self:forceMoveAction(-10, 0)
-  --   elseif math.abs(self.target.x - self.x) > 250 then
-  --     self.automaticActionTimer._delay = self.automatic_rate / 2
-  --     dice = math.random(1, 100)
-  --     if dice > 90 then
-  --       self:basicAutomaticMove()
-  --     else
-  --       --self:restingAction()
-  --     end
-  --   elseif self.target.action ~= "dizzy" and self.target.action ~= "ko" then
-  --     dice = math.random(1, 100)
-  --     moved = false
-  --     if dice > 70 then
-  --       moved = self:basicAutomaticMove()
-  --     elseif dice > 50 then
-  --       --self:restingAction()
-  --     end
-  --     if moved == false then
-  --       if dice > 80 then
-  --         self:punchingAction()
-  --       elseif dice > 40 then
-  --         self:kickingAction()
-  --       else
-  --         self:blockingAction()
-  --       end
-  --     end
-  --   else
-  --     local dice = math.random(1, 100)
-  --     if dice > 90 then
-  --       self:moveAction(10 * self.xScale, 0)
-  --     elseif dice > 60 then
-  --       self:moveAction(-10 * self.xScale, 0)
-  --     elseif dice > 55 then
-  --       self:punchingAction()
-  --     end
-  --   end
-  -- end
-
   -- big override. use animation for moves.
   function candidate:moveAction(x_vel, y_vel)
     -- if self.action ~= "resting" then
@@ -189,16 +128,6 @@ function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   end
 
   function candidate:dizzyAction()
-    -- if self.action == "ko" then
-    --   self.y = self.y - 60
-    -- end
-    -- self.action = "dizzy"
-    -- self.animations["dizzy"](self)
-    -- self.damage_timer = 25
-    -- self.damage_in_a_row = 0
-    -- for i = 1, 3, 1 do
-    --   self.effects_thingy:addDizzyTwit(self, self, 0, -110 + math.random(1,20) + self.z, 40 + math.random(1,20), 2250)
-    -- end
   end
 
   candidate.parentKoAction = candidate.koAction

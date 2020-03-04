@@ -69,6 +69,8 @@ function trump:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   end
 
   function candidate:specialAction()
+    self.move_decay = 0
+    self.moving = false
     local dice = math.random(1,100)
     if dice > 64 then
       self.action = "twitting"
@@ -110,23 +112,6 @@ function trump:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     return false
   end
 
-  -- local resting_frames = {
-  --   1, 1,
-  --   2, 2,
-  --   3,
-  --   4, 4, 4, 4,
-  --   5, 5,
-  --   6,
-  --   1, 1, 1,
-  --   7, 7,
-  --   8, 8,
-  --   9, 9, 9,
-  --   10,
-  --   11, 11,
-  --   4, 4,
-  --   5, 5,
-  --   6, 6,
-  -- }
   local resting_frames_A = {
     1, 1,
     2, 2,

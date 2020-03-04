@@ -256,6 +256,83 @@ sandersSpriteInfo.sheet =
             height=256,
 
         },
+        {
+            x=1024,
+            y=1024,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=1280,
+            y=1024,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=1536,
+            y=1024,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=1792,
+            y=1024,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=0,
+            y=1280,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=256,
+            y=1280,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=512,
+            y=1280,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=768,
+            y=1280,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=1024,
+            y=1280,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=1280,
+            y=1280,
+            width=256,
+            height=256,
+
+        },
+        {
+            x=1536,
+            y=1280,
+            width=256,
+            height=256,
+
+        },
     },
 
     sheetContentWidth = 2048,
@@ -277,6 +354,7 @@ sandersSpriteInfo.sheet =
 -- dizzy: 32
 -- ko: 33
 -- summoning special: 34, 35, 36
+-- crab walking: 37 - 45
 
 sandersSpriteInfo.hitIndex = 
 {
@@ -708,6 +786,42 @@ sandersSpriteInfo.hitIndex =
       {x=13,y=40.333333333333,type="circle",purpose="vulnerability",radius=12},
       {x=12,y=59,type="circle",purpose="vulnerability",radius=12},
       {x=16.333333333333,y=75,type="circle",purpose="vulnerability",radius=12},
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
+    },
+    {
     },
 }
 

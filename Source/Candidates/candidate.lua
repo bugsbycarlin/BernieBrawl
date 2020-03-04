@@ -53,6 +53,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
   tim.visible_health = tim.max_health
 
   tim.ko_frame = 1
+  tim.ko_time = 55
 
   tim.swipe_history = {}
 
@@ -65,6 +66,11 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
   tim.shake_screen_on_contact = false
 
   tim.action = "resting"
+
+  tim.move_decay = 0
+  tim.move_direction = nil
+  tim.moving = false
+  tim.animate_move = false
 
   tim.damage_timer = 0
   tim.damage_in_a_row = 0
@@ -188,6 +194,8 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
 
   function tim:punchingAction()
     if self.action == "resting" then
+      self.move_decay = 0
+      self.moving = false
       self.frame = 1
       self.animationTimer._delay = self.action_rate
       self.action = "punching"
@@ -199,6 +207,8 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
 
   function tim:kickingAction()
     if self.action == "resting" then
+      self.move_decay = 0
+      self.moving = false
       self.frame = 1
       self.animationTimer._delay = self.action_rate
       self.action = "kicking"
@@ -209,10 +219,14 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
   end
 
   function tim:jumpingAction()
+    self.move_decay = 0
+    self.moving = false
     self.action = "jumping"
   end
 
   function tim:jumpAttackAction()
+    self.move_decay = 0
+    self.moving = false
     self.action = "jump_kicking"
     self.frame = 1
     self.attack = {power=2 * tim.kicking_power, knockback=tim.knockback}
@@ -226,17 +240,20 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
 
   end
 
-  function tim:zMoveAction(z_vel)
-    if self.action ~= "resting" then
+  function tim:moveAction(x_vel, y_vel)
+    if self.action ~= "resting" and self.action ~= "moving" then
       return
     end
 
-    self.z_vel = math.max(-1 * self.max_z_velocity, math.min(self.max_z_velocity, z_vel))
-  end
+    self.move_decay = 0
+    self.moving = true
 
-  function tim:moveAction(x_vel, y_vel)
-    if self.action ~= "resting" then
-      return
+    if x_vel > 0.1 then
+      self.move_direction = "right"
+    elseif x_vel < 0.1 then
+      self.move_direction = "left"
+    else
+      self.move_direction = nil
     end
 
     self:forceMoveAction(x_vel, y_vel)
@@ -248,6 +265,23 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
         self.xScale = 1
       end
     end
+  end
+
+  function tim:zMoveAction(z_vel)
+    if self.action ~= "resting" then
+      return
+    end
+
+    self.move_decay = 0
+    self.moving = true
+
+    if z_vel < 0 then
+      self.move_direction = "up"
+    else
+      self.move_direction = "down"
+    end
+
+    self.z_vel = math.max(-1 * self.max_z_velocity, math.min(self.max_z_velocity, z_vel))
   end
 
   function tim:forceMoveAction(x_vel, y_vel)
@@ -289,6 +323,8 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
   end
 
   function tim:blockingAction()
+    self.move_decay = 0
+    self.moving = false
     self.sprite:setFrame(self.blocking_frames[1])
     self.after_image.isVisible = false
     self.animationTimer._delay = self.resting_rate
@@ -297,6 +333,8 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
   end
 
   function tim:damageAction(type, damage_value, knockback, y_vel, rotation)
+    self.move_decay = 0
+    self.moving = false
     self.after_image.isVisible = false
     self.health = self.health - damage_value
     self:adjustVelocity(knockback * -1 * self.xScale, y_vel)
@@ -306,8 +344,9 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     if type == "damaged" then
       self.sprite:setFrame(self.damaged_frames[1])
       self.damage_timer = 4
+      previous_action = self.action
       self.action = "damaged"
-      if self.damage_in_a_row >= self.whooping_threshold or self.health <= 0 then
+      if self.damage_in_a_row >= self.whooping_threshold or self.health <= 0 or previous_action == "jumping" or previous_action == "jump_kicking" then
         self:koAction()
       end
     elseif type == "knockback" then
@@ -316,37 +355,25 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     end
   end
 
-  -- function tim:damageAction(actor, extra_vel)
-  --   self.sprite:setFrame(self.damaged_frames[1])
-  --   self.after_image.isVisible = false
-  --   self.x_vel = -20 * self.xScale
-  --   if extra_vel ~= nil then
-  --     self.x_vel = self.x_vel + extra_vel * self.xScale
-  --   end
-  --   self.y_vel = -5
-  --   self.rotation = 15 * self.xScale
-  --   self.damage_timer = 4
-  --   self.health = self.health - actor.power
-  --   self.damage_in_a_row = self.damage_in_a_row + 1
-  --   self.action = "damaged"
-  --   if self.damage_in_a_row > 3 or self.health <= 0 then
-  --     self:koAction()
-  --   end
-  -- end
-
   function tim:koAction()
+    self.move_decay = 0
+    self.moving = false
     self.action = "ko"
-    self.damage_timer = 55
+    self.damage_timer = self.ko_time
     self.y_vel = -20
     self.x_vel = -25 * self.xScale
   end
 
   function tim:blinkingAction()
+    self.move_decay = 0
+    self.moving = false
     self.action = "blinking"
     self.blinking_start_time = system.getTimer()
   end
 
   function tim:dizzyAction()
+    self.move_decay = 0
+    self.moving = false
     if self.action == "ko" then
       self.y = self.y - 60
     end
@@ -360,6 +387,8 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
   end
 
   function tim:celebratingAction()
+    self.move_decay = 0
+    self.moving = false
     self.frame = 1
     self.after_image.isVisible = false
     self.animationTimer._delay = self.resting_rate
@@ -439,6 +468,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     end
 
     if (self.x + self.x_vel > self.min_x or self.x_vel > 0) and (self.x + self.x_vel < self.max_x or self.x_vel < 0) then
+      print("Moving from " .. self.x .. " to " .. (self.x + self.x_vel) .. " .. at speed " .. self.x_vel)
       self.x = self.x + self.x_vel
     end
     if self.action ~= "pre_jumping" then
@@ -446,6 +476,19 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     end
     if (self.z + self.z_vel > self.min_z or self.z_vel > 0) and (self.z + self.z_vel < self.max_z or self.z_vel < 0) then
       self:setZ(self.z + self.z_vel)
+    end
+
+    if (math.abs(self.x_vel) > 0 or math.abs(self.z_vel) > 0) and self.moving == true and self.animate_move == true then
+      self.move_decay = self.move_decay + 1
+      if self.move_decay > #self.moving_frames then
+        self.x_vel = 0
+        self.z_vel = 0
+        self.move_decay = 0
+        self.moving = false
+        self:restingAction()
+      else
+        self.sprite:setFrame(self.moving_frames[self.move_decay])
+      end
     end
 
     if math.abs(self.y_vel) < self.max_y_velocity / 4 and self.action ~= "ultra_punching" then
@@ -585,7 +628,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     end
 
     -- determines how much the circles have to touch before it counts as a collision. higher value prevents over-sensitive collisions.
-    local insensitivity = 4
+    local insensitivity = 6
 
     -- Loop through fighters (skipping self)
     for i = 1, #hit_list do

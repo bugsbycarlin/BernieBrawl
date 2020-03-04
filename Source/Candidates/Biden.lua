@@ -98,6 +98,8 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
 
   -- keep this one, it's an override
   function candidate:jumpAttackAction()
+    self.move_decay = 0
+    self.moving = false
     self.action = "jump_kicking"
     self.frame = 1
     self.sprite:setFrame(33)
@@ -105,6 +107,8 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   end
 
   function candidate:specialAction()
+    self.move_decay = 0
+    self.moving = false
     if self.action == "resting" then
       self.action = "ultra_punching"
       self.frame = 1
@@ -113,6 +117,8 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   end
 
   function candidate:dizzyAction()
+    self.move_decay = 0
+    self.moving = false
     if self.action == "ko" then
       self.y = self.y - 60
     end

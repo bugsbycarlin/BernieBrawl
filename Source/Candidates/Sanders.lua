@@ -14,9 +14,13 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.kicking_power = 12
   candidate.automatic_rate = 450
   candidate.action_rate = 30
+  -- candidate.moving_rate = 33
   candidate.bros = 80
   candidate.ko_frame = 33
+  candidate.ko_time = 35
   candidate:setMaxHealth(1600)
+
+  candidate.animate_move = true
 
   candidate.frames = {}
   for i = 1, #sandersSpriteInfo.sheet.frames do
@@ -46,7 +50,39 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     end
   end
 
+  -- sorta override. use animation for moves.
+  -- function candidate:animatedMoveAction(x_vel, y_vel)
+  --   if self.action ~= "resting" and self.action ~= "moving" then
+  --     return
+  --   end
+
+  --   -- if self.action == "moving"
+
+  --   if self.target == nil then
+  --     if x_vel < 0 then
+  --       self.xScale = -1
+  --     else
+  --       self.xScale = 1
+  --     end
+  --   end
+
+    
+  --   if self.xScale * x_vel > 0 then
+  --     self.frame = 1
+  --     self.move_direction = 1
+  --   else
+  --     self.frame = #self.moving_frames
+  --     self.move_direction = -1
+  --   end
+  --   self.after_image.isVisible = false
+  --   -- self.animationTimer._delay = self.moving_rate
+  --   self.rotation = 0
+  --   self.action = "moving"
+  -- end
+
   function candidate:specialAction()
+    self.move_decay = 0
+    self.moving = false
     self.action = "summoning"
     self.frame = 1
   end
@@ -92,12 +128,42 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     8, 8,
   }
   candidate.animations["resting"] = function(self)
-    self.sprite:setFrame(resting_frames[self.frame])
-    self.frame = self.frame + 1
-    if (self.frame > #resting_frames) then
-      self.frame = 1
+    if self.move_decay == 0 then
+      self.sprite:setFrame(resting_frames[self.frame])
+      self.frame = self.frame + 1
+      if (self.frame > #resting_frames) then
+        self.frame = 1
+      end
     end
   end
+
+  candidate.moving_frames = {
+    37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 1,
+  }
+  
+
+  -- candidate.animations["moving"] = function(self)
+  --   self.sprite:setFrame(self.moving_frames[self.frame])
+  --   if self.move_direction == 1 then
+  --     -- move because the sprite doesn't finish in the same location
+  --     self.x = self.x + 5.25 * self.xScale
+  --     self.frame = self.frame + 1
+  --     if (self.frame > #self.moving_frames) then
+  --       -- self.frame = 1
+  --       self:restingAction()
+  --     end
+      
+  --   else
+  --       -- move because the sprite doesn't finish in the same location
+  --     self.x = self.x - 5.25 * self.xScale
+  --     self.frame = self.frame - 1
+  --     if (self.frame < 1) then
+  --       -- self.frame = #self.moving_frames
+  --       self:restingAction()
+  --     end
+      
+  --   end
+  -- end
 
   local kicking_frames = {
     1, 1,

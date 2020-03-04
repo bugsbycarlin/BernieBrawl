@@ -65,6 +65,8 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   end
 
   function candidate:specialAction()
+    self.move_decay = 0
+    self.moving = false
     self.frame = 1
     self.animationTimer._delay = self.action_rate
     self.action = "whipping"
