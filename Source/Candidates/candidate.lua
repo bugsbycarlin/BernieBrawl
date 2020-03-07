@@ -12,13 +12,13 @@ local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
 
-function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy, sprite_offset)
+function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects, sprite_offset)
   local tim = display.newGroup()
 
   tim.name = "tim"
   tim.short_name = "tim"
 
-  tim.effects_thingy = effects_thingy
+  tim.effects = effects
 
   tim.parent_group = group
   tim.parent_group:insert(tim)
@@ -383,7 +383,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
     self.damage_timer = 45
     self.damage_in_a_row = 0
     for i = 1, 3, 1 do
-      self.effects_thingy:addDizzyTwit(self, self, 0, -110 + math.random(1,20) + self.z, 40 + math.random(1,20), 2250)
+      self.effects:addDizzyTwit(self, self, 0, -110 + math.random(1,20) + self.z, 40 + math.random(1,20), 2250)
     end
   end
 
@@ -709,28 +709,28 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects_thing
         
           if result == 5 then
             -- full damage and full knockback for the fighter
-            A.effects_thingy:randomDamageSound()
+            A.effects:randomDamageSound()
             B.damage_in_a_row = 0
             A.damage_in_a_row = A.damage_in_a_row + 1
             A:damageAction("damaged", B.attack.power, B.attack.knockback, -5, 15)
             if B.shake_screen_on_contact then
-              effects_thingy:shakeScreen(1, 200)
-              effects_thingy:shakeScreen(10, 100)
+              effects:shakeScreen(1, 200)
+              effects:shakeScreen(10, 100)
             end
           elseif result == 4 then
             -- partial damage and partial knockback for the fighter
             -- (note this is one sided, because what happens to the other fighter is independent)
-            A.effects_thingy:randomDamageSound()
+            A.effects:randomDamageSound()
             B.damage_in_a_row = 0
             A:damageAction("knockback", B.attack.power / 2, A.attack.knockback / 2, 0, 0)
           elseif result == 3 then
             -- full knockback for the fighter
-            A.effects_thingy:randomDamageSound()
+            A.effects:randomDamageSound()
             -- A:damageAction("knockback", 0, A.attack.knockback, 0, 0)
             A:adjustVelocity(A.attack.knockback * -2 * A.xScale, 0)
           elseif result == 2 then
             -- partial knockback for the fighter
-            A.effects_thingy:randomDamageSound()
+            A.effects:randomDamageSound()
             -- A:damageAction("knockback", 0, B.attack.knockback / 2, 0, 0)
             -- A:adjustVelocity(B.attack.knockback * -0.5 * A.xScale, 0)
             A:damageAction("knockback", B.attack.power / 8, B.attack.knockback * 0.5, 0, 0)

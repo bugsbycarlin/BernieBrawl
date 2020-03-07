@@ -7,8 +7,8 @@ local sandersSprite = graphics.newImageSheet("Art/sanders_sprite.png", sandersSp
 sanders = {}
 sanders.__index = sanders
 
-function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
-  local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy, 47)
+function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects)
+  local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects, 47)
 
   candidate.punching_power = 9
   candidate.kicking_power = 12
@@ -85,7 +85,7 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     self.moving = false
     self.action = "summoning"
     self.frame = 1
-    self.effects_thingy:playSound("help_me_bros")
+    self.effects:playSound("help_me_bros")
   end
 
   function candidate:specialThrow()
@@ -93,7 +93,7 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     self.moving = false
     self.action = "manifesto_throwing"
     self.frame = 1
-    self.effects_thingy:playSound("manifesto")
+    self.effects:playSound("manifesto")
   end
 
   function candidate:checkSpecialAction(x_vel, y_vel)
@@ -227,10 +227,13 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     -- elseif self.frame == 28 then
     --   self.x = self.x + 20 * self.xScale
     -- end
-    self.frame = self.frame + 1
+    if self.frame == 14 or self.frame == 5 then
+      self.x = self.x + 20 * self.xScale
+    end
     if self.frame == 14 and self.attack == nil then
       self.attack = {power=self.punching_power, knockback=self.knockback}
     end
+    self.frame = self.frame + 1
     -- if (self.frame == 25 or self.frame == 28) and self.attack == nil then
     --   self.attack = {power=self.punching_power, knockback=self.knockback}
     -- end
@@ -253,13 +256,13 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     self.frame = self.frame + 1
     if self.frame == 6 then
       if self.bros > 0 then
-        self.effects_thingy:addBro(self.parent_group, self, self.x - 250, self.y + 100, 10, -30, self.min_x, self.max_x, self.min_z, self.max_z)
+        self.effects:addBro(self.parent_group, self, self.x - 250, self.y + 100, 10, -30, self.min_x, self.max_x, self.min_z, self.max_z)
         self.bros = self.bros - 1
       end
     end
     if self.frame == 12 then
       if self.bros > 0 then
-        self.effects_thingy:addBro(self.parent_group, self, self.x + 250, self.y + 100, -10, -30, self.min_x, self.max_x, self.min_z, self.max_z)
+        self.effects:addBro(self.parent_group, self, self.x + 250, self.y + 100, -10, -30, self.min_x, self.max_x, self.min_z, self.max_z)
         self.bros = self.bros - 1
       end
     end
@@ -278,7 +281,7 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.animations["manifesto_throwing"] = function(self)
     self.sprite:setFrame(manifesto_throwing_frames[self.frame])
     if self.frame == 5 then
-      self.effects_thingy:addProjectileManifesto(self.parent_group, self, self.x + 64 * self.xScale, self.y - 36, self.z, self.xScale)
+      self.effects:addProjectileManifesto(self.parent_group, self, self.x + 64 * self.xScale, self.y - 36, self.z, self.xScale)
     end
     self.frame = self.frame + 1
     if (self.frame > #manifesto_throwing_frames) then
@@ -328,6 +331,7 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
       smoke_trail.x = 16
       smoke_trail.y = -51
       smoke_trail.alpha = 1
+      smoke_trail.type = "smoke_trail"
       function smoke_trail:update()
         smoke_trail.alpha = smoke_trail.alpha * 0.99
         smoke_trail.y = smoke_trail.y - 0.5
@@ -335,7 +339,7 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
       function smoke_trail:finished()
         return self.alpha < 0.05
       end
-      self.effects_thingy:add(smoke_trail)
+      self.effects:add(smoke_trail)
     end
     self.frame = self.frame + 1
     if (self.frame > #celebrating_frames) then

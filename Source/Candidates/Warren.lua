@@ -10,8 +10,8 @@ local WhipSprite = graphics.newImageSheet("Art/whip_sprite.png", WhipSpriteInfo:
 warren = {}
 warren.__index = warren
 
-function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
-  local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy, 50)
+function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects)
+  local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects, 50)
 
   candidate.resting_rate = 50
   candidate.action_rate = 35
@@ -20,8 +20,11 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.kicking_power = 9
   candidate.knockback = 10
   candidate.automatic_rate = 300
-  candidate:setMaxHealth(250)
-  candidate.whooping_threshold = 4
+  -- candidate:setMaxHealth(250)
+  candidate:setMaxHealth(2)
+  candidate.whooping_threshold = 5
+
+  candidate.throw_counter = 0
 
   candidate.frames = {}
   for i = 1, #warrenSpriteInfo.sheet.frames do
@@ -46,21 +49,25 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   function candidate:automaticAction()
     -- self:punchingAction()
     -- do return end
-    dice = math.random(1, 100)
-    if dice > 93 then
-      self:moveAction(10 * self.xScale, 0)
-    elseif dice > 85 then
-      double = math.random(1,100)
-      if double > 50 then
-        double = 1
+    if self.action == "resting" then
+      dice = math.random(1, 100)
+      if dice > 93 then
+        self:moveAction(10 * self.xScale, 0)
+      elseif dice > 85 then
+        double = math.random(1,100)
+        if double > 50 then
+          double = 1
+        else
+          double = -1
+        end
+        self:zMoveAction(double * self.max_z_velocity * 0.7)
+      elseif self.throw_counter == 0 and self.target ~= nil and self.target.x ~= nil and math.abs(self.target.x - self.x) > 200 and dice > 65 then
+        self:specialThrow()
+      elseif dice > 45 then
+        self:punchingAction()
       else
-        double = -1
+        self:kickingAction()
       end
-      self:zMoveAction(double * self.max_z_velocity * 0.7)
-    elseif dice > 45 then
-      self:punchingAction()
-    else
-      self:kickingAction()
     end
   end
 
@@ -70,7 +77,16 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     self.frame = 1
     self.animationTimer._delay = self.action_rate
     self.action = "whipping"
-    self.effects_thingy:playSound("whip_swing")
+    self.effects:playSound("whip_swing")
+  end
+
+  function candidate:specialThrow()
+    self.move_decay = 0
+    self.moving = false
+    self.action = "manifesto_throwing"
+    self.frame = 1
+    -- self.effects:playSound("plan")
+    self.throw_counter = 20
   end
 
   function candidate:checkSpecialAction(x_vel, y_vel)
@@ -134,6 +150,11 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
       self.whip_image.isVisible = false
     end
 
+    self.throw_counter = self.throw_counter - 1
+    if self.throw_counter < 0 then
+      self.throw_counter = 0
+    end
+
     self:parentAnimationLoop()
   end
 
@@ -175,7 +196,7 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
       self.after_image:setFrame(kicking_frames[self.frame - 1])
     end
     if self.frame == 3 or self.frame == 8 then
-      self.effects_thingy:playSound("swing_1")
+      self.effects:playSound("swing_1")
     end
     if self.frame == 9 or self.frame == 11 then
       -- self.x = self.x + 20 * self.xScale
@@ -217,14 +238,14 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
   candidate.animations["punching"] = function(self)
     self.sprite:setFrame(punching_frames[self.frame])
     if self.frame == 3 then
-      self.effects_thingy:playSound("swing_3")
+      self.effects:playSound("swing_3")
       self:forceMoveAction(8*self.xScale, 0)
     elseif self.frame == 7 then
-      self.effects_thingy:playSound("swing_3")
+      self.effects:playSound("swing_3")
       self:forceMoveAction(8*self.xScale, 0)
     elseif self.frame == 13 then
       -- punch(self, self.target)
-      self.effects_thingy:playSound("swing_1")
+      self.effects:playSound("swing_1")
       self:forceMoveAction(10*self.xScale, 0)
     end
     self.frame = self.frame + 1
@@ -254,6 +275,24 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     self.whip_image:setFrame(actual_whip_frames[self.frame])
     self.frame = self.frame + 1
     if (self.frame > #whipping_frames) then
+      self:restingAction()
+    end
+  end
+
+  local manifesto_throwing_frames = {
+    4, 4,
+    16, 16,
+    17, 17,
+    16, 16,
+    1, 1,
+  }
+  candidate.animations["manifesto_throwing"] = function(self)
+    self.sprite:setFrame(manifesto_throwing_frames[self.frame])
+    if self.frame == 5 then
+      self.effects:addProjectileManifesto(self.parent_group, self, self.x + 51 * self.xScale, self.y - 35, self.z, self.xScale)
+    end
+    self.frame = self.frame + 1
+    if (self.frame > #manifesto_throwing_frames) then
       self:restingAction()
     end
   end

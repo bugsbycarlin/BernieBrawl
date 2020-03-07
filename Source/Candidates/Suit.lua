@@ -26,8 +26,8 @@ death_phrases = {
   "I'm suspending my campaign",
 }
 
-function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
-  local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy, 50)
+function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects)
+  local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects, 50)
 
   candidate.resting_rate = 45
   candidate.action_rate = 35
@@ -137,11 +137,11 @@ function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     dice = math.random(1, 100)
     if self.target ~= nil and dice > 70 then
       if self.target.x < self.x then
-        death_bubble = textBubble:create(candidate, effects_thingy.foreground_group, death_phrases[math.random(1, #death_phrases)], "left", -64, -64, 2000)
-        candidate.effects_thingy:add(death_bubble)
+        death_bubble = textBubble:create(candidate, effects.foreground_group, death_phrases[math.random(1, #death_phrases)], "left", -64, -64, 2000)
+        candidate.effects:add(death_bubble)
       else
-        death_bubble = textBubble:create(candidate, effects_thingy.foreground_group, death_phrases[math.random(1, #death_phrases)], "right", 64, -64, 2000)
-        candidate.effects_thingy:add(death_bubble)
+        death_bubble = textBubble:create(candidate, effects.foreground_group, death_phrases[math.random(1, #death_phrases)], "right", 64, -64, 2000)
+        candidate.effects:add(death_bubble)
       end
     end
   end
@@ -194,7 +194,7 @@ function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     end
     -- if self.frame == 5 then
     --   self:forceMoveAction(15*self.xScale, 0)
-    --   self.effects_thingy:playSound("swing_1")
+    --   self.effects:playSound("swing_1")
     -- end
     self.frame = self.frame + 1
     if (self.frame > #kicking_frames) then
@@ -246,7 +246,7 @@ function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     self.sprite:setFrame(punching_frames[self.frame])
     if self.frame == 5 or self.frame == 11 then
       self:forceMoveAction(5*self.xScale, 0)
-      self.effects_thingy:playSound("swing_1")
+      self.effects:playSound("swing_1")
     end
     -- second attack
     self.frame = self.frame + 1

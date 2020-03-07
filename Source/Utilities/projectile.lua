@@ -56,7 +56,7 @@ function projectile:update()
 
       local z_diff = math.abs(opponent.z - self.z)
 
-      if z_diff < z_threshold and self.enabled == true and opponent ~= self.originator then
+      if z_diff < z_threshold and self.enabled == true and opponent ~= self.originator and opponent.action ~= "ko" and opponent.action ~= "blinking" then
 
         -- Get the opponent's hit detection circles
         opponent_frame = opponent.sprite.frame
@@ -83,12 +83,12 @@ function projectile:update()
         if opponent_result == 2 then
           self.enabled = false
           self.sprite.isVisible = false
-          opponent.effects_thingy:randomDamageSound()
+          opponent.effects:randomDamageSound()
           -- opponent:adjustVelocity(projectile_knockback * -1 * opponent.xScale, 0)
           opponent:damageAction("knockback", projectile_power / 8, projectile_knockback * 0.5, 0, 0)
         elseif opponent_result == 1 then
           self.enabled = false
-          opponent.effects_thingy:randomDamageSound()
+          opponent.effects:randomDamageSound()
           opponent.damage_in_a_row = opponent.damage_in_a_row + 1
           opponent:damageAction("damaged", projectile_power, projectile_knockback, 0, 5)
         end

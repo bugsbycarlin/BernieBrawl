@@ -8,8 +8,8 @@ local bidenSprite2 = graphics.newImageSheet("Art/biden_sprite_2.png", bidenSprit
 biden = {}
 biden.__index = biden
 
-function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
-  local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy, 47)
+function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects)
+  local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects, 47)
 
   candidate.resting_rate = 60
   candidate.action_rate = 40
@@ -127,7 +127,7 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     self.damage_timer = 25
     self.damage_in_a_row = 0
     for i = 1, 3, 1 do
-      self.effects_thingy:addDizzyTwit(self, self, 0, -110 + math.random(1,20) + self.z, 40 + math.random(1,20), 2250)
+      self.effects:addDizzyTwit(self, self, 0, -110 + math.random(1,20) + self.z, 40 + math.random(1,20), 2250)
     end
   end
 
@@ -200,7 +200,7 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     self.sprite:setFrame(kicking_frames[self.frame])
     if self.frame == 5 then
       self:forceMoveAction(15*self.xScale, 0)
-      self.effects_thingy:playSound("swing_1")
+      self.effects:playSound("swing_1")
     end
     self.frame = self.frame + 1
     if (self.frame > #kicking_frames) then
@@ -225,7 +225,7 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects_thingy)
     self.sprite:setFrame(punching_frames[self.frame])
     if self.frame == 5 or self.frame == 13 then
       self:forceMoveAction(10*self.xScale, 0)
-      self.effects_thingy:playSound("swing_1")
+      self.effects:playSound("swing_1")
     end
     -- second attack
     self.frame = self.frame + 1

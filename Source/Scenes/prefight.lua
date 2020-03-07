@@ -3,7 +3,7 @@ local composer = require("composer")
 
 local scene = composer.newScene()
 
-local effects_class = require("Source.Utilities.effects")
+local effects_system = require("Source.Utilities.effects")
 
 candidates = {}
 candidates["warren"] = require("Source.Candidates.Warren")
@@ -308,7 +308,7 @@ function scene:create( event )
     end
   end
 
-  effects = effects_class:create()
+  effects = effects_system:create()
 
   beat_number = 0
 

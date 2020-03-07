@@ -21,6 +21,15 @@ sounds["damage_5"] = audio.loadSound("Sound/damage_5.wav")
 sounds["damage_6"] = audio.loadSound("Sound/damage_6.wav")
 sounds["manifesto"] = audio.loadSound("Sound/manifesto.wav")
 sounds["help_me_bros"] = audio.loadSound("Sound/help_me_bros.wav")
+sounds["plan"] = audio.loadSound("Sound/plan.wav")
+
+local speed_line_width = 800
+local max_speed_lines = 200
+local speed_line_backdrop_height = display.contentHeight
+local speed_line_min_height = 8
+local speed_line_max_height = 20
+local speed_line_min_x_vel = 80
+local speed_line_max_x_vel = 120
 
 function effects:create(top_level_group, foreground_group)
 
@@ -29,9 +38,13 @@ function effects:create(top_level_group, foreground_group)
 
   object.effect_list = {}
   object.top_level_group = top_level_group
+  print("My top level group")
+  print(top_level_group)
   object.foreground_group = foreground_group
 
   fighters = nil
+
+  object.counts = {}
 
   return object
 end
@@ -42,18 +55,88 @@ function effects:update()
     self.effect_list[i].fighters = self.fighters
     self.effect_list[i]:update()
   end
+  self.counts = {}
   for i = 1, #self.effect_list do
     if self.effect_list[i]:finished() ~= true then
       table.insert(copy_effect_list, self.effect_list[i])
-    else
-      if display.type == "textBubble" then
-
-      else
-        display.remove(self.effect_list[i].sprite)
+      if self.effect_list[i].type ~= nil then
+        if self.counts[self.effect_list[i].type] == nil then
+          self.counts[self.effect_list[i].type] = 0
+        end
+        self.counts[self.effect_list[i].type] = self.counts[self.effect_list[i].type] + 1
       end
+    else
+      display.remove(self.effect_list[i].sprite)
     end
   end
   self.effect_list = copy_effect_list
+end
+
+local red_color = {r=224/255, g=29/255, b=39/255}
+function effects:addRedSpeedLine(y, group)
+  height = math.random(speed_line_min_height, speed_line_max_height)
+  x_vel = math.random(speed_line_min_x_vel, speed_line_max_x_vel)
+  color_tint = math.random(5, 15) / 10
+  speed_line = display.newImageRect(group, "Art/block.png", speed_line_width, height)
+  speed_line.x = display.contentWidth + speed_line_width / 2 + 200 - math.random(1, 200)
+  speed_line.y = y - speed_line_backdrop_height/2 + math.random(speed_line_backdrop_height)
+  if speed_line.y + height / 2 > y + speed_line_backdrop_height / 2 then
+    speed_line.y = y + speed_line_backdrop_height / 2 - height / 2 - 1
+  end
+  if speed_line.y - height / 2 < y - speed_line_backdrop_height / 2 then
+    speed_line.y = y - speed_line_backdrop_height / 2 + height / 2 + 1
+  end
+  speed_line.x_vel = x_vel
+  new_color = {
+    r = math.min(red_color.r * color_tint, 1),
+    g = math.min(red_color.g * color_tint, 1),
+    b = math.min(red_color.b * color_tint, 1),
+  }
+  speed_line:setFillColor(new_color.r, new_color.g, new_color.b)
+  function speed_line:update()
+    self.x = self.x - self.x_vel
+  end
+  function speed_line:finished()
+    return (self.x + speed_line_width / 2 < 0) 
+  end
+
+  self:add(speed_line)
+end
+
+function effects:removeType(type_string)
+  copy_effect_list = {}
+  for i = 1, #self.effect_list do
+    if self.effect_list[i].type ~= type_string then
+      table.insert(copy_effect_list, self.effect_list[i])
+    else
+      display.remove(self.effect_list[i].sprite)
+    end
+  end
+  self.effect_list = copy_effect_list
+end
+
+function effects:addTemporaryText(text_string, x, y, font_size, color, group, duration)
+  text = {}
+  text.sprite = display.newText(
+    group,
+    text_string,
+    x, y,
+    "Georgia-Bold", font_size)
+  text.sprite:setFillColor(color[1], color[2], color[3])
+  text.duration = duration
+  text.start_time = system.getTimer()
+  text.type = "temporaryText"
+  text.group = group
+  function text:update()
+  end
+  function text:finished()
+    print(system.getTimer() - self.start_time)
+    print(self.duration)
+    print(system.getTimer() - self.start_time > self.duration)
+    return system.getTimer() - self.start_time > self.duration
+  end
+
+  self:add(text)
 end
 
 function effects:shakeScreen(intensity, duration)
@@ -62,6 +145,8 @@ function effects:shakeScreen(intensity, duration)
   shake.intensity = intensity
   shake.duration = duration
   shake.target = self.top_level_group
+  print("Hi")
+  print(shake.target)
 
   function shake:update()
     shake.target.x = math.random(0, 2 * self.intensity) - self.intensity
