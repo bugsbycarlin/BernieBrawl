@@ -44,6 +44,9 @@ function effects:create(top_level_group, foreground_group)
 
   fighters = nil
 
+  object.candidates = {}
+  object.candidates["bro"] = require("Source.Candidates.Bro")
+
   object.counts = {}
 
   return object
@@ -281,7 +284,7 @@ function effects:addBro(group, player, x_center, y_center, x_vel, y_vel, min_x, 
     print("Actually, can't add a bro because the effects system doesn't have a list of fighers.")
     return
   end
-  local fighter = candidates["bro"]:create(x_center, y_center, group, min_x, max_x, min_z, max_z, self)
+  local fighter = self.candidates["bro"]:create(x_center, y_center, group, min_x, max_x, min_z, max_z, self)
   table.insert(player.fighters, fighter)
   fighter.fighters = player.fighters
   fighter.target = player.target

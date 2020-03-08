@@ -119,8 +119,6 @@ function scene:initializeAllKindsOfStuff()
     down=false,
   }
 
-  self.stage_music = audio.loadStream("Sound/robot_loop.mp3")
-
   self.shop_selection = 0
 
   self.fighters = {}
@@ -425,18 +423,16 @@ function scene:initializeAllKindsOfStuff()
 
   function scene:gameLoop()
 
-    if audio.isChannelPlaying(1) == false and audio.isChannelPlaying(2) == false then
-      audio.play(self.stage_music, {channel=2, loops=-1})
-    end
-
     if self.state == "active" or self.state == "shopping" then
       -- checkEnding()
       self:checkInput()
     end
 
-    if self.state ~= "waiting" and self.state ~= "shopping" and self.state ~= "ending" then
-      self.level:checkLevel()
-    end
+    self.level:checkLevel()
+
+    -- if self.state ~= "waiting" and self.state ~= "shopping" and self.state ~= "ending" then
+      -- self.level:checkLevel()
+    -- end
 
     if self.camera.move then
       if self.state ~= "pre_fight_3" then
@@ -849,12 +845,10 @@ function scene:show( event )
   if ( phase == "will" ) then
     -- Code here runs when the scene is still off screen (but is about to come on screen)
     self.gameLoopTimer = timer.performWithDelay(33, function() self:gameLoop() end, 0)
-    self.player:enable()
-    timer.performWithDelay(2500, function() self:activateGame() end)
+    self.level:prepareToActivate()
 
   elseif ( phase == "did" ) then
     composer.removeScene("Source.Scenes.prefight")
-    -- audio.play(self.stage_music, { channel=3, loops=1 })
     -- Code here runs when the scene is entirely on screen
 
   end

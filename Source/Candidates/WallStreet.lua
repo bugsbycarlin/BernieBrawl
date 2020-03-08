@@ -1,46 +1,44 @@
 
 local candidate_template = require("Source.Candidates.candidate")
 
-local bidenSpriteInfo = require("Source.Sprites.bidenSprite")
-local bidenSprite = graphics.newImageSheet("Art/biden_smoke_sprite.png", bidenSpriteInfo:getSheet())
+local bankerSpriteInfo = require("Source.Sprites.bankerSprite")
+local bankerSprite = graphics.newImageSheet("Art/banker_sprite.png", bankerSpriteInfo:getSheet())
+local bankerSprite2 = graphics.newImageSheet("Art/banker_sprite_2.png", bankerSpriteInfo:getSheet())
 
-biden = {}
-biden.__index = biden
+banker = {}
+banker.__index = banker
 
-function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects)
+function banker:create(x, y, group, min_x, max_x, min_z, max_z, effects)
   local candidate = candidate_template:create(x, y, group, min_x, max_x, min_z, max_z, effects, 47)
 
-  -- candidate.resting_rate = 60
-  -- candidate.action_rate = 40
-  -- candidate.punching_power = 9
-  -- candidate.kicking_power = 12
-  -- candidate.knockback = 12
-  -- candidate.automatic_rate = 750
-  -- candidate:setMaxHealth(36)
-
-  candidate.resting_rate = 25
-  candidate.action_rate = 20
-  candidate.automatic_rate = 350
+  candidate.resting_rate = 60
+  candidate.action_rate = 40
   candidate.punching_power = 9
   candidate.kicking_power = 12
   candidate.knockback = 12
-  candidate:setMaxHealth(300)
+  candidate.automatic_rate = 750
+  candidate:setMaxHealth(36)
 
   -- to do: lots of knockback for ultra punching
 
   candidate.frames = {}
-  for i = 1, #bidenSpriteInfo.sheet.frames do
+  for i = 1, #bankerSpriteInfo.sheet.frames do
     table.insert(candidate.frames, i)
   end
 
-  candidate.name = "Joe Biden"
-  candidate.short_name = "biden"
+  candidate.name = "Banker"
+  candidate.short_name = "banker"
 
   sprite_choice = math.random(1,100)
-  candidate.sprite = display.newSprite(candidate, bidenSprite, {frames=candidate.frames})
-  candidate.after_image = display.newSprite(candidate, bidenSprite, {frames=candidate.frames})
+  if sprite_choice > 50 then
+    candidate.sprite = display.newSprite(candidate, bankerSprite, {frames=candidate.frames})
+    candidate.after_image = display.newSprite(candidate, bankerSprite, {frames=candidate.frames})
+  else
+    candidate.sprite = display.newSprite(candidate, bankerSprite2, {frames=candidate.frames})
+    candidate.after_image = display.newSprite(candidate, bankerSprite2, {frames=candidate.frames})
+  end
 
-  candidate.hitIndex = bidenSpriteInfo.hitIndex
+  candidate.hitIndex = bankerSpriteInfo.hitIndex
 
   candidate.after_image.alpha = 0.5
   candidate.after_image.isVisible = false
@@ -62,7 +60,7 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects)
       self.automaticActionTimer._delay = self.automatic_rate
     end
 
-    -- print("Joe Biden HP is " .. self.health)
+    -- print("Joe banker HP is " .. self.health)
     if math.abs(self.target.x - self.x) > 350 then
       self.automaticActionTimer._delay = self.automatic_rate / 2
       dice = math.random(1, 100)
@@ -299,4 +297,4 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects)
   return candidate
 end
 
-return biden
+return banker

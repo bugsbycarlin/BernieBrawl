@@ -1,6 +1,7 @@
 
 local composer = require("composer")
 local snow = require("Source.Utilities.snow")
+local textBubble = require("Source.Utilities.textBubble")
 
 level = {}
 level.__index = level
@@ -45,6 +46,8 @@ function level:create(game)
   self.player_starting_x = 184
 
   self.goon_type = "suit"
+
+  self.stage_music = audio.loadStream("Sound/robot_loop.mp3")
 
   return object
 end
@@ -100,6 +103,10 @@ function level:buildLevel()
 
 end
 
+function level:prepareToActivate()
+  self.player:enable()
+  timer.performWithDelay(2500, function() self.game:activateGame() end)
+end
 
 function level:addBad(val)
 
@@ -154,6 +161,10 @@ function level:addWarren()
 end
 
 function level:checkLevel()
+
+  if audio.isChannelPlaying(1) == false and audio.isChannelPlaying(2) == false then
+    audio.play(self.stage_music, {channel=2, loops=-1})
+  end
 
   self.snow_effect:update()
 

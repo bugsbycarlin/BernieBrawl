@@ -253,6 +253,12 @@ bidenSpriteInfo.sheet =
             width=256,
             height=256,
         },
+        {
+            x=1536,
+            y=1024,
+            width=256,
+            height=256,
+        },
     },
 
     sheetContentWidth = 2048,
