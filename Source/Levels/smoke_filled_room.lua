@@ -2,6 +2,7 @@
 local composer = require("composer")
 local smoke = require("Source.Utilities.smoke")
 local textBubble = require("Source.Utilities.textBubble")
+local scriptMaker = require("Source.Utilities.scriptMaker")
 
 level = {}
 level.__index = level
@@ -245,46 +246,27 @@ function level:checkLevel()
     -- end
 
       game.state = "pre_fight_sequence_1"
-      timer.performWithDelay(1500, function() 
-        
-        timer.performWithDelay(0, function()
-          bubble = textBubble:create(self.biden, game.foregroundGroup, "How you doing, Bernie?", "left", -50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(2000, function()
-          bubble = textBubble:create(player, game.foregroundGroup, "I'm angry, Joe.", "right", 50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(4000, function()
-          bubble = textBubble:create(player, game.foregroundGroup, "I don't want to see the nomination", "right", 50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(6000, function()
-          bubble = textBubble:create(player, game.foregroundGroup, "decided in a smoke filled room.", "right", 50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(8000, function()
-          bubble = textBubble:create(self.biden, game.foregroundGroup, "As if it really matters.", "left", -50, -105, 2000)
-          effects:add(bubble)
-          game.state = "pre_fight_sequence_2"
-        end)
-        timer.performWithDelay(10000, function()
-          bubble = textBubble:create(player, game.foregroundGroup, "The people won't stand for it.", "right", 50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(12000, function()
-          bubble = textBubble:create(self.biden, game.foregroundGroup, "The people don't matter, Bernie.", "left", -50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(14000, function()
-          bubble = textBubble:create(self.biden, game.foregroundGroup, "None of this really matters.", "left", -50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(17000, function()
-          bubble = textBubble:create(self.biden, game.foregroundGroup, "It's a smoke filled world.", "left", -50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(19000, function()
+      timer.performWithDelay(1500, function()
+        player.script_side = "right"
+        self.biden.script_side = "left"
+        script_end_time = scriptMaker:makeScript(
+          effects,
+          game.foregroundGroup,
+          2000, -- default length
+          0, -- default padding
+          14, -- default font size
+          {
+            {name=self.biden, text="How you doing, Bernie?"},
+            {name=player, text="I'm angry, Joe.", padding=500},
+            {name=player, text="I don't want to see the nomination"},
+            {name=player, text="decided in a smoke filled room."},
+            {name=self.biden, text="As if it really matters.", action=function() game.state = "pre_fight_sequence_2" end},
+            {name=player, text="The people won't stand for it."},
+            {name=self.biden, text="The people don't matter, Bernie."},
+            {name=self.biden, text="None of this really matters.", padding=1000},
+            {name=self.biden, text="It's a smoke filled world."},
+          })
+        timer.performWithDelay(script_end_time, function()
           player:enable()
           self.biden:enable()
           self.biden:enableAutomatic()

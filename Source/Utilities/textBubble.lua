@@ -2,11 +2,11 @@
 textBubble = {}
 textBubble.__index = textBubble
 
-local font_size = 14
-local bubble_radius = 10
+-- local font_size = 14
+-- local bubble_radius = 10
 local outline_margin = 2
 
-function textBubble:create(parent, group, text_string, direction, x, y, duration)
+function textBubble:create(parent, group, font_size, text_string, direction, x, y, duration)
 
   local bubble = {}
   display_group = group
@@ -19,6 +19,8 @@ function textBubble:create(parent, group, text_string, direction, x, y, duration
   bubble.type = "textBubble"
 
   bubble.parent = parent
+
+  bubble_radius = font_size / 2 + 3
 
   bubble.text = display.newText({
     parent=bubble.sprite,

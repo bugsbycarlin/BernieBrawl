@@ -55,6 +55,10 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects, spri
   tim.ko_frame = 1
   tim.ko_time = 55
 
+  tim.script_offset_x = 50
+  tim.script_offset_y = -105
+  tim.script_side = "right"
+
   tim.swipe_history = {}
 
   tim.min_x = min_x
