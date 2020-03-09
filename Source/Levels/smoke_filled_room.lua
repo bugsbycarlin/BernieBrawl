@@ -50,6 +50,8 @@ function level:create(game)
 
   self.added_first_smoke = false
 
+  self.skip_intro = false
+
   self.stage_music = audio.loadStream("Sound/level_4.mp3")
 
   return object
@@ -88,7 +90,7 @@ function level:addBiden(val)
   biden = self.candidates[self.goon_type]:create(player.x + 300, player.y - 60, game.mainGroup, game.min_x, game.max_x, game.min_z, game.max_z, game.effects)
   biden.side = "bad"
   biden.xScale = -1
-  biden:enable()
+  -- biden:enable()
   biden.sprite:setFrame(39)
 
   table.insert(game.fighters, biden)
@@ -103,6 +105,7 @@ end
 function level:addSmoke()
   game = self.game
   effects = self.game.effects
+  biden = self.biden
 
   if effects.counts["smoke_cloud"] == nil or effects.counts["smoke_cloud"] < max_smoke_clouds then
     smoke_cloud = {}
@@ -132,6 +135,9 @@ function level:addSmoke()
       -- if self.x_vel > self.max_x_vel then
       --   self.x_vel = self.x_vel * 0.95
       -- end
+      if biden.health <= 0 then
+        self.x_vel = self.x_vel + 1 + math.random(1,100) / 200.0
+      end
       if self.sprite.alpha < self.max_alpha then
         self.sprite.alpha = self.sprite.alpha + 0.01
       end
@@ -147,15 +153,11 @@ end
 
 function level:checkLevel()
 
+  if audio.isChannelPlaying(1) == false and audio.isChannelPlaying(2) == false then
+    audio.play(self.stage_music, {channel=2, loops=-1})
+  end
 
-
-  -- if self.added_first_smoke == false then
-  --   self.added_first_smoke = true
-  --   for i = 1,2000 do
-  --     self:addSmoke()
-  --   end
-  -- end
-  if game.state == "active" then
+  if game.state == "active" and self.biden.health > 0 then
     for i = 1,10 do
       self:addSmoke()
     end
@@ -230,7 +232,7 @@ function level:checkLevel()
   end
 
   -- check if the zone needs to be progressed, and update max_x for all fighters and the camera.
-  if self.current_zone == 0 then
+  if self.current_zone == 0 and self.skip_intro == false then
     self.current_zone = self.current_zone + 1
     self.time_since_last_bad = system.getTimer()
     
@@ -265,9 +267,6 @@ function level:checkLevel()
           bubble = textBubble:create(self.biden, game.foregroundGroup, "As if it really matters.", "left", -50, -105, 2000)
           effects:add(bubble)
           game.state = "pre_fight_sequence_2"
-          if audio.isChannelPlaying(1) == false and audio.isChannelPlaying(2) == false then
-            audio.play(self.stage_music, {channel=2, loops=-1})
-          end
         end)
         timer.performWithDelay(10000, function()
           bubble = textBubble:create(player, game.foregroundGroup, "The people won't stand for it.", "right", 50, -105, 2000)
@@ -299,47 +298,27 @@ function level:checkLevel()
           self.fake_biden = nil
           self.biden.target = player
         end)
-        -- timer.performWithDelay(5000, function()
-        --   bubble = textBubble:create(player, game.foregroundGroup, "And you said you'd never take Super PAC money.", "right", 50, -105, 2000)
-        --   effects:add(bubble)
-        -- end)
-        -- timer.performWithDelay(7500, function()
-        --   bubble = textBubble:create(self.warren, game.foregroundGroup, "You can't get the job done, Bernie.", "left", -50, -105, 2000)
-        --   effects:add(bubble)
-        -- end)
-        -- timer.performWithDelay(10000, function()
-        --   bubble = textBubble:create(self.warren, game.foregroundGroup, "So I have a plan to take your lane.", "left", -50, -105, 2000)
-        --   effects:add(bubble)
-        -- end)
-        -- timer.performWithDelay(12500, function()
-        --   bubble = textBubble:create(self.warren, game.foregroundGroup, "Step one is to mess you up.", "left", -50, -105, 2000)
-        --   effects:add(bubble)
-        -- end)
-        -- timer.performWithDelay(15000, function()
-        --   bubble = textBubble:create(player, game.foregroundGroup, "Fine, you want a childish playground fight?", "right", 50, -105, 2000)
-        --   effects:add(bubble)
-        -- end)
-        -- timer.performWithDelay(17500, function()
-        --   bubble = textBubble:create(player, game.foregroundGroup, "We're on a playground.", "right", 50, -105, 1000)
-        --   effects:add(bubble)
-        -- end)
-        -- timer.performWithDelay(19000, function()
-        --   bubble = textBubble:create(player, game.foregroundGroup, "Let's fight.", "right", 50, -105, 1500)
-        --   effects:add(bubble)
-        -- end)
-        --   timer.performWithDelay(1000, function() 
-        --   game.state = "pre_fight_3" 
-        -- end)
-        -- timer.performWithDelay(20500, function()
-        --   player:enable()
-        --   self.warren:enable()
-        --   self.warren:enableAutomatic()
-        --   zones[self.current_zone].num = 0
-        --   game.state = "active"
-        --   game.uiGroup.isVisible = true
-        -- end)
       end)
-    
+  elseif self.current_zone == 0 and self.skip_intro == true then
+      self.current_zone = self.current_zone + 1
+      player:enable()
+      self.biden:disable()
+      self.biden:enable()
+      self.biden:enableAutomatic()
+      self.biden.sprite.alpha = 1
+      game.state = "active"
+      game.uiGroup.isVisible = true
+      fighters = {self.player, self.biden}
+      player.fighters = fighters
+      self.biden.fighters = fighters
+      game.fighters = fighters
+      if self.fake_biden ~= nil then
+        self.fake_biden:disable()
+      end
+      display.remove(self.fake_biden)
+      self.fake_biden = nil
+      self.biden.target = player
+
   end
 
   -- don't check the rest if we somehow haven't left zone 0

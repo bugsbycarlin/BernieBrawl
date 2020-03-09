@@ -24,7 +24,11 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects)
   candidate.punching_power = 9
   candidate.kicking_power = 12
   candidate.knockback = 12
-  candidate:setMaxHealth(300)
+  candidate.whooping_threshold = 300
+  candidate:setMaxHealth(100)
+
+  -- candidate.oscillating_fill = 0.5
+  candidate.start_time = system.getTimer()
 
   -- to do: lots of knockback for ultra punching
 
@@ -38,7 +42,9 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects)
 
   sprite_choice = math.random(1,100)
   candidate.sprite = display.newSprite(candidate, bidenSprite, {frames=candidate.frames})
+  candidate.sprite:setFillColor(0.9, 0.9, 0.9)
   candidate.after_image = display.newSprite(candidate, bidenSprite, {frames=candidate.frames})
+  candidate.after_image:setFillColor(0.0, 0.0, 0.0)
 
   candidate.hitIndex = bidenSpriteInfo.hitIndex
 
@@ -47,8 +53,25 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects)
 
   candidate.ko_frame = 30
 
+  candidate.parentPhysicsLoop = candidate.physicsLoop
+  function candidate:physicsLoop()
+    if self.enabled == true and self.health >= 0 then
+      self.after_image.isVisible = true
+      self.after_image:setFrame(self.sprite.frame)
+      self.after_image.x = self.sprite.x + 10 * self.xScale
+      self.after_image.y = self.sprite.y
+    else
+      self.after_image.isVisible = false
+    end
+
+    self:parentPhysicsLoop()
+  end
+
   function candidate:automaticAction()
     -- do return end
+
+    -- oscillation = 0.8 + math.sin((system.getTimer() - self.start_time) / 100) / 4
+    -- candidate.sprite:setFillColor(oscillation, oscillation, oscillation)
 
     if self.health <= 0 or self.action ~= "resting" then
       return
