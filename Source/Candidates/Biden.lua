@@ -25,6 +25,7 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects)
   candidate.kicking_power = 12
   candidate.knockback = 12
   candidate.whooping_threshold = 300
+  candidate.can_blink = false
   candidate:setMaxHealth(100)
 
   -- candidate.oscillating_fill = 0.5
@@ -44,7 +45,7 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects)
   candidate.sprite = display.newSprite(candidate, bidenSprite, {frames=candidate.frames})
   candidate.sprite:setFillColor(0.9, 0.9, 0.9)
   candidate.after_image = display.newSprite(candidate, bidenSprite, {frames=candidate.frames})
-  candidate.after_image:setFillColor(0.0, 0.0, 0.0)
+  -- candidate.after_image:setFillColor(0.0, 0.0, 0.0)
 
   candidate.hitIndex = bidenSpriteInfo.hitIndex
 
@@ -55,14 +56,14 @@ function biden:create(x, y, group, min_x, max_x, min_z, max_z, effects)
 
   candidate.parentPhysicsLoop = candidate.physicsLoop
   function candidate:physicsLoop()
-    if self.enabled == true and self.health >= 0 then
-      self.after_image.isVisible = true
-      self.after_image:setFrame(self.sprite.frame)
-      self.after_image.x = self.sprite.x + 10 * self.xScale
-      self.after_image.y = self.sprite.y
-    else
-      self.after_image.isVisible = false
-    end
+    -- if self.enabled == true and self.health >= 0 then
+    --   self.after_image.isVisible = true
+    --   self.after_image:setFrame(self.sprite.frame)
+    --   self.after_image.x = self.sprite.x + 10 * self.xScale
+    --   self.after_image.y = self.sprite.y
+    -- else
+    --   self.after_image.isVisible = false
+    -- end
 
     self:parentPhysicsLoop()
   end

@@ -23,7 +23,7 @@ local zones = {
   {min=0, max=1600, type="hotel", num=0, max_bads=3},
 }
 
-local max_smoke_clouds = 2000
+local max_smoke_clouds = 1500
 local min_scale = 0.1
 local max_scale = 0.4
 
@@ -39,7 +39,6 @@ function level:create(game)
   self.player = game.player
 
   self.current_zone = 0
-  self.player_furthest_x = 0
   self.time_since_last_bad = 0
   self.player_starting_x = 640
 
@@ -50,6 +49,8 @@ function level:create(game)
   self.goon_type = "biden"
 
   self.added_first_smoke = false
+
+  self.finished = false
 
   self.skip_intro = false
 
@@ -100,6 +101,8 @@ function level:addBiden(val)
 
   self.time_since_last_bad = system.getTimer()
 
+  self.added_biden = true
+
   return biden
 end
 
@@ -116,7 +119,7 @@ function level:addSmoke()
     smoke_cloud.sprite.xScale = scale
     smoke_cloud.sprite.yScale = scale
     smoke_cloud.sprite.x = math.random(0, 1600)
-    smoke_cloud.sprite.y = math.random(0, 800)
+    smoke_cloud.sprite.y = math.random(-200, 400)
     smoke_cloud.max_alpha = math.random(1,100) / 100
     smoke_cloud.sprite.alpha = 0
     smoke_cloud.start_time = system.getTimer()
@@ -124,20 +127,9 @@ function level:addSmoke()
     smoke_cloud.x_vel = math.random(1,100) / 200
     smoke_cloud.max_x_vel = smoke_cloud.x_vel
     function smoke_cloud:update()
-      -- if game.state == "active" and self.sprite.x > 500 and self.sprite.x < 1100 then
-      --   for i = 1, #game.fighters do
-      --     m = distance(self.sprite.x, self.sprite.y, game.fighters[i].x, game.fighters[i].y + game.fighters[i].z)
-      --     print(m)
-      --     if m < 70 then
-      --       self.x_vel = self.x_vel + 0.02 * game.fighters[i].x_vel
-      --     end
-      --   end
-      -- end
-      -- if self.x_vel > self.max_x_vel then
-      --   self.x_vel = self.x_vel * 0.95
-      -- end
       if biden.health <= 0 then
-        self.x_vel = self.x_vel + 1 + math.random(1,100) / 200.0
+        -- self.x_vel = self.x_vel + 1 + math.random(1,100) / 200.0
+        self.x_vel = self.x_vel * 1.07
       end
       if self.sprite.alpha < self.max_alpha then
         self.sprite.alpha = self.sprite.alpha + 0.01
@@ -176,35 +168,6 @@ function level:checkLevel()
   effects = game.effects
   state = game.state
 
-  -- remove dead bads from the stage
-  local new_fighters = {}
-  for i = 1, #fighters do
-    fighter = fighters[i]
-    if fighter ~= game.player and fighter.action == "blinking" and fighter.blinking_start_time ~= nil and system.getTimer() - fighter.blinking_start_time > 3000 then
-      fighter:disable()
-      display.remove(fighter)
-    else
-      table.insert(new_fighters, fighter)
-    end
-  end
-  game.fighters = new_fighters
-  fighters = game.fighters
-  for i = 1, #fighters do
-    fighters[i].fighters = game.fighters
-  end
-
-  -- count bads and active bads
-  num_bads = 0
-  num_active_bads = 0
-  for i = 1, #fighters do
-    if fighters[i].side == "bad" then
-      num_bads = num_bads + 1
-      if fighters[i].health > 0 then
-        num_active_bads = num_active_bads + 1
-      end
-    end
-  end
-
   if game.state == "pre_fight_sequence_1" then
     player:disable()
     if self.biden ~= nil then
@@ -236,14 +199,6 @@ function level:checkLevel()
   if self.current_zone == 0 and self.skip_intro == false then
     self.current_zone = self.current_zone + 1
     self.time_since_last_bad = system.getTimer()
-    
-    -- here do the arrow effect
-    -- if self.current_zone > 1 then
-    --   game.effects:addArrow(game.uiGroup, display.contentWidth - 64, display.contentCenterY, 128, 0, 3000)
-    --   if zones[self.current_zone].arrow ~= nil then
-    --     game.effects:addArrow(game.foregroundGroup, zones[self.current_zone].arrow.x, zones[self.current_zone].arrow.y, 64, 90, -1)
-    --   end
-    -- end
 
       game.state = "pre_fight_sequence_1"
       timer.performWithDelay(1500, function()
@@ -257,7 +212,7 @@ function level:checkLevel()
           14, -- default font size
           {
             {name=self.biden, text="How you doing, Bernie?"},
-            {name=player, text="I'm angry, Joe.", padding=500},
+            {name=player, text="I'm angry, Joe.", padding=1200},
             {name=player, text="I don't want to see the nomination"},
             {name=player, text="decided in a smoke filled room."},
             {name=self.biden, text="As if it really matters.", action=function() game.state = "pre_fight_sequence_2" end},
@@ -270,6 +225,7 @@ function level:checkLevel()
           player:enable()
           self.biden:enable()
           self.biden:enableAutomatic()
+
           game.state = "active"
           game.uiGroup.isVisible = true
           fighters = {self.player, self.biden}
@@ -288,6 +244,7 @@ function level:checkLevel()
       self.biden:enable()
       self.biden:enableAutomatic()
       self.biden.sprite.alpha = 1
+
       game.state = "active"
       game.uiGroup.isVisible = true
       fighters = {self.player, self.biden}
@@ -303,30 +260,51 @@ function level:checkLevel()
 
   end
 
-  -- don't check the rest if we somehow haven't left zone 0
-  if self.current_zone == 0 then
-    return
+  if self.current_zone == 1 and self.added_biden == true and self.player.health > 0 and self.biden.health <= 0 and self.biden.y_vel == 0 and self.finished == false then
+    self.finished = true
+
+    game.state = "post_fight"
+    
+
+    timer.performWithDelay(3000, function()
+      self.player:celebratingAction()
+    end)
+
+    timer.performWithDelay(5000, function()
+      script_end_time = scriptMaker:makeScript(
+        effects,
+        game.foregroundGroup,
+        3000, -- default length
+        0, -- default padding
+        14, -- default font size
+        {
+          {name=player, text="Fuck around and find out, Joe.",},
+        })
+      -- timer.performWithDelay(script_end_time, function()
+
+      -- end)
+    end)
   end
 
-  -- if zones[self.current_zone].type == "goons" 
-  --   and (system.getTimer() - self.time_since_last_bad > zones[self.current_zone].pace or num_active_bads == 0)
-  --   and zones[self.current_zone].num > 0
-  --   and num_active_bads < zones[self.current_zone].max_bads
-  --   and self.player_furthest_x >= zones[self.current_zone].min then
-  --   fighter = self:addBad()
-  --   fighter:enableAutomatic()
-  --   zones[self.current_zone].num = zones[self.current_zone].num - 1
-  -- end
+  if game.state == "active" then
+    player.min_x = 500
+    player.max_x = 1100
+    self.biden.min_x = 500
+    self.biden.max_x = 1100
+    camera.max_x = 700
+    camera.min_x = 0
+  end
 
   -- update min x for good guys, and max x for everyone and the camera
-  self.player_furthest_x = math.max(self.player_furthest_x, player.x)
-  for i = 1, #fighters do
-    if fighters[i].side == "good" then
-      fighters[i].min_x = math.min(10000, self.player_furthest_x - 1000)
-    end
-    fighters[i].max_x = zones[self.current_zone].max
-  end
-  camera.max_x = zones[self.current_zone].max - display.contentWidth - 200
+  -- self.player_furthest_x = math.max(self.player_furthest_x, player.x)
+  -- for i = 1, #fighters do
+  --   if fighters[i].side == "good" then
+  --     fighters[i].min_x = math.min(10000, self.player_furthest_x - 1000)
+  --   end
+  --   fighters[i].max_x = zones[self.current_zone].max
+  -- end
+  -- camera.max_x = zones[self.current_zone].max - display.contentWidth - 200
+
 end
 
 function level:checkEnding()

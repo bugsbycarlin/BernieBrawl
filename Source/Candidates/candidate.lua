@@ -55,6 +55,8 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects, spri
   tim.ko_frame = 1
   tim.ko_time = 55
 
+  tim.can_blink = true
+
   tim.script_offset_x = 50
   tim.script_offset_y = -105
   tim.script_side = "right"
@@ -427,7 +429,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects, spri
             self.y = self.y - 60
           end
           self:restingAction()
-        elseif self.health <= 0 then
+        elseif self.health <= 0 and self.can_blink then
           self:blinkingAction()
         end
       end

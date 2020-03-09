@@ -760,6 +760,7 @@ function scene:create( event )
   self.player.flexible_target = true
   self.player.side = "good"
   self.fighters[1] = self.player
+  self.player.can_blink = false
 
   self.level.player = self.player
 
@@ -830,7 +831,7 @@ function scene:create( event )
 
   self.camera:setToTarget(false, self.player.x, self.player.y + self.player.z, self.contentGroup, {self.parallaxBackgroundGroup, self.mainGroup, self.bgGroup, self.foregroundGroup}, {0.2, 1, 1, 1})
 
-  -- self.debugGrid()
+  self:debugGrid()
 
   self.state = "waiting"
 end
