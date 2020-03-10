@@ -1,7 +1,7 @@
 
 local composer = require("composer")
 local smoke = require("Source.Utilities.smoke")
-local textBubble = require("Source.Utilities.textBubble")
+-- local textBubble = require("Source.Utilities.textBubble")
 local scriptMaker = require("Source.Utilities.scriptMaker")
 
 level = {}
@@ -202,8 +202,8 @@ function level:checkLevel()
 
       game.state = "pre_fight_sequence_1"
       timer.performWithDelay(1500, function()
-        player.script_side = "right"
-        self.biden.script_side = "left"
+        player.script_side = "left"
+        self.biden.script_side = "right"
         script_end_time = scriptMaker:makeScript(
           effects,
           game.foregroundGroup,

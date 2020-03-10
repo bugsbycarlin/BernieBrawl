@@ -22,7 +22,7 @@ function scriptMaker:makeScript(effects, group, default_length, default_padding,
       font_size = line.font_size
     end
     local offset_x = player.script_offset_x
-    if player.script_side == "left" then
+    if player.script_side == "right" then
       offset_x = -1 * player.script_offset_x
     end
     local offset_y = player.script_offset_y

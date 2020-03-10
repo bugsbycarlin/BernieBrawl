@@ -327,17 +327,18 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects)
     if self.frame == 1 then
       -- create smoke
       local number = math.random(1, 2)
-      local smoke_trail = display.newImageRect(self, "Art/smoke_0" .. number .. ".png", 64, 64)
-      smoke_trail.x = 16
-      smoke_trail.y = -51
-      smoke_trail.alpha = 1
+      local smoke_trail = {}
+      smoke_trail.sprite = display.newImageRect(self, "Art/smoke_0" .. number .. ".png", 64, 64)
+      smoke_trail.sprite.x = 16
+      smoke_trail.sprite.y = -51
+      smoke_trail.sprite.alpha = 1
       smoke_trail.type = "smoke_trail"
       function smoke_trail:update()
-        smoke_trail.alpha = smoke_trail.alpha * 0.99
-        smoke_trail.y = smoke_trail.y - 0.5
+        smoke_trail.sprite.alpha = smoke_trail.sprite.alpha * 0.99
+        smoke_trail.sprite.y = smoke_trail.sprite.y - 0.5
       end
       function smoke_trail:finished()
-        return self.alpha < 0.05
+        return self.sprite.alpha < 0.05
       end
       self.effects:add(smoke_trail)
     end

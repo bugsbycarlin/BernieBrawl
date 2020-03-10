@@ -1,7 +1,8 @@
 
 local composer = require("composer")
 local snow = require("Source.Utilities.snow")
-local textBubble = require("Source.Utilities.textBubble")
+local scriptMaker = require("Source.Utilities.scriptMaker")
+local doorTemplate = require("Source.Utilities.door")
 
 level = {}
 level.__index = level
@@ -15,7 +16,7 @@ level.__index = level
 -- camera maxes are also set to match.
 local zones = {
   {min=0, max=1200, type="goons", num=5, pace=4000, max_bads=3},
-  {min=1200, max=2700, type="goons", num=5, pace=4000, max_bads=3},
+  {min=1200, max=2700, type="goons", num=0, pace=4000, max_bads=3},
   {min=2700, max=4000, type="shop", num=0, arrow={x=2948, y=0}, max_bads=3},
   {min=4000, max=5600, type="goons", num=5, pace=4000, max_bads=3},
   {min=5600, max=7200, type="goons", num=5, pace=4000, max_bads=3},
@@ -39,17 +40,33 @@ function level:create(game)
   self.game = game
   self.player = game.player
 
-  self.current_zone = 0
+  self.current_zone = 2
   self.player_furthest_x = 0
   self.time_since_last_bad = 0
   self.warren_has_appeared = false
-  self.player_starting_x = 184
+  self.player_starting_x = 2600
 
   self.goon_type = "suit"
 
   self.stage_music = audio.loadStream("Sound/robot_loop.mp3")
 
   return object
+end
+
+function level:addDoors()
+  self.doors = {
+    {x=2915, y=394, width=70, height=120, open=false, alt_image=nil, action=nil},
+    {x=8937, y=371, width=70, height=120, open=false, alt_image=nil, action=nil},
+
+
+  }
+  for i = 1,#self.doors do
+    door = self.doors[i]
+    print("Creating door")
+    print(self.game.mainGroup)
+    door_object = doorTemplate:create(self.game.bgGroup, self.game.effects, self.player, door.x, 426 - door.y, door.width, door.height, 300, door.alt_image)
+    self.game.effects:add(door_object)
+  end
 end
 
 function level:buildLevel()
@@ -62,7 +79,7 @@ function level:buildLevel()
   parallax_background.anchorY = 1
   parallax_background.y = display.contentHeight / game.game_scale
 
-  background = display.newImageRect(game.mainGroup, "Art/primary_background.png", 12000, 800)
+  background = display.newImageRect(game.bgGroup, "Art/primary_background.png", 12000, 800)
   background.anchorX = 0
   background.x = 0
   background.anchorY = 1
@@ -99,11 +116,10 @@ function level:buildLevel()
   traffic_cone.y = 385
 
   self.snow_effect = snow:create(game.foregroundGroup, 4000)
-  print("I have happened")
-
 end
 
 function level:prepareToActivate()
+  self:addDoors()
   self.player:enable()
   timer.performWithDelay(2500, function() self.game:activateGame() end)
 end
@@ -144,7 +160,7 @@ end
 function level:addWarren()
   game = self.game
 
-  warren_has_appeared = true
+  self.warren_has_appeared = true
 
   warren = self.candidates["warren"]:create(8100, display.contentCenterY, game.mainGroup, game.min_x, game.max_x, game.min_z, game.max_z, game.effects)
   warren.target = game.player
@@ -204,7 +220,7 @@ function level:checkLevel()
     end
   end
 
-  -- check if the zone needs to be progressed, and update max_x for all fighters and the camera.
+  -- check if the zone needs to be progressed
   if self.current_zone == 0
     or (zones[self.current_zone].type == "goons" and zones[self.current_zone].num <= 0 and num_active_bads == 0) 
     or (zones[self.current_zone].type == "shop" and player.x > zones[self.current_zone].max - 200) then
@@ -253,55 +269,40 @@ function level:checkLevel()
     for i = 1,130,1 do
       effects:addRedSpeedLine(display.contentCenterY, game.speedlineGroup)
     end
-    do_full_scene = true
-    if do_full_scene then
-      game.state = "pre_fight_2"
-      timer.performWithDelay(1000, function()
-        effects:addTemporaryText("THE TRAITOR", display.contentCenterX, display.contentCenterY, 25, {0,0,0}, game.supertextGroup, 1000)
-      end)
-      timer.performWithDelay(1500, function() 
-        self.warren = self:addWarren() 
-        player:disable()
-        timer.performWithDelay(1500, function()
-          bubble = textBubble:create(self.warren, game.foregroundGroup, "You said a woman could never be president!", "left", -50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(3500, function()
-          bubble = textBubble:create(player, game.foregroundGroup, "Bull!", "right", 50, -105, 1000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(5000, function()
-          bubble = textBubble:create(player, game.foregroundGroup, "And you said you'd never take Super PAC money.", "right", 50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(7500, function()
-          bubble = textBubble:create(self.warren, game.foregroundGroup, "You can't get the job done, Bernie.", "left", -50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(10000, function()
-          bubble = textBubble:create(self.warren, game.foregroundGroup, "So I have a plan to take your lane.", "left", -50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(12500, function()
-          bubble = textBubble:create(self.warren, game.foregroundGroup, "Step one is to mess you up.", "left", -50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(15000, function()
-          bubble = textBubble:create(player, game.foregroundGroup, "Fine, you want a childish playground fight?", "right", 50, -105, 2000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(17500, function()
-          bubble = textBubble:create(player, game.foregroundGroup, "We're on a playground.", "right", 50, -105, 1000)
-          effects:add(bubble)
-        end)
-        timer.performWithDelay(19000, function()
-          bubble = textBubble:create(player, game.foregroundGroup, "Let's fight.", "right", 50, -105, 1500)
-          effects:add(bubble)
-        end)
-          timer.performWithDelay(1000, function() 
-          game.state = "pre_fight_3" 
-        end)
-        timer.performWithDelay(20500, function()
+    game.state = "pre_fight_2"
+    timer.performWithDelay(1000, function()
+      effects:addTemporaryText("THE RIVAL", display.contentCenterX, display.contentCenterY, 25, {0,0,0}, game.supertextGroup, 1000)
+    end)
+    timer.performWithDelay(1500, function()
+      self.warren = self:addWarren() 
+      player:disable()
+      player.script_side = "left"
+      self.warren.script_side = "right"
+    end)
+    timer.performWithDelay(2500, function()
+      game.state = "pre_fight_3"
+    end)
+
+    timer.performWithDelay(3000, function() 
+
+      script_end_time = scriptMaker:makeScript(
+          effects,
+          game.foregroundGroup,
+          2000, -- default length
+          500, -- default padding
+          14, -- default font size
+          {
+            {name=self.warren, text="You said a woman could never be president!", padding=-250},
+            {name=player, text="Bull!", length=1000, padding=500},
+            {name=player, text="And you said you'd never take Super PAC money"},
+            {name=self.warren, text="But you can't get the job done, Bernie"},
+            {name=self.warren, text="So I have a plan to take your lane"},
+            {name=self.warren, text="And step one is to mess you up."},
+            {name=player, text="Fine, you want a childish playground fight?"},
+            {name=player, text="We're on a playground.", length=1500},
+            {name=player, text="Let's fight.", length=1500, padding=0},
+          })
+        timer.performWithDelay(script_end_time, function()
           player:enable()
           self.warren:enable()
           self.warren:enableAutomatic()
@@ -309,15 +310,7 @@ function level:checkLevel()
           game.state = "active"
           game.uiGroup.isVisible = true
         end)
-      end)
-    else
-      self.warren = self:addWarren() 
-      self.warren:enable()
-      self.warren:enableAutomatic()
-      zones[self.current_zone].num = 0
-      game.state = "active"
-      game.uiGroup.isVisible = true
-    end
+    end)
   end
 
   if zones[self.current_zone].type == "warren" and game.state == "pre_fight_2" and self.warren_has_appeared == false then
@@ -335,88 +328,69 @@ function level:checkLevel()
     self.warren.y = self.warren.y - 60
     player:celebratingAction()
     game.state = "post_fight_1"
+    game.uiGroup.isVisible = false
 
-    b_side = "right"
-    w_side = "left"
-    b_x = 50
-    w_x = -50
     if player.x > self.warren.x then
-      b_side = "left"
-      w_side = "right"
-      b_x = -50
-      w_x = 50
+      player.script_side = "right"
+      self.warren.script_side = "left"
     end
-    timer.performWithDelay(0, function()
-      bubble = textBubble:create(player, game.foregroundGroup, "...", b_side, b_x, -105, 2000)
-      effects:add(bubble)
-    end)
-    timer.performWithDelay(2500, function()
-      bubble = textBubble:create(player, game.foregroundGroup, "It's over for you, Liz.", b_side, b_x, -105, 2000)
-      effects:add(bubble)
-    end)
-    timer.performWithDelay(5000, function()
-      bubble = textBubble:create(self.warren, game.foregroundGroup, "Yeah, I know.", w_side, w_x, -105, 2000)
-      effects:add(bubble)
-    end)
-    timer.performWithDelay(7500, function()
-      bubble = textBubble:create(self.warren, game.foregroundGroup, "I didn't plan for this. What now?", w_side, w_x, -105, 2000)
-      effects:add(bubble)
-    end)
-    timer.performWithDelay(10000, function()
-      bubble = textBubble:create(player, game.foregroundGroup, "> Warren is my VP", b_side, b_x, -105, 3000)
-      effects:add(bubble)
-    end)
-    timer.performWithDelay(10000, function()
-      bubble = textBubble:create(player, game.foregroundGroup, "AOC is my VP", b_side, b_x, -85, 3000)
-      effects:add(bubble)
-    end)
-    timer.performWithDelay(13500, function()
-      bubble = textBubble:create(player, game.foregroundGroup, "You want to be the VP?", b_side, b_x, -105, 2000)
-      effects:add(bubble)
-    end)
-    timer.performWithDelay(16000, function()
-      bubble = textBubble:create(player, game.foregroundGroup, "You can still kick Trump in the nuts.", b_side, b_x, -105, 2000)
-      effects:add(bubble)
-    end)
-    timer.performWithDelay(18500, function()
-      self.warren:disable()
-      self.warren.sprite:setFrame(1)
-      bubble = textBubble:create(self.warren, game.foregroundGroup, "I'd like that.", w_side, w_x, -105, 2000)
-      effects:add(bubble)
-    end)
-    timer.performWithDelay(20500, function()
-      self.warren:enable()
-      self.warren.ground_target = 3000
-      self.warren:jumpingAction()
-      self.warren.y_vel = -10
-      bubble = textBubble:create(player, game.foregroundGroup, "Let's get to work!", b_side, b_x, -105, 2000)
-      effects:add(bubble)
-    end)
-    timer.performWithDelay(22500, function()
-      game.state = "active"
-      self.warren:disable()
-      new_fighters = {}
-      self.warren.side = "good"
-      player:restingAction()
-      player.target = nil
-      self.warren.target = nil
-      for i = 1, #fighters do
-        if fighter ~= warren then
-          table.insert(new_fighters, warren)
-        end
-      end
-      game.fighters = new_fighters
-      fighters = game.fighters
-      display.remove(self.warren)
-      self.warren = nil
-      effects:removeType("smoke_trail")
-      self.current_zone = self.current_zone + 1
-      self.time_since_last_bad = system.getTimer()
-      effects:addArrow(game.uiGroup, display.contentWidth - 64, display.contentCenterY, 128, 0, 3000)
-      if zones[self.current_zone].arrow ~= nil then
-        effects:addArrow(game.foregroundGroup, zones[self.current_zone].arrow.x, zones[self.current_zone].arrow.y, 64, 90, -1)
-      end
-    end)
+
+    script_end_time = scriptMaker:makeScript(
+          effects,
+          game.foregroundGroup,
+          2000, -- default length
+          500, -- default padding
+          14, -- default font size
+          {
+            {name=player, text="..."},
+            {name=player, text="It's over, Liz."},
+            {name=self.warren, text="Yeah, I know."},
+            {name=self.warren, text="I don't have a plan for this. What now?"},
+            {name=player, text="You want to be VP?"},
+            {name=self.warren, text="What about AOC?"},
+            {name=player, text="*She's* gonna be the first woman president."},
+            {name=player, text="But you could be VP. How bout it?"},
+            {name=player, text="And hey.", length=1000},
+            {name=player, text="If I kick the bucket, you're president.", padding=1500},
+            {name=self.warren, text="Hmm.", length=1000, action=function()
+              self.warren:disable()
+              self.warren.sprite:setFrame(1)
+            end},
+            {name=player, text="What say we kick Donald Trump in the nuts together?", font_size=12},
+            {name=self.warren, text="I still have a plan for that."},
+            {name=player, text="Okay, get to work on it.", padding=0, action=function() 
+              self.warren:enable()
+              self.warren.ground_target = 3000
+              self.warren:jumpingAction()
+              self.warren.y_vel = -10
+            end},
+          })
+        timer.performWithDelay(script_end_time, function()
+          game.state = "active"
+          self.warren:disable()
+          new_fighters = {}
+          self.warren.side = "good"
+          player:restingAction()
+          player.target = nil
+          self.warren.target = nil
+          for i = 1, #fighters do
+            if fighters[i] ~= self.warren then
+              table.insert(new_fighters, fighters[i])
+            end
+          end
+          game.fighters = new_fighters
+          game.uiGroup.isVisible = true
+          fighters = game.fighters
+          display.remove(self.warren)
+          self.warren = nil
+          effects:removeType("smoke_trail")
+          self.current_zone = self.current_zone + 1
+          self.time_since_last_bad = system.getTimer()
+          effects:addArrow(game.uiGroup, display.contentWidth - 64, display.contentCenterY, 128, 0, 3000)
+          if zones[self.current_zone].arrow ~= nil then
+            effects:addArrow(game.foregroundGroup, zones[self.current_zone].arrow.x, zones[self.current_zone].arrow.y, 64, 90, -1)
+          end
+        end)
   end
   if game.state == "post_fight_1" and player.action ~= "celebrating" then
     player:celebratingAction()
@@ -425,6 +399,8 @@ function level:checkLevel()
     end
   end
 
+  -- update in case we re-assigned earlier in this method
+  fighters = game.fighters
   -- update min x for good guys, and max x for everyone and the camera
   self.player_furthest_x = math.max(self.player_furthest_x, player.x)
   for i = 1, #fighters do

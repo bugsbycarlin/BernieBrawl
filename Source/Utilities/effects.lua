@@ -22,6 +22,8 @@ sounds["damage_6"] = audio.loadSound("Sound/damage_6.wav")
 sounds["manifesto"] = audio.loadSound("Sound/manifesto.wav")
 sounds["help_me_bros"] = audio.loadSound("Sound/help_me_bros.wav")
 sounds["plan"] = audio.loadSound("Sound/plan.wav")
+sounds["door_open"] = audio.loadSound("Sound/door_open.wav")
+sounds["swish"] = audio.loadSound("Sound/swish.wav")
 
 local speed_line_width = 800
 local max_speed_lines = 200
@@ -38,8 +40,6 @@ function effects:create(top_level_group, foreground_group)
 
   object.effect_list = {}
   object.top_level_group = top_level_group
-  print("My top level group")
-  print(top_level_group)
   object.foreground_group = foreground_group
 
   fighters = nil
@@ -133,9 +133,6 @@ function effects:addTemporaryText(text_string, x, y, font_size, color, group, du
   function text:update()
   end
   function text:finished()
-    print(system.getTimer() - self.start_time)
-    print(self.duration)
-    print(system.getTimer() - self.start_time > self.duration)
     return system.getTimer() - self.start_time > self.duration
   end
 
@@ -148,8 +145,6 @@ function effects:shakeScreen(intensity, duration)
   shake.intensity = intensity
   shake.duration = duration
   shake.target = self.top_level_group
-  print("Hi")
-  print(shake.target)
 
   function shake:update()
     shake.target.x = math.random(0, 2 * self.intensity) - self.intensity
@@ -279,9 +274,7 @@ function effects:addProjectileManifesto(group, originator, x, y, z, xScale)
 end
 
 function effects:addBro(group, player, x_center, y_center, x_vel, y_vel, min_x, max_x, min_z, max_z)
-  print("Adding a bro")
   if self.fighters == nil then
-    print("Actually, can't add a bro because the effects system doesn't have a list of fighers.")
     return
   end
   local fighter = self.candidates["bro"]:create(x_center, y_center, group, min_x, max_x, min_z, max_z, self)

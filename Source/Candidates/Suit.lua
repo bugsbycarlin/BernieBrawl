@@ -135,12 +135,12 @@ function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects)
     candidate:parentKoAction()
 
     dice = math.random(1, 100)
-    if self.target ~= nil and dice > 70 then
+    if self.target ~= nil and dice > 65 then
       if self.target.x < self.x then
-        death_bubble = textBubble:create(candidate, effects.foreground_group, death_phrases[math.random(1, #death_phrases)], "left", -64, -64, 2000)
+        death_bubble = textBubble:create(candidate, effects.foreground_group, 14, death_phrases[math.random(1, #death_phrases)], "right", -64, -64, 2000)
         candidate.effects:add(death_bubble)
       else
-        death_bubble = textBubble:create(candidate, effects.foreground_group, death_phrases[math.random(1, #death_phrases)], "right", 64, -64, 2000)
+        death_bubble = textBubble:create(candidate, effects.foreground_group, 14, death_phrases[math.random(1, #death_phrases)], "left", 64, -64, 2000)
         candidate.effects:add(death_bubble)
       end
     end

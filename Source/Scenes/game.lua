@@ -7,8 +7,8 @@ local healthBar = require("Source.Utilities.healthBar")
 
 local effects_system = require("Source.Utilities.effects")
 
--- local level_template = require("Source.Levels.primary")
-local level_template = require("Source.Levels.smoke_filled_room")
+local level_template = require("Source.Levels.primary")
+-- local level_template = require("Source.Levels.smoke_filled_room")
 
 local function gotoGame()
   composer.gotoScene("Source.Scenes.gameIntermediary", {effect = "fade", time = 2000})
@@ -55,7 +55,7 @@ function scene:initializeAllKindsOfStuff()
 
   self.paused = false
 
-  self.show_hitboxes = false
+  self.show_hitboxes = true
 
   self.keyboard_use = true
 

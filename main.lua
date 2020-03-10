@@ -14,7 +14,7 @@ display.setStatusBar( display.HiddenStatusBar )
 math.randomseed( os.time() )
 
 -- Master control volume for muting while debugging
-master_volume = 0
+master_volume = 1
 -- Reserve channel 1 for background music
 audio.reserveChannels(1)
 audio.reserveChannels(1)
@@ -39,9 +39,10 @@ gameplan:quick_setup("sanders", "suit")
 -- composer.gotoScene("Source.Scenes.selection", {effect = "fade", time = 1000})
 -- composer.gotoScene("Source.Scenes.flight")
 -- composer.gotoScene("Source.Scenes.prefight", {effect = "fade", time = 1000})
--- composer.gotoScene("Source.Scenes.game")
-composer.gotoScene("Source.Scenes.game", {effect = "fade", time = 2000})
+composer.gotoScene("Source.Scenes.game")
+-- composer.gotoScene("Source.Scenes.game", {effect = "fade", time = 2000})
 -- composer.gotoScene("Source.Scenes.hitDetectionEditor")
 -- composer.gotoScene("Source.Scenes.cutscene_alt")
+-- composer.gotoScene("Source.Scenes.comic", {effect = "fade", time = 500})
 
 

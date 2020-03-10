@@ -27,9 +27,9 @@ function textBubble:create(parent, group, font_size, text_string, direction, x, 
     text=string.upper(text_string),
     x=x, y=y,
     font="Georgia-Bold", fontSize=font_size})
-  if direction == "right" then
+  if direction == "left" then
     bubble.text.anchorX = 0
-  else
+  elseif direction == "right" then
     bubble.text.anchorX = 1
   end
   bubble.text.anchorY = 0.5
@@ -38,7 +38,7 @@ function textBubble:create(parent, group, font_size, text_string, direction, x, 
   bubble.duration = duration
   bubble.start_time = system.getTimer()
 
-  if direction == "right" then
+  if direction == "left" then
     outline_circle = display.newCircle(bubble.sprite, x, y, bubble_radius + outline_margin)      
     outline_circle:setFillColor(0, 0, 0)
 
@@ -65,7 +65,7 @@ function textBubble:create(parent, group, font_size, text_string, direction, x, 
 
     triangle = display.newPolygon(bubble.sprite, x, y + 1.5 * bubble_radius, {0, 0, -2.5 * bubble_radius, 2.5 *bubble_radius, -1.5 * bubble_radius, 0})
     triangle:setFillColor(1, 1, 1)
-  else
+  elseif direction == "right" then
     outline_circle = display.newCircle(bubble.sprite, x, y, bubble_radius + outline_margin)      
     outline_circle:setFillColor(0, 0, 0)
 
