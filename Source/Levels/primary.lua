@@ -1,5 +1,6 @@
 
 local composer = require("composer")
+local animation = require("plugin.animation")
 local snow = require("Source.Utilities.snow")
 local scriptMaker = require("Source.Utilities.scriptMaker")
 local doorTemplate = require("Source.Utilities.door")
@@ -15,15 +16,15 @@ level.__index = level
 -- can't actually backtrack to them anyway.
 -- camera maxes are also set to match.
 local zones = {
-  {min=0, max=1200, type="goons", num=5, pace=4000, max_bads=3},
-  {min=1200, max=2700, type="goons", num=0, pace=4000, max_bads=3},
-  {min=2700, max=4000, type="shop", num=0, arrow={x=2948, y=0}, max_bads=3},
+  {min=0, max=1200, type="goons", num=3, pace=4000, max_bads=3},
+  {min=1200, max=2700, type="goons", num=5, pace=4000, max_bads=3},
+  {min=2700, max=4000, type="shop", num=5, arrow={x=2948, y=360}, max_bads=3},
   {min=4000, max=5600, type="goons", num=5, pace=4000, max_bads=3},
-  {min=5600, max=7200, type="goons", num=5, pace=4000, max_bads=3},
+  {min=5600, max=7200, type="goons", num=0, pace=4000, max_bads=3},
   {min=7200, max=8500, type="warren", num=5, max_bads=3},
-  {min=8500, max=10100, type="shop", num=0, max_bads=3},
-  {min=10100, max=12000, type="goons", num=8, pace=5000, max_bads=4},
-  {min=10100, max=12000, type="hotel", num=0, max_bads=3},
+  {min=8500, max=9800, type="shop", num=0, arrow={x=8980, y=330}, max_bads=3},
+  {min=9800, max=12000, type="goons", num=7, pace=5000, max_bads=4}, --7
+  {min=10100, max=12000, type="hotel", num=0, arrow={x=11000, y=320}, max_bads=3},
 }
 
 function level:create(game)
@@ -40,11 +41,11 @@ function level:create(game)
   self.game = game
   self.player = game.player
 
-  self.current_zone = 2
+  self.current_zone = 8
   self.player_furthest_x = 0
   self.time_since_last_bad = 0
   self.warren_has_appeared = false
-  self.player_starting_x = 2600
+  self.player_starting_x = 9700
 
   self.goon_type = "suit"
 
@@ -54,18 +55,42 @@ function level:create(game)
 end
 
 function level:addDoors()
+  local door_margin = 40
   self.doors = {
-    {x=2915, y=394, width=70, height=120, open=false, alt_image=nil, action=nil},
-    {x=8937, y=371, width=70, height=120, open=false, alt_image=nil, action=nil},
-
-
+    {x=2915, y=394, width=70, height=120, type="regular", action=nil},
+    {x=8937, y=371, width=81, height=136, type="regular", action=nil},
+    {x=10939, y=331, width=131, height=179, type="hotel", action=nil},
+    {x=410, y=379, width=72, height=122, type="regular", action=function()
+      self:addDoorBad(410, candidate.default_ground_target, 379 - candidate.default_ground_target + door_margin)
+    end},
+    {x=757, y=380, width=70, height=120, type="regular", action=function()
+      self:addDoorBad(757, candidate.default_ground_target, 380 - candidate.default_ground_target + door_margin)
+    end},
+    {x=11479, y=376, width=79, height=133, type="regular", action=function()
+      self:addDoorBad(11479, candidate.default_ground_target, 376 - candidate.default_ground_target + door_margin)
+    end},
+    {x=10449, y=374, width=79, height=132, type="regular", action=function()
+      self:addDoorBad(10449, candidate.default_ground_target, 374 - candidate.default_ground_target + door_margin)
+    end},
+    {x=10013, y=373, width=78, height=131, type="regular", action=function()
+      self:addDoorBad(10013, candidate.default_ground_target, 373 - candidate.default_ground_target + door_margin)
+    end},
   }
   for i = 1,#self.doors do
     door = self.doors[i]
-    print("Creating door")
-    print(self.game.mainGroup)
-    door_object = doorTemplate:create(self.game.bgGroup, self.game.effects, self.player, door.x, 426 - door.y, door.width, door.height, 300, door.alt_image)
-    self.game.effects:add(door_object)
+    if door.type == "regular" then
+      door_object = doorTemplate:create(self.game.bgGroup, self.game.effects, self.player, door.x, door.y, door.width, door.height, 300, nil, door.action, nil)
+      self.game.effects:add(door_object)
+    elseif door.type == "hotel" then
+      door_object = doorTemplate:create(self.game.bgGroup, self.game.effects, self.player, door.x, door.y, door.width, door.height, -1, "hotel_door_open", door.action, function()
+        return self.current_zone == 9
+      end)
+      self.game.effects:add(door_object)
+    end
+
+    -- if door.action ~= nil then
+    --   door.action()
+    -- end
   end
 end
 
@@ -76,44 +101,44 @@ function level:buildLevel()
   parallax_background = display.newImageRect(game.parallaxBackgroundGroup, "Art/primary_parallax_background.png", 12000, 800)
   parallax_background.anchorX = 0
   parallax_background.x = 0
-  parallax_background.anchorY = 1
-  parallax_background.y = display.contentHeight / game.game_scale
+  parallax_background.y = 0
+  parallax_background.anchorY = 0
 
   background = display.newImageRect(game.bgGroup, "Art/primary_background.png", 12000, 800)
   background.anchorX = 0
   background.x = 0
-  background.anchorY = 1
-  background.y = display.contentHeight / game.game_scale
+  background.y = 0
+  background.anchorY = 0
 
   traffic_cone = display.newImageRect(game.foregroundGroup, "Art/traffic_cone.png", 43, 53)
   traffic_cone.x = 7150
-  traffic_cone.y = 383
+  traffic_cone.y = 783
 
   traffic_cone = display.newImageRect(game.foregroundGroup, "Art/traffic_cone.png", 43, 53)
   traffic_cone.x = 7200
-  traffic_cone.y = 385
+  traffic_cone.y = 785
 
   traffic_cone = display.newImageRect(game.foregroundGroup, "Art/traffic_cone.png", 43, 53)
   traffic_cone.x = 7250
-  traffic_cone.y = 385
+  traffic_cone.y = 785
 
   park_edging = display.newImageRect(game.foregroundGroup, "Art/park_edging.png", 1092, 61)
   park_edging.anchorX = 0
   park_edging.anchorY = 0
   park_edging.x = 7324
-  park_edging.y = 362
+  park_edging.y = 738
 
   traffic_cone = display.newImageRect(game.foregroundGroup, "Art/traffic_cone.png", 43, 53)
   traffic_cone.x = 8475
-  traffic_cone.y = 387
+  traffic_cone.y = 787
 
   traffic_cone = display.newImageRect(game.foregroundGroup, "Art/traffic_cone.png", 43, 53)
   traffic_cone.x = 8527
-  traffic_cone.y = 382
+  traffic_cone.y = 785
 
   traffic_cone = display.newImageRect(game.foregroundGroup, "Art/traffic_cone.png", 43, 53)
   traffic_cone.x = 8575
-  traffic_cone.y = 385
+  traffic_cone.y = 785
 
   self.snow_effect = snow:create(game.foregroundGroup, 4000)
 end
@@ -122,6 +147,24 @@ function level:prepareToActivate()
   self:addDoors()
   self.player:enable()
   timer.performWithDelay(2500, function() self.game:activateGame() end)
+end
+
+function level:addDoorBad(x, y, z)
+  local fighter = self.candidates[self.goon_type]:create(x, y, game.mainGroup, game.min_x, game.max_x, game.min_z, game.max_z, game.effects)
+  fighter:setZ(z)
+  fighter.target = player
+  fighter.side = "bad"
+  fighter:enable()
+  fighter:enableAutomatic()
+  fighter.yScale = 0.9
+  animation.to(fighter, {yScale=1}, {time=300, easing=easing.linear})
+
+  table.insert(game.fighters, fighter)
+
+  fighter.fighters = game.fighters
+  self.player.fighters = game.fighters
+
+  self.time_since_last_bad = system.getTimer()
 end
 
 function level:addBad(val)
@@ -140,7 +183,7 @@ function level:addBad(val)
     start_x = val
   end
   
-  local fighter = self.candidates[self.goon_type]:create(start_x, display.contentCenterY, game.mainGroup, game.min_x, game.max_x, game.min_z, game.max_z, game.effects)
+  local fighter = self.candidates[self.goon_type]:create(start_x, candidate.default_ground_target, game.mainGroup, game.min_x, game.max_x, game.min_z, game.max_z, game.effects)
   if dice > 33 then
     fighter:setZ(300)
   end
@@ -151,6 +194,7 @@ function level:addBad(val)
   table.insert(game.fighters, fighter)
 
   fighter.fighters = game.fighters
+  self.player.fighters = game.fighters
 
   self.time_since_last_bad = system.getTimer()
 
@@ -162,7 +206,7 @@ function level:addWarren()
 
   self.warren_has_appeared = true
 
-  warren = self.candidates["warren"]:create(8100, display.contentCenterY, game.mainGroup, game.min_x, game.max_x, game.min_z, game.max_z, game.effects)
+  warren = self.candidates["warren"]:create(8100, candidate.default_ground_target, game.mainGroup, game.min_x, game.max_x, game.min_z, game.max_z, game.effects)
   warren.target = game.player
   warren.side = "bad"
   warren.xScale = -1
@@ -170,6 +214,7 @@ function level:addWarren()
   table.insert(game.fighters, warren)
 
   warren.fighters = game.fighters
+  self.player.fighters = game.fighters
 
   self.time_since_last_bad = system.getTimer()
 
@@ -178,7 +223,7 @@ end
 
 function level:checkLevel()
 
-  if audio.isChannelPlaying(1) == false and audio.isChannelPlaying(2) == false then
+  if game.state ~= "leaving" and audio.isChannelPlaying(1) == false and audio.isChannelPlaying(2) == false then
     audio.play(self.stage_music, {channel=2, loops=-1})
   end
 
@@ -220,6 +265,23 @@ function level:checkLevel()
     end
   end
 
+  print(audio.isChannelPlaying(2))
+  -- check the hotel
+  -- this only works if it comes before resetinput in the game loop
+  if game.state == "active" and game.keydown.up == true and player.x > 11000 - 60 and player.x < 11000 + 60 and player.z < player.min_z + 5 then
+    game.state = "leaving"
+    for i = 1, #fighters do
+      fighters[i]:disable()
+    end
+    animation.to(game.view, {alpha=0}, {time=2000, easing=easing.linear})
+    audio.fadeOut({channel=2, time=2000})
+    timer.performWithDelay(2000, function()
+      -- audio.stop(2)
+      -- audio.dispose(self.stage_music)
+      game:gotoGame("smoke_filled_room")
+    end)
+  end
+
   -- check if the zone needs to be progressed
   if self.current_zone == 0
     or (zones[self.current_zone].type == "goons" and zones[self.current_zone].num <= 0 and num_active_bads == 0) 
@@ -229,7 +291,13 @@ function level:checkLevel()
     
     -- here do the arrow effect
     if self.current_zone > 1 then
-      effects:addArrow(game.uiGroup, display.contentWidth - 64, display.contentCenterY, 128, 0, 3000)
+      if self.current_zone < #zones or player.x < 10600 then
+        effects:addArrow(game.uiGroup, display.contentWidth - 64, display.contentCenterY, 128, 0, 3000)
+      elseif self.current_zone == #zones and player.x > 11400 then
+        effects:addArrow(game.uiGroup, 64, display.contentCenterY, 128, 180, 3000)
+      elseif self.current_zone == #zones and player.x >= 10600 then
+        effects:addArrow(game.uiGroup, display.contentCenterX, 64, 128, -90, 3000)
+      end
       if zones[self.current_zone].arrow ~= nil then
         effects:addArrow(game.foregroundGroup, zones[self.current_zone].arrow.x, zones[self.current_zone].arrow.y, 64, 90, -1)
       end
@@ -410,6 +478,7 @@ function level:checkLevel()
     fighters[i].max_x = zones[self.current_zone].max
   end
   camera.max_x = zones[self.current_zone].max - display.contentWidth - 200
+  camera.min_x = self.player.min_x
 end
 
 function level:checkEnding()

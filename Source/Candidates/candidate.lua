@@ -3,6 +3,7 @@ candidate = {}
 candidate.__index = candidate
 
 local z_threshold = 40
+candidate.default_ground_target = 535
 
 local function distance(x1, y1, x2, y2)
   -- whyyyyy?
@@ -81,7 +82,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects, spri
   tim.damage_timer = 0
   tim.damage_in_a_row = 0
 
-  tim.ground_target = display.contentCenterY + tim.y_offset
+  tim.ground_target = candidate.default_ground_target + tim.y_offset
 
   tim.animationTimer = nil
   tim.physicsTimer = nil
@@ -659,8 +660,8 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects, spri
 
         for j = 1, #hitIndex do
           for k = 1, #opponent_hitIndex do
-            x1, y1 = self:localToContent(hitIndex[j].x, hitIndex[j].y)
-            x2, y2 = opponent:localToContent(opponent_hitIndex[k].x, opponent_hitIndex[k].y)
+            x1, y1 = self:localToContent(hitIndex[j].x, hitIndex[j].y + self.z)
+            x2, y2 = opponent:localToContent(opponent_hitIndex[k].x, opponent_hitIndex[k].y + opponent.z)
             if distance(x1, y1, x2, y2) < hitIndex[j].radius + opponent_hitIndex[k].radius - insensitivity then
               -- a collision has occured. Determine the consequence based on the type.
               if self.attack ~= nil and hitIndex[j].purpose == "attack" and opponent_hitIndex[k].purpose == "vulnerability" then

@@ -1,4 +1,6 @@
 
+local textBubble = require("Source.Utilities.textBubble")
+
 scriptMaker = {}
 scriptMaker.__index = scriptMaker
 

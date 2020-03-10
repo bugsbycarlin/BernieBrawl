@@ -20,6 +20,7 @@ death_phrases = {
   "You're unelectable!",
   "I'm secretly socialist",
   "I'm gonna vote for Trump",
+  "Joe Biden's gonna get you!",
   "Avenge me, Uncle Joe!",
   "I'm suspending my campaign",
   "I'm suspending my campaign",
@@ -71,6 +72,9 @@ function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects)
     
     if self.z > max_z then
       self:zMoveAction(-1 * self.max_z_velocity)
+      return
+    elseif self.z < min_z then
+      self:zMoveAction(self.max_z_velocity)
       return
     end
 

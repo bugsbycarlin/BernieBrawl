@@ -29,23 +29,6 @@ function scene:create( event )
     self:makeComicOne(main_group, effects)
   end
 
-
-  -- for i = 1,3,1 do
-  --   backing[i] = display.newImageRect(main_group, "Art/white_backing.png", frame_width, frame_height)
-  --   backing[i].anchorX = 0
-  --   backing[i].anchorY = 0
-  --   backing[i].x = target_list[i].cx
-  --   backing[i].y = target_list[i].cy
-  --   backing[i].alpha = 0.5
-
-  --   frames[i] = display.newImageRect(main_group, target_list[i].frame, inset_width, inset_height)
-  --   frames[i].anchorX = 0
-  --   frames[i].anchorY = 0
-  --   frames[i].x = target_list[i].cx + 10
-  --   frames[i].y = target_list[i].cy + 10
-  --   frames[i].alpha = 0.5
-  -- end
-
 end
 
 function scene:makeComicOne(group, effects)

@@ -48,6 +48,8 @@ function gameplan:setup()
     "White House Battleground"
   })
   composer.setVariable("location_number", 0)
+
+  composer.setVariable("game_scene", "primary")
 end
 
 function gameplan:true_setup()
@@ -71,6 +73,7 @@ function gameplan:true_setup()
     "White House Battlegrounds"
   })
   composer.setVariable("location_number", 0)
+
 end
 
 function gameplan:quick_setup(candidate, opponent)

@@ -70,7 +70,7 @@ function projectile:update()
 
         for k = 1, #opponent_hitIndex do
           x1, y1 = self.sprite:localToContent(0, 0)
-          x2, y2 = opponent:localToContent(opponent_hitIndex[k].x, opponent_hitIndex[k].y)
+          x2, y2 = opponent:localToContent(opponent_hitIndex[k].x, opponent_hitIndex[k].y + opponent.z)
           if distance(x1, y1, x2, y2) < self.hit_radius + opponent_hitIndex[k].radius - insensitivity then
             if opponent_hitIndex[k].purpose == "defense" then
               opponent_result = math.max(2, opponent_result)

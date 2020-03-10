@@ -7,12 +7,9 @@ local healthBar = require("Source.Utilities.healthBar")
 
 local effects_system = require("Source.Utilities.effects")
 
-local level_template = require("Source.Levels.primary")
--- local level_template = require("Source.Levels.smoke_filled_room")
-
-local function gotoGame()
-  composer.gotoScene("Source.Scenes.gameIntermediary", {effect = "fade", time = 2000})
-end
+-- local function gotoGame()
+--   composer.gotoScene("Source.Scenes.gameIntermediary", {effect = "fade", time = 2000})
+-- end
 
 local function gotoPostfight()
   composer.removeScene("Source.Scenes.postfight")
@@ -55,9 +52,9 @@ function scene:initializeAllKindsOfStuff()
 
   self.paused = false
 
-  self.show_hitboxes = true
+  self.show_hitboxes = false
 
-  self.keyboard_use = true
+  self.mobile_controls = false
 
   self.state = "undefined"
 
@@ -73,16 +70,18 @@ function scene:initializeAllKindsOfStuff()
     y = 0,
     move = true,
     speed = 0.2,
+    offset_x = 100, -- how far off center should Bernie be?
+    offset_y = -50, -- how igh above Bernie should the camera be?
     min_x = 0,
     max_x = self.max_x - display.contentWidth - 200,
-    min_y = -163,
-    max_y = 0,
-    target_center_x = display.contentCenterX,
-    target_center_y = display.contentCenterY + 120,
+    min_y = -500,
+    max_y = 370,
+    target_center_x = display.contentCenterX / self.game_scale,
+    target_center_y = display.contentCenterY / self.game_scale,
 
     setToTarget = function(self, drift, object_x, object_y, reference, groups, parallax_values)
-      diff_x = object_x - self.target_center_x
-      diff_y = object_y - self.target_center_y
+      diff_x = self.offset_x + object_x - self.target_center_x
+      diff_y = self.offset_y + object_y - self.target_center_y
 
       if drift then
         -- blend with old camera position
@@ -123,6 +122,12 @@ function scene:initializeAllKindsOfStuff()
 
   self.fighters = {}
 
+  function scene:gotoGame(game_scene)
+    print("I am setting the game scene variable again")
+    composer.setVariable("game_scene", game_scene)
+    composer.gotoScene("Source.Scenes.gameIntermediary")
+  end
+
   function scene:activateGame()
     for i = 1, #self.fighters do
       if self.fighters[i] ~= self.player then
@@ -132,7 +137,7 @@ function scene:initializeAllKindsOfStuff()
     self.state = "active"
   end
 
-  function scene:checkPlayerActions()
+  function scene:checkMobileButtonUI()
     if self.state ~= "active" then
       if self.state == "ending" then
         self.red_button.alpha = 0.0
@@ -145,17 +150,17 @@ function scene:initializeAllKindsOfStuff()
         self.blue_button.alpha = 0.5
         self.right_panel.alpha = 0.5
       end
-    elseif player.action ~= "resting" and player.action ~= "blocking" then
+    elseif self.player.action ~= "resting" and self.player.action ~= "blocking" then
       self.red_button.alpha = 0.5
       self.green_button.alpha = 0.5
-      if player.action ~= "jumping" then
+      if self.player.action ~= "jumping" then
         self.blue_button.alpha = 0.5
         self.right_panel.alpha = 0.5
       else
         self.blue_button.alpha = 1.0
         self.right_panel.alpha = 1.0
       end
-    elseif player.action == "blocking" then
+    elseif self.player.action == "blocking" then
       self.red_button.alpha = 0.5
       self.green_button.alpha = 1.0
       self.blue_button.alpha = 1.0
@@ -178,8 +183,8 @@ function scene:initializeAllKindsOfStuff()
       local hitIndex = self.fighters[i].hitIndex[frame]
       if hitIndex ~= nil and #hitIndex > 0 then
         for j = 1, #hitIndex do
-          x,y = self.fighters[i]:localToContent(hitIndex[j].x, hitIndex[j].y)
-          local circle = display.newCircle(self.hitBoxGroup, x, y, hitIndex[j].radius)
+          x,y = self.fighters[i]:localToContent(hitIndex[j].x, hitIndex[j].y + self.fighters[i].z)
+          local circle = display.newCircle(self.hitBoxGroup, x, y, hitIndex[j].radius * self.game_scale)
           circle.alpha = 0.5
           purpose = hitIndex[j].purpose
           if purpose == "attack" then
@@ -237,8 +242,8 @@ function scene:initializeAllKindsOfStuff()
         self.fighters[i]:disableAutomatic()
       end
 
-      Runtime:removeEventListener("touch", self.swipe)
-      if self.keyboard_use == false then
+      -- Runtime:removeEventListener("touch", self.swipe)
+      if self.mobile_controls == true then
         Runtime:removeEventListener("key", self.debugKeyboard)
       else
         Runtime:removeEventListener("key", self.properKeyboard)
@@ -402,7 +407,9 @@ function scene:initializeAllKindsOfStuff()
         self.key_history = new_key_history
       end
     end
+  end
 
+  function scene:resetInput()
     self.keydown = {
       left=false,
       right=false,
@@ -429,7 +436,7 @@ function scene:initializeAllKindsOfStuff()
     end
 
     self.level:checkLevel()
-
+    
     -- if self.state ~= "waiting" and self.state ~= "shopping" and self.state ~= "ending" then
       -- self.level:checkLevel()
     -- end
@@ -479,13 +486,15 @@ function scene:initializeAllKindsOfStuff()
       end
     end
 
-    -- to do: ditch bros from the fighters list, or recycle them
-
-    self:checkPlayerActions()
+    if self.mobile_controls == true then
+      self:checkMobileButtonUI()
+    end
 
     if self.show_hitboxes == true then
       self:showHitBoxes()
     end
+
+    self:resetInput()
   end
 
   function scene:player_blue_button(event)
@@ -645,45 +654,45 @@ function scene:initializeAllKindsOfStuff()
     return true
   end
 
-  self.swipe_event = {}
-  function self:swipe(event)
+  -- self.swipe_event = {}
+  -- function self:swipe(event)
 
-    if self.state ~= "active" then
-      return
-    end
+  --   if self.state ~= "active" then
+  --     return
+  --   end
 
-    if (event.phase == "began") then
-      -- Set touch focus on the fighter
-      -- display.currentStage:setFocus( fighter )
+  --   if (event.phase == "began") then
+  --     -- Set touch focus on the fighter
+  --     -- display.currentStage:setFocus( fighter )
       
-      -- Store initial offset position
-      self.swipe_event.initialX = event.x
-      self.swipe_event.initialY = event.y
-    elseif (event.phase == "moved") then
-      -- nothing
-    elseif (event.phase == "ended" or event.phase == "cancelled") then
-      -- -- if the block touch ended outside the blocking event, it still needs to be canceled
-      -- if player.action == "blocking" then
-      --   player:restingAction()
-      -- end
+  --     -- Store initial offset position
+  --     self.swipe_event.initialX = event.x
+  --     self.swipe_event.initialY = event.y
+  --   elseif (event.phase == "moved") then
+  --     -- nothing
+  --   elseif (event.phase == "ended" or event.phase == "cancelled") then
+  --     -- -- if the block touch ended outside the blocking event, it still needs to be canceled
+  --     -- if player.action == "blocking" then
+  --     --   player:restingAction()
+  --     -- end
 
-      if (self.swipe_event.initialX == nil) then
-        self.swipe_event.initialX = event.x
-      end
-      if (self.swipe_event.initialY == nil) then
-        self.swipe_event.initialY = event.y
-      end
-      local touchOffsetX = (event.x - self.swipe_event.initialX) / 5
-      local touchOffsetY = (event.y - self.swipe_event.initialY) / 1.5
+  --     if (self.swipe_event.initialX == nil) then
+  --       self.swipe_event.initialX = event.x
+  --     end
+  --     if (self.swipe_event.initialY == nil) then
+  --       self.swipe_event.initialY = event.y
+  --     end
+  --     local touchOffsetX = (event.x - self.swipe_event.initialX) / 5
+  --     local touchOffsetY = (event.y - self.swipe_event.initialY) / 1.5
 
-      self.player:moveAction(touchOffsetX, touchOffsetY)
+  --     self.player:moveAction(touchOffsetX, touchOffsetY)
 
-      -- Release touch focus on the fighter
-      -- display.currentStage:setFocus( nil )
-    end
+  --     -- Release touch focus on the fighter
+  --     -- display.currentStage:setFocus( nil )
+  --   end
 
-    return true  -- Prevents touch propagation to underlying objects
-  end
+  --   return true  -- Prevents touch propagation to underlying objects
+  -- end
 end
 
 -- -----------------------------------------------------------------------------------
@@ -699,11 +708,11 @@ function scene:create( event )
 
   self:initializeAllKindsOfStuff()
 
-  sceneGroup = self.view
+  scene_group = self.view
   -- Code here runs when the scene is first created but has not yet appeared on screen
 
   self.contentGroup = display.newGroup()
-  sceneGroup:insert(self.contentGroup)
+  scene_group:insert(self.contentGroup)
 
   self.contentGroup.xScale = self.game_scale
   self.contentGroup.yScale = self.game_scale
@@ -716,6 +725,7 @@ function scene:create( event )
 
   self.bgGroup = display.newGroup()
   self.contentGroup:insert(self.bgGroup)
+  -- self.bgGroup.anchorY = 0
 
   self.mainGroup = display.newGroup()
   self.contentGroup:insert(self.mainGroup)
@@ -724,21 +734,23 @@ function scene:create( event )
   self.contentGroup:insert(self.foregroundGroup)
 
   self.hitBoxGroup = display.newGroup()
-  self.contentGroup:insert(self.hitBoxGroup)
+  scene_group:insert(self.hitBoxGroup)
 
   self.shoppingGroup = display.newGroup()
-  sceneGroup:insert(self.shoppingGroup)
+  scene_group:insert(self.shoppingGroup)
   self.shoppingGroup.isVisible = false
 
   self.uiGroup = display.newGroup()
-  sceneGroup:insert(self.uiGroup)
+  scene_group:insert(self.uiGroup)
 
   self.speedlineGroup = display.newGroup()
-  sceneGroup:insert(self.speedlineGroup)
+  scene_group:insert(self.speedlineGroup)
 
   self.supertextGroup = display.newGroup()
-  sceneGroup:insert(self.supertextGroup)
+  scene_group:insert(self.supertextGroup)
 
+  game_scene = composer.getVariable("game_scene")
+  level_template = require("Source.Levels." .. game_scene)
   self.level = level_template:create(self)
   self.level:buildLevel()
 
@@ -750,10 +762,10 @@ function scene:create( event )
   self.temporary_shop_selector.x = display.contentCenterX
   self.temporary_shop_selector.y = display.contentCenterY
 
-  self.effects = effects_system:create(sceneGroup, self.foregroundGroup)
+  self.effects = effects_system:create(scene_group, self.foregroundGroup)
   self.effects.fighters = self.fighters
 
-  self.player = self.candidates["sanders"]:create(self.level.player_starting_x, display.contentCenterY, self.mainGroup, self.min_x, self.max_x, self.min_z, self.max_z, self.effects)
+  self.player = self.candidates["sanders"]:create(self.level.player_starting_x, candidate.default_ground_target, self.mainGroup, self.min_x, self.max_x, self.min_z, self.max_z, self.effects)
   self.player.healthbar = healthBar:create(60, 10, 0.8, self.uiGroup)
   self.player.shake_screen_on_contact = true
   self.player.fighters = self.fighters
@@ -798,32 +810,33 @@ function scene:create( event )
   end)
   timer.performWithDelay(2500, function() announcement_text.isVisible = false end)
 
-  self.right_panel = display.newImageRect(self.uiGroup, "Art/right_panel.png", 116, 58)
-  self.right_panel.x = display.contentWidth - 58
-  self.right_panel.y = display.contentHeight - 29
+  if self.mobile_controls == true then
+    self.right_panel = display.newImageRect(self.uiGroup, "Art/right_panel.png", 116, 58)
+    self.right_panel.x = display.contentWidth - 58
+    self.right_panel.y = display.contentHeight - 29
 
-  self.green_button = display.newImageRect(self.uiGroup, "Art/green_button.png", 54, 54)
-  self.green_button.x = display.contentWidth - 86
-  self.green_button.y = display.contentHeight - 28
+    self.green_button = display.newImageRect(self.uiGroup, "Art/green_button.png", 54, 54)
+    self.green_button.x = display.contentWidth - 86
+    self.green_button.y = display.contentHeight - 28
 
-  self.blue_button = display.newImageRect(self.uiGroup, "Art/blue_button.png", 54, 54)
-  self.blue_button.x = display.contentWidth - 30
-  self.blue_button.y = display.contentHeight - 28
+    self.blue_button = display.newImageRect(self.uiGroup, "Art/blue_button.png", 54, 54)
+    self.blue_button.x = display.contentWidth - 30
+    self.blue_button.y = display.contentHeight - 28
 
-  self.red_button = display.newImageRect(self.uiGroup, "Art/red_button.png", 54, 54)
-  self.red_button.x = 32
-  self.red_button.y = display.contentHeight - 32  
+    self.red_button = display.newImageRect(self.uiGroup, "Art/red_button.png", 54, 54)
+    self.red_button.x = 32
+    self.red_button.y = display.contentHeight - 32  
 
-  self.pause_button = display.newImageRect(self.uiGroup, "Art/pause_button.png", 48, 48)
-  self.pause_button.x = display.contentCenterX
-  self.pause_button.y = 24
+    self.pause_button = display.newImageRect(self.uiGroup, "Art/pause_button.png", 48, 48)
+    self.pause_button.x = display.contentCenterX
+    self.pause_button.y = 24
 
-  self.blue_button:addEventListener("touch", function() self:player_blue_button() end)
-  self.green_button:addEventListener("touch", function() self:player_green_button() end)
-  self.red_button:addEventListener("touch", function() self:player_red_button() end)
-  self.pause_button:addEventListener("tap", pause)
-  Runtime:addEventListener("touch", function() self:swipe() end)
-  if self.keyboard_use == false then
+    self.blue_button:addEventListener("touch", function(event) self:player_blue_button(event) end)
+    self.green_button:addEventListener("touch", function(event) self:player_green_button(event) end)
+    self.red_button:addEventListener("touch", function(event) self:player_red_button(event) end)
+    self.pause_button:addEventListener("tap", pause)
+    Runtime:addEventListener("touch", function(event) self:swipe(event) end)
+
     Runtime:addEventListener("key", function() self:debugKeyboard() end)
   else
     Runtime:addEventListener("key", function(event) self:properKeyboard(event) end)
@@ -840,7 +853,7 @@ end
 -- show()
 function scene:show( event )
 
-  local sceneGroup = self.view
+  local scene_group = self.view
   local phase = event.phase
 
   if ( phase == "will" ) then
@@ -859,7 +872,7 @@ end
 -- hide()
 function scene:hide( event )
 
-  local sceneGroup = self.view
+  local scene_group = self.view
   local phase = event.phase
 
   if ( phase == "will" ) then
@@ -878,7 +891,7 @@ end
 -- destroy()
 function scene:destroy( event )
 
-  local sceneGroup = self.view
+  local scene_group = self.view
   -- Code here runs prior to the removal of scene's view
   if self.gameLoopTimer ~= nil then
     timer.cancel(self.gameLoopTimer)
@@ -886,6 +899,7 @@ function scene:destroy( event )
   for i = 1, #self.fighters do
     self.fighters[i]:disable()
   end
+  audio.dispose(self.level.stage_music)
 end
 
 

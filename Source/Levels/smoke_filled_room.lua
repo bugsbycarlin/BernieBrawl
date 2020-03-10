@@ -66,8 +66,12 @@ function level:buildLevel()
   background = display.newImageRect(game.mainGroup, "Art/smoke_filled_room.png", 1600, 800)
   background.anchorX = 0
   background.x = 0
-  background.anchorY = 1
-  background.y = display.contentHeight / game.game_scale
+  background.anchorY = 0
+  background.y = 0
+
+  audio.stop()
+  audio.setVolume(1, { channel = 2})
+  audio.play(self.stage_music, {channel=2, loops=-1})
 
 end
 
@@ -119,7 +123,7 @@ function level:addSmoke()
     smoke_cloud.sprite.xScale = scale
     smoke_cloud.sprite.yScale = scale
     smoke_cloud.sprite.x = math.random(0, 1600)
-    smoke_cloud.sprite.y = math.random(-200, 400)
+    smoke_cloud.sprite.y = math.random(200, 800)
     smoke_cloud.max_alpha = math.random(1,100) / 100
     smoke_cloud.sprite.alpha = 0
     smoke_cloud.start_time = system.getTimer()
@@ -146,9 +150,11 @@ end
 
 function level:checkLevel()
 
-  if audio.isChannelPlaying(1) == false and audio.isChannelPlaying(2) == false then
-    audio.play(self.stage_music, {channel=2, loops=-1})
-  end
+  -- print(audio.isChannelPlaying(1))
+  -- print(audio.isChannelPlaying(2))
+  -- if audio.isChannelPlaying(1) == false and audio.isChannelPlaying(2) == false then
+  --   audio.play(self.stage_music, {channel=2, loops=-1})
+  -- end
 
   if game.state == "active" and self.biden.health > 0 then
     for i = 1,10 do

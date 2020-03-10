@@ -95,7 +95,7 @@ function bro:create(x, y, group, min_x, max_x, min_z, max_z, effects)
   candidate.parentPhysicsLoop = candidate.physicsLoop
   function candidate:physicsLoop()
     if self.health <= 0 then
-      self.ground_target = 500
+      self.ground_target = 2500
     end
 
     candidate:parentPhysicsLoop()

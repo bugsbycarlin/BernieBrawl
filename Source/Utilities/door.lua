@@ -6,7 +6,7 @@ local function distance(x1, y1, x2, y2)
   return math.sqrt((x1-x2)^2 + (y1 - y2)^2)
 end
 
-function door:create(group, effects, player, x, y, width, height, duration, alt_image)
+function door:create(group, effects, player, x, y, width, height, duration, alt_image, action, trigger)
 
   local object = {}
   setmetatable(object, door)
@@ -17,7 +17,7 @@ function door:create(group, effects, player, x, y, width, height, duration, alt_
     print("Here is the sprite")
     object.sprite = display.newImageRect(group, "Art/door.png", width, height)
   else
-    object.sprite = display.newImageRect(group, "Art/" + alt_image + ".png", width, height)
+    object.sprite = display.newImageRect(group, "Art/" .. alt_image .. ".png", width, height)
   end
 
   object.sprite.x = x + width
@@ -33,7 +33,6 @@ function door:create(group, effects, player, x, y, width, height, duration, alt_
   object.width = width
   object.height = height
   object.duration = duration
-  object.trigger = trigger
 
   object.state = "closed"
   object.animating = false
@@ -41,15 +40,17 @@ function door:create(group, effects, player, x, y, width, height, duration, alt_
 
   object.effects = effects
 
-  function object:trigger()
-    return math.abs(self.player.x - (x + width / 2)) < 100 
+  object.action = action
+  object.trigger = trigger
+  if object.trigger == nil then
+    object.trigger = function()
+      return math.abs(object.player.x - (x + width / 2)) < 100
+    end
   end
 
   function object:update()
     if self.state == "closed" then
-      result = self:trigger()
-
-      if result == true then
+      if self.trigger() == true then
         -- open it
         if self.duration > 0 then
           self.state = "opening"
@@ -61,17 +62,19 @@ function door:create(group, effects, player, x, y, width, height, duration, alt_
           self.state = "open"
           self.sprite.xScale = 1
           self.sprite.isVisible = 1
+          if self.action ~= nil then
+            self.action()
+          end
         end
       end
     elseif self.state == "opening" and self.duration > 0 then
       self.sprite.xScale = math.min(1, (system.getTimer() - self.animation_start_time) / self.duration)
-      print(self.sprite.xScale)
       if system.getTimer() - self.animation_start_time >= self.duration then
         -- open
         self.state = "open"
-        print("I am now open")
-        print(self.sprite.xScale)
-        print(self.sprite.isVisible)
+        if self.action ~= nil then
+          self.action()
+        end
       end
     end
 
