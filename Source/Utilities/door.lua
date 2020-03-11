@@ -52,12 +52,12 @@ function door:create(group, effects, player, x, y, width, height, duration, alt_
     if self.state == "closed" then
       if self.trigger() == true then
         -- open it
+        self.effects:playSound("door_open")
         if self.duration > 0 then
           self.state = "opening"
           self.sprite.isVisible = true
 
           self.animation_start_time = system.getTimer()
-          self.effects:playSound("door_open")
         else
           self.state = "open"
           self.sprite.xScale = 1

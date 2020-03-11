@@ -94,6 +94,8 @@ function bro:create(x, y, group, min_x, max_x, min_z, max_z, effects)
 
   candidate.parentPhysicsLoop = candidate.physicsLoop
   function candidate:physicsLoop()
+    -- print("I'm a bro")
+    -- print(self.y)
     if self.health <= 0 then
       self.ground_target = 2500
     end

@@ -1,7 +1,7 @@
 
 local composer = require("composer")
 local smoke = require("Source.Utilities.smoke")
--- local textBubble = require("Source.Utilities.textBubble")
+local animation = require("plugin.animation")
 local scriptMaker = require("Source.Utilities.scriptMaker")
 
 level = {}
@@ -76,14 +76,16 @@ function level:buildLevel()
 end
 
 function level:prepareToActivate()
-  self.fake_biden = self:addBiden()
-  self.biden = self:addBiden()
-  self.biden.sprite:setFrame(1)
-  self.biden.sprite.alpha = 0
-  self.fake_biden.sprite:setFrame(39)
-  self.player:disable()
-  self.game.uiGroup.isVisible = false
-  self.biden.target = self.player
+  if self.added_biden == false then
+    self.fake_biden = self:addBiden()
+    self.biden = self:addBiden()
+    self.biden.sprite:setFrame(1)
+    self.biden.sprite.alpha = 0
+    self.fake_biden.sprite:setFrame(39)
+    self.player:disable()
+    self.game.uiGroup.isVisible = false
+    self.biden.target = self.player
+  end
   --self.player:enable()
   --timer.performWithDelay(2500, function() self.game:activateGame() end)
 end
@@ -271,6 +273,15 @@ function level:checkLevel()
 
     game.state = "post_fight"
     
+    timer.performWithDelay(2000, function()
+      for i = 1, #fighters do
+        if fighters[i].short_name ~= "sanders" and fighters[i].short_name ~= "biden" then
+          fighters[i]:jumpingAction()
+          fighters[i].ground_target = 3000
+          fighters[i].y_vel = -10
+        end
+      end
+    end)
 
     timer.performWithDelay(3000, function()
       self.player:celebratingAction()
@@ -286,9 +297,14 @@ function level:checkLevel()
         {
           {name=player, text="Fuck around and find out, Joe.",},
         })
-      -- timer.performWithDelay(script_end_time, function()
+    end)
 
-      -- end)
+    timer.performWithDelay(6000, function()
+      animation.to(game.view, {alpha=0}, {time=2000, easing=easing.linear})
+      audio.fadeOut({channel=2, time=2000})
+      timer.performWithDelay(2000, function()
+        game:gotoComic("comic_1")
+      end)
     end)
   end
 

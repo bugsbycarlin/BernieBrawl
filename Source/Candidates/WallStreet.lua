@@ -200,7 +200,9 @@ function banker:create(x, y, group, min_x, max_x, min_z, max_z, effects)
     self.sprite:setFrame(kicking_frames[self.frame])
     if self.frame == 5 then
       self:forceMoveAction(15*self.xScale, 0)
-      self.effects:playSound("swing_1")
+      if self.silent == false then
+        self.effects:playSound("swing_1")
+      end
     end
     self.frame = self.frame + 1
     if (self.frame > #kicking_frames) then
@@ -225,7 +227,9 @@ function banker:create(x, y, group, min_x, max_x, min_z, max_z, effects)
     self.sprite:setFrame(punching_frames[self.frame])
     if self.frame == 5 or self.frame == 13 then
       self:forceMoveAction(10*self.xScale, 0)
-      self.effects:playSound("swing_1")
+      if self.silent == false then
+        self.effects:playSound("swing_1")
+      end
     end
     -- second attack
     self.frame = self.frame + 1

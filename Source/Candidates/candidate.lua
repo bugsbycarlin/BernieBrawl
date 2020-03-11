@@ -87,6 +87,8 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects, spri
   tim.animationTimer = nil
   tim.physicsTimer = nil
 
+  tim.silent = false
+
   tim.frame = 1
 
   tim.target = nil
@@ -101,20 +103,7 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects, spri
   tim.flexible_target = false
   tim.side = ""
 
-  -- tim.shadow = display.newImageRect(tim, "Art/shadow.png", 128, 128)
-  -- tim.shadow.y = tim.ground_target - tim.y
-
   function tim:setZ(z_value)
-    -- if z_value < min_z then
-    --   self:setZ(min_z)
-    -- elseif z_value > max_z then
-    --   self:setZ(max_z)
-    -- else
-    --   self.z = z_value
-    --   self.sprite.y = z_value
-    --   self.after_image.y = z_value
-    --   -- self.shadow.y = self.ground_target - self.y + self.y_offset + z_value
-    -- end
     self.z = z_value
     self.sprite.y = z_value
     self.after_image.y = z_value
@@ -127,25 +116,29 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects, spri
   end
 
   function tim:enable()
-    self.enabled = true
-    self.animationTimer = timer.performWithDelay(self.resting_rate, function() self:animationLoop() end, 0)
-    self.physicsTimer = timer.performWithDelay(33, function() self:physicsLoop() end, 0)
+    if self.enabled == false then
+      self.enabled = true
+      self.animationTimer = timer.performWithDelay(self.resting_rate, function() self:animationLoop() end, 0)
+      self.physicsTimer = timer.performWithDelay(33, function() self:physicsLoop() end, 0)
+    end
   end
 
   function tim:disable()
-    self.enabled = false
-    if self.animationTimer ~= nil then
-      timer.cancel(self.animationTimer)
-    end
-    if self.physicsTimer ~= nil then
-      timer.cancel(self.physicsTimer)
-    end
-    if self.automaticActionTimer ~= nil then
-      timer.cancel(self.automaticActionTimer)
-    end
-    for i = 1,#self.fighters do
-      if self.fighters[i].target == self then
-        self.fighters[i].target = nil
+    if self.enabled == true then
+      self.enabled = false
+      if self.animationTimer ~= nil then
+        timer.cancel(self.animationTimer)
+      end
+      if self.physicsTimer ~= nil then
+        timer.cancel(self.physicsTimer)
+      end
+      if self.automaticActionTimer ~= nil then
+        timer.cancel(self.automaticActionTimer)
+      end
+      for i = 1,#self.fighters do
+        if self.fighters[i].target == self then
+          self.fighters[i].target = nil
+        end
       end
     end
   end
@@ -163,6 +156,27 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects, spri
 
   function tim:automaticAction()
     
+  end
+
+  function tim:enableTutorial(action)
+    self.automaticActionTimer = timer.performWithDelay(self.automatic_rate, function()
+
+      dice = math.random(1,100)
+
+      if dice > 30 then
+        if self.x > 60 then
+          self:moveAction(-1 * self.max_x_velocity * 0.7, 0)
+        elseif self.x < -60 then
+          self:moveAction(1 * self.max_x_velocity * 0.7, 0)
+        elseif self.z > 20 then
+          self:zMoveAction(-1 * self.max_z_velocity * 0.7)
+        elseif self.z < -20 then
+          self:zMoveAction(self.max_z_velocity * 0.7)
+        else
+          action()
+        end
+      end
+    end, 0)
   end
 
   function tim:basicAutomaticMove()
@@ -657,6 +671,9 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects, spri
         -- Get the opponent's hit detection circles
         opponent_frame = opponent.sprite.frame
         opponent_hitIndex = opponent.hitIndex[opponent_frame]
+        if opponent_hitIndex == nil then
+          return
+        end
 
         for j = 1, #hitIndex do
           for k = 1, #opponent_hitIndex do

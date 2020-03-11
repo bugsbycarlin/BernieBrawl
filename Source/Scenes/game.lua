@@ -7,16 +7,13 @@ local healthBar = require("Source.Utilities.healthBar")
 
 local effects_system = require("Source.Utilities.effects")
 
--- local function gotoGame()
---   composer.gotoScene("Source.Scenes.gameIntermediary", {effect = "fade", time = 2000})
--- end
-
 local function gotoPostfight()
   composer.removeScene("Source.Scenes.postfight")
   composer.gotoScene("Source.Scenes.postfight", {effect = "crossFade", time = 2000})
 end
 
 local function pause(event)
+  audio.pause(2)
   composer.gotoScene("Source.Scenes.pause")
   paused = true
 
@@ -123,9 +120,13 @@ function scene:initializeAllKindsOfStuff()
   self.fighters = {}
 
   function scene:gotoGame(game_scene)
-    print("I am setting the game scene variable again")
     composer.setVariable("game_scene", game_scene)
     composer.gotoScene("Source.Scenes.gameIntermediary")
+  end
+
+  function scene:gotoComic(comic_scene)
+    composer.setVariable("comic_scene", comic_scene)
+    composer.gotoScene("Source.Scenes.comic")
   end
 
   function scene:activateGame()
@@ -225,86 +226,86 @@ function scene:initializeAllKindsOfStuff()
     end
   end
 
-  function scene:checkEnding()
+  -- function scene:checkEnding()
 
-    other_fighters_awake = false
-    for i = 1, #self.other_fighters do
-      if self.other_fighters[i].health > 0 then
-        other_fighters_awake = true
-      end
-    end
+  --   other_fighters_awake = false
+  --   for i = 1, #self.other_fighters do
+  --     if self.other_fighters[i].health > 0 then
+  --       other_fighters_awake = true
+  --     end
+  --   end
 
-    player_awake = (self.player.health > 0)
+  --   player_awake = (self.player.health > 0)
 
-    if player_awake == false or other_fighters_awake == false then
-      self.state = "ending"
-      for i = 1, #self.fighters do
-        self.fighters[i]:disableAutomatic()
-      end
+  --   if player_awake == false or other_fighters_awake == false then
+  --     self.state = "ending"
+  --     for i = 1, #self.fighters do
+  --       self.fighters[i]:disableAutomatic()
+  --     end
 
-      -- Runtime:removeEventListener("touch", self.swipe)
-      if self.mobile_controls == true then
-        Runtime:removeEventListener("key", self.debugKeyboard)
-      else
-        Runtime:removeEventListener("key", self.properKeyboard)
-      end
+  --     -- Runtime:removeEventListener("touch", self.swipe)
+  --     if self.mobile_controls == true then
+  --       Runtime:removeEventListener("key", self.debugKeyboard)
+  --     else
+  --       Runtime:removeEventListener("key", self.properKeyboard)
+  --     end
 
-      player_wins = composer.getVariable("player_wins")
-      opponent_wins = composer.getVariable("opponent_wins")
-      round = composer.getVariable("round")
+  --     player_wins = composer.getVariable("player_wins")
+  --     opponent_wins = composer.getVariable("opponent_wins")
+  --     round = composer.getVariable("round")
 
-      round = round + 1
+  --     round = round + 1
 
-      if player_awake == true and other_fighters_awake == false then -- a win
-        timer.performWithDelay(1000, function() self.player:celebratingAction() end)
-        player_wins = player_wins + 1
-        if player_wins > 1 then
-          player_wins = 0
-          opponent_wins = 0
-          round = 1
-          composer.setVariable("winning_fighter", player.short_name)
-          composer.setVariable("ko_fighter", player.target.short_name)
-          composer.setVariable("gameover", false)
-          timer.performWithDelay(4000, function()
-            ko_x, ko_y = self.player.target:localToContent(0,0)
-            composer.setVariable("ko_location", {x=ko_x,y=ko_y, xScale=self.player.target.xScale})
-            gotoPostfight()
-          end)
-        else
-          timer.performWithDelay(4000, gotoGame)
-        end
-      elseif other_fighters_awake == true and player_awake == false then -- a loss
-        for i = 1, #self.other_fighters do
-          if self.other_fighters[i].health > 0 then
-            timer.performWithDelay(1000, function() self.other_fighters[i]:celebratingAction() end)
-          end
-        end
-        opponent_wins = opponent_wins + 1
-        if opponent_wins > 1 then
-          player_wins = 0
-          opponent_wins = 0
-          round = 1
-          composer.setVariable("winning_fighter", self.player.target.short_name)
-          composer.setVariable("ko_fighter", self.player.short_name)
-          composer.setVariable("gameover", true)
-          timer.performWithDelay(4000, function() 
-            ko_x, ko_y = self.player:localToContent(0,0)
-            composer.setVariable("ko_location", {x=ko_x,y=ko_y, xScale=self.player.xScale})
-            gotoPostfight()
-          end)
-        else
-          timer.performWithDelay(4000, gotoGame)
-        end
-      elseif player_awake == false and other_fighters_awake == false then -- a draw
-        -- do something
-        timer.performWithDelay(4000, gotoGame)
-      end
+  --     if player_awake == true and other_fighters_awake == false then -- a win
+  --       timer.performWithDelay(1000, function() self.player:celebratingAction() end)
+  --       player_wins = player_wins + 1
+  --       if player_wins > 1 then
+  --         player_wins = 0
+  --         opponent_wins = 0
+  --         round = 1
+  --         composer.setVariable("winning_fighter", player.short_name)
+  --         composer.setVariable("ko_fighter", player.target.short_name)
+  --         composer.setVariable("gameover", false)
+  --         timer.performWithDelay(4000, function()
+  --           ko_x, ko_y = self.player.target:localToContent(0,0)
+  --           composer.setVariable("ko_location", {x=ko_x,y=ko_y, xScale=self.player.target.xScale})
+  --           gotoPostfight()
+  --         end)
+  --       else
+  --         timer.performWithDelay(4000, gotoGame)
+  --       end
+  --     elseif other_fighters_awake == true and player_awake == false then -- a loss
+  --       for i = 1, #self.other_fighters do
+  --         if self.other_fighters[i].health > 0 then
+  --           timer.performWithDelay(1000, function() self.other_fighters[i]:celebratingAction() end)
+  --         end
+  --       end
+  --       opponent_wins = opponent_wins + 1
+  --       if opponent_wins > 1 then
+  --         player_wins = 0
+  --         opponent_wins = 0
+  --         round = 1
+  --         composer.setVariable("winning_fighter", self.player.target.short_name)
+  --         composer.setVariable("ko_fighter", self.player.short_name)
+  --         composer.setVariable("gameover", true)
+  --         timer.performWithDelay(4000, function() 
+  --           ko_x, ko_y = self.player:localToContent(0,0)
+  --           composer.setVariable("ko_location", {x=ko_x,y=ko_y, xScale=self.player.xScale})
+  --           gotoPostfight()
+  --         end)
+  --       else
+  --         timer.performWithDelay(4000, gotoGame)
+  --       end
+  --     elseif player_awake == false and other_fighters_awake == false then -- a draw
+  --       -- do something
+  --       timer.performWithDelay(4000, gotoGame)
+  --     end
 
-      composer.setVariable("player_wins", player_wins)
-      composer.setVariable("opponent_wins", opponent_wins)
-      composer.setVariable("round", round)
-    end
-  end
+  --     composer.setVariable("player_wins", player_wins)
+  --     composer.setVariable("opponent_wins", opponent_wins)
+  --     composer.setVariable("round", round)
+  --   end
+  -- end
 
   self.key_history = {}
   function scene:checkInput()
@@ -605,15 +606,19 @@ function scene:initializeAllKindsOfStuff()
       end
     end
 
-    if event.keyName == "x" and event.phase == "up" then
-      if self.show_hitboxes == true then
-        self.show_hitboxes = false
-        self.hitBoxGroup.isVisible = false
-      else
-        self.show_hitboxes = true
-        self.hitBoxGroup.isVisible = true
-      end
+    if event.keyName == "escape" and event.phase == "up" then
+      pause()
     end
+
+    -- if event.keyName == "x" and event.phase == "up" then
+    --   if self.show_hitboxes == true then
+    --     self.show_hitboxes = false
+    --     self.hitBoxGroup.isVisible = false
+    --   else
+    --     self.show_hitboxes = true
+    --     self.hitBoxGroup.isVisible = true
+    --   end
+    -- end
 
     return true
   end
@@ -783,33 +788,6 @@ function scene:create( event )
   player_headshot.y = 27
   player_headshot.xScale = -1
 
-  player_wins = composer.getVariable("player_wins")
-  opponent_wins = composer.getVariable("opponent_wins")
-  round = composer.getVariable("round")
-
-  self.player_checkmark = display.newImageRect(self.uiGroup, "Art/checkmark.png", 40, 40)
-  self.player_checkmark.x = player_headshot.x - 5
-  self.player_checkmark.y = player_headshot.y + 45
-  self.player_checkmark.isVisible = (player_wins > 0)
-
-  local announcement_text = display.newImageRect(self.uiGroup, "Art/round.png", 568/1.5, 320/1.5)
-  announcement_text.x = display.contentCenterX + 30
-  announcement_text.y = 80
-  announcement_number = display.newSprite(self.uiGroup, numbers, {frames={1,2,3,4,5,6,7,8,9,10}})
-  announcement_number:setFrame(round + 1)
-  announcement_number.xScale = 1/1.5
-  announcement_number.yScale = 1/1.5
-  announcement_number.x = display.contentCenterX + 70
-  announcement_number.y = 80
-  timer.performWithDelay(1500, function()
-    display.remove(announcement_text)
-    display.remove(announcement_number)
-    announcement_text = display.newImageRect(self.uiGroup, "Art/fight.png", 568/1.5, 320/1.5)
-    announcement_text.x = display.contentCenterX
-    announcement_text.y = 80
-  end)
-  timer.performWithDelay(2500, function() announcement_text.isVisible = false end)
-
   if self.mobile_controls == true then
     self.right_panel = display.newImageRect(self.uiGroup, "Art/right_panel.png", 116, 58)
     self.right_panel.x = display.contentWidth - 58
@@ -825,7 +803,7 @@ function scene:create( event )
 
     self.red_button = display.newImageRect(self.uiGroup, "Art/red_button.png", 54, 54)
     self.red_button.x = 32
-    self.red_button.y = display.contentHeight - 32  
+    self.red_button.y = display.contentHeight - 32
 
     self.pause_button = display.newImageRect(self.uiGroup, "Art/pause_button.png", 48, 48)
     self.pause_button.x = display.contentCenterX
@@ -860,6 +838,15 @@ function scene:show( event )
     -- Code here runs when the scene is still off screen (but is about to come on screen)
     self.gameLoopTimer = timer.performWithDelay(33, function() self:gameLoop() end, 0)
     self.level:prepareToActivate()
+    if paused then
+      paused = false
+      for i = 1, #self.fighters do
+        self.fighters[i]:enable()
+        if self.fighters[i] ~= self.player then
+          self.fighters[i]:enableAutomatic()
+        end
+      end
+    end
 
   elseif ( phase == "did" ) then
     composer.removeScene("Source.Scenes.prefight")

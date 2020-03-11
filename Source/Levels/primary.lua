@@ -141,12 +141,26 @@ function level:buildLevel()
   traffic_cone.y = 785
 
   self.snow_effect = snow:create(game.foregroundGroup, 4000)
+
+  local announcement_text = display.newImageRect(game.uiGroup, "Art/ready.png", 568, 320)
+  announcement_text.x = display.contentCenterX
+  announcement_text.y = display.contentCenterY
+  timer.performWithDelay(2000, function()
+    display.remove(announcement_text)
+    announcement_text = display.newImageRect(game.uiGroup, "Art/fight.png", 568, 320)
+    announcement_text.x = display.contentCenterX
+    announcement_text.y = display.contentCenterY
+  end)
+  timer.performWithDelay(3500, function()
+    announcement_text.isVisible = false
+    display.remove(announcement_text)
+    self.game:activateGame()
+  end)
 end
 
 function level:prepareToActivate()
   self:addDoors()
   self.player:enable()
-  timer.performWithDelay(2500, function() self.game:activateGame() end)
 end
 
 function level:addDoorBad(x, y, z)
@@ -265,7 +279,6 @@ function level:checkLevel()
     end
   end
 
-  print(audio.isChannelPlaying(2))
   -- check the hotel
   -- this only works if it comes before resetinput in the game loop
   if game.state == "active" and game.keydown.up == true and player.x > 11000 - 60 and player.x < 11000 + 60 and player.z < player.min_z + 5 then

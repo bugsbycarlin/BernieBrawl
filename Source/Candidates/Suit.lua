@@ -196,10 +196,6 @@ function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects)
       -- move because the sprite doesn't finish in the same location
       self.x = self.x + 47 * self.xScale
     end
-    -- if self.frame == 5 then
-    --   self:forceMoveAction(15*self.xScale, 0)
-    --   self.effects:playSound("swing_1")
-    -- end
     self.frame = self.frame + 1
     if (self.frame > #kicking_frames) then
       self:restingAction()
@@ -250,7 +246,9 @@ function suit:create(x, y, group, min_x, max_x, min_z, max_z, effects)
     self.sprite:setFrame(punching_frames[self.frame])
     if self.frame == 5 or self.frame == 11 then
       self:forceMoveAction(5*self.xScale, 0)
-      self.effects:playSound("swing_1")
+      if self.silent == false then
+        self.effects:playSound("swing_1")
+      end
     end
     -- second attack
     self.frame = self.frame + 1

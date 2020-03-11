@@ -20,8 +20,8 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects)
   candidate.kicking_power = 9
   candidate.knockback = 10
   candidate.automatic_rate = 300
-  -- candidate:setMaxHealth(250)
-  candidate:setMaxHealth(2)
+  candidate:setMaxHealth(250)
+  -- candidate:setMaxHealth(2)
   candidate.whooping_threshold = 5
 
   candidate.throw_counter = 0
@@ -77,7 +77,9 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects)
     self.frame = 1
     self.animationTimer._delay = self.action_rate
     self.action = "whipping"
-    self.effects:playSound("whip_swing")
+    if self.silent == false then
+      self.effects:playSound("whip_swing")
+    end
   end
 
   function candidate:specialThrow()
@@ -85,7 +87,6 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects)
     self.moving = false
     self.action = "manifesto_throwing"
     self.frame = 1
-    -- self.effects:playSound("plan")
     self.throw_counter = 20
   end
 
@@ -196,7 +197,9 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects)
       self.after_image:setFrame(kicking_frames[self.frame - 1])
     end
     if self.frame == 3 or self.frame == 8 then
-      self.effects:playSound("swing_1")
+      if self.silent == false then
+        self.effects:playSound("swing_1")
+      end
     end
     if self.frame == 9 or self.frame == 11 then
       -- self.x = self.x + 20 * self.xScale
@@ -238,14 +241,20 @@ function warren:create(x, y, group, min_x, max_x, min_z, max_z, effects)
   candidate.animations["punching"] = function(self)
     self.sprite:setFrame(punching_frames[self.frame])
     if self.frame == 3 then
-      self.effects:playSound("swing_3")
+      if self.silent == false then
+        self.effects:playSound("swing_3")
+      end
       self:forceMoveAction(8*self.xScale, 0)
     elseif self.frame == 7 then
-      self.effects:playSound("swing_3")
+      if self.silent == false then
+        self.effects:playSound("swing_3")
+      end
       self:forceMoveAction(8*self.xScale, 0)
     elseif self.frame == 13 then
       -- punch(self, self.target)
-      self.effects:playSound("swing_1")
+      if self.silent == false then
+        self.effects:playSound("swing_1")
+      end
       self:forceMoveAction(10*self.xScale, 0)
     end
     self.frame = self.frame + 1

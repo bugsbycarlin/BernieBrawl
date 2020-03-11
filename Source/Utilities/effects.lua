@@ -24,6 +24,7 @@ sounds["help_me_bros"] = audio.loadSound("Sound/help_me_bros.wav")
 sounds["plan"] = audio.loadSound("Sound/plan.wav")
 sounds["door_open"] = audio.loadSound("Sound/door_open.wav")
 sounds["swish"] = audio.loadSound("Sound/swish.wav")
+sounds["feh"] = audio.loadSound("Sound/feh.wav")
 
 local speed_line_width = 800
 local max_speed_lines = 200

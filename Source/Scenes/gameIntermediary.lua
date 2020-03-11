@@ -5,7 +5,7 @@ local scene = composer.newScene()
 
 local function gotoGame()
   composer.removeScene("Source.Scenes.game")
-  composer.gotoScene("Source.Scenes.game")
+  composer.gotoScene("Source.Scenes.game", {effect = "fade", time = 1000})
 end
 
 -- -----------------------------------------------------------------------------------

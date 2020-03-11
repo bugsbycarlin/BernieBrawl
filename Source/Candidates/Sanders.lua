@@ -85,7 +85,9 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects)
     self.moving = false
     self.action = "summoning"
     self.frame = 1
-    self.effects:playSound("help_me_bros")
+    if self.silent == false then
+      self.effects:playSound("help_me_bros")
+    end
   end
 
   function candidate:specialThrow()
@@ -93,7 +95,9 @@ function sanders:create(x, y, group, min_x, max_x, min_z, max_z, effects)
     self.moving = false
     self.action = "manifesto_throwing"
     self.frame = 1
-    self.effects:playSound("manifesto")
+    if self.silent == false then
+      self.effects:playSound("manifesto")
+    end
   end
 
   function candidate:checkSpecialAction(x_vel, y_vel)
