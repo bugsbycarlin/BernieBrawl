@@ -16,7 +16,7 @@ local pause_text
 -- -----------------------------------------------------------------------------------
 
 function scene:keyboard(event)
-  if event.keyName == "enter" and event.phase == "up" then
+  if (event.keyName == "escape" or event.keyName == "enter" or event.keyName == "buttonStart") and event.phase == "up" then
     gotoGame()
   end
 end
@@ -55,6 +55,16 @@ function scene:create(event)
   self.buttons["2,4"] = {"a", "plus", "a", "plus", "right"}
   self.buttons["2,5"] = {"a", "plus", "d", "plus", "up"}
 
+  self.gamepad = false
+  local inputDevices = system.getInputDevices()
+ 
+  for i = 1,#inputDevices do
+    local device = inputDevices[i]
+    if string.find(string.lower(device.descriptor), "gamepad") or string.find(string.lower(device.descriptor), "controller") then
+      self.gamepad = true
+    end
+  end
+
   for i = 1,2 do
     for j = 1,3+i do
       local x = display.contentWidth / 4 + (i-1) * display.contentWidth / 2 + self.x_margin
@@ -86,6 +96,13 @@ function scene:create(event)
       info_group.yScale = 0.6
       local buttons = self.buttons[i .. "," .. j]
       for m = 1,#buttons do
+        if self.gamepad then
+          if buttons[m] == "a" or buttons[m] == "s" or buttons[m] == "d" then
+            local button = display.newImageRect(info_group, "Art/TutorialUI/button.png", 96, 96)
+            button.x = -40 * #buttons + 40 * m - 80 + 1
+            button.y = 10 + 2
+          end
+        end
         local glyph = display.newImageRect(info_group, "Art/TutorialUI/" .. buttons[m] .. ".png", 40, 40)
         glyph.x = -40 * #buttons + 40 * m - 80
         glyph.y = 10
@@ -129,7 +146,6 @@ function scene:create(event)
   pause_text = display.newText(scene_group, "Paused", display.contentCenterX, display.contentCenterY, "Georgia-Bold", 30)
   pause_text.y = display.contentCenterY - 70
   pause_text:setTextColor(1, 1, 1)
-
 
   self.gameLoopTimer = timer.performWithDelay(33, function()
     self.effects:update() 
@@ -176,6 +192,19 @@ function scene:hide(event)
 
   if (phase == "will") then
     -- Code here runs when the scene is on screen (but is about to go off screen)
+    timer.cancel(self.gameLoopTimer)
+    self.characters["1,1"]:disable()
+    self.characters["1,2"]:disable()
+    self.characters["1,3"]:disable()
+    self.characters["1,4"]:disable()
+    self.characters["2,1"]:disable()
+    self.characters["2,2"]:disable()
+    self.characters["2,3"]:disable()
+    self.characters["2,4"]:disable()
+    self.characters["2,5"]:disable()
+    for i = 1, #self.effects.fighters do
+      self.effects.fighters[i]:disable()
+    end
 
   elseif (phase == "did") then
     -- Code here runs immediately after the scene goes entirely off screen

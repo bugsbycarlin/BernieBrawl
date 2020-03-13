@@ -103,6 +103,8 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects, spri
   tim.flexible_target = false
   tim.side = ""
 
+  tim.rumble_device = nil
+
   function tim:setZ(z_value)
     self.z = z_value
     self.sprite.y = z_value
@@ -373,6 +375,10 @@ function candidate:create(x, y, group, min_x, max_x, min_z, max_z, effects, spri
     elseif type == "knockback" then
       self.sprite:setFrame(self.blocking_frames[1])
       self.action = "knockback"
+    end
+
+    if self.rumble_device ~= nil and self.rumble_device.canVibrate then
+      self.rumble_device:vibrate()
     end
   end
 

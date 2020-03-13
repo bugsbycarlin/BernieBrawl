@@ -7,6 +7,8 @@ local healthBar = require("Source.Utilities.healthBar")
 
 local effects_system = require("Source.Utilities.effects")
 
+local textBubble = require("Source.Utilities.textBubble")
+
 local function gotoPostfight()
   composer.removeScene("Source.Scenes.postfight")
   composer.gotoScene("Source.Scenes.postfight", {effect = "crossFade", time = 2000})
@@ -351,6 +353,21 @@ function scene:initializeAllKindsOfStuff()
         table.insert(self.key_history, "down")
         self.player:zMoveAction(self.player.max_z_velocity * 0.7)
       elseif self.keydown.left and (self.player.move_direction ~= "left" or self.player.move_decay == 0 or self.player.move_decay > 5) then
+        print(self.player.x)
+        if self.player.x < 5 then
+          dice = math.random(1,100)
+          if dice > 30 then
+            bubble = textBubble:create(self.player, self.effects.foreground_group, 14, "Hey, I won't go negative.", "left", self.player.script_offset_x, self.player.script_offset_y, 1500)
+            self.effects:add(bubble)
+          end
+        elseif self.player.x < self.player.min_x + 5 then
+          dice = math.random(1,100)
+          if dice > 30 then
+            bubble = textBubble:create(self.player, self.effects.foreground_group, 14, "We're taking America forward, not backward.", "left", self.player.script_offset_x, self.player.script_offset_y, 1500)
+            self.effects:add(bubble)
+          end
+        end
+
         table.insert(self.key_history, "left")
         self.player:moveAction(-1 * self.player.max_x_velocity * 0.7, 0)
       elseif self.keydown.right and (self.player.move_direction ~= "right" or self.player.move_decay == 0 or self.player.move_decay > 5) then
@@ -427,6 +444,55 @@ function scene:initializeAllKindsOfStuff()
       up=false,
       down=false,
     }
+  end
+
+  function scene:gamepadCheck()
+    self.old_gamepad = self.gamepad
+    self.gamepad = false
+    self.device = nil
+    self.player.rumble_device = nil
+    local inputDevices = system.getInputDevices()
+ 
+    for i = 1,#inputDevices do
+      local device = inputDevices[i]
+      if string.find(string.lower(device.descriptor), "gamepad") or string.find(string.lower(device.descriptor), "controller") then
+        self.gamepad = true
+        if self.device == nil then
+          self.device = device
+          self.player.rumble_device = device
+        end
+      end
+    end
+
+    if self.gamepad == true then
+      print("Have a gamepad!")
+    else
+      print("Have no gamepad!")
+    end
+
+    if self.old_gamepad == true and self.gamepad == false then
+      -- we lost gamepad. put a blinker on screen
+      self.effects:addControllerMessage(self.uiGroup, display.contentWidth - 280, display.contentHeight - 30, 3000, "Controller unplugged. Switch to keyboard!")
+    elseif self.old_gamepad == false and self.gamepad == true then
+      -- we gained a gamepad. put a blinker on screen
+      self.effects:addControllerMessage(self.uiGroup, display.contentWidth - 180, display.contentHeight - 30, 3000, "Controller present. Use it!")
+    elseif self.old_gamepad == nil and self.gamepad == true then
+      self.effects:addControllerMessage(self.uiGroup, display.contentWidth - 260, display.contentHeight - 30, 3000, "Using controller! Pause to see controls.")
+    elseif self.old_gamepad == nil and self.gamepad == false then
+      self.effects:addControllerMessage(self.uiGroup, display.contentWidth - 330, display.contentHeight - 30, 3000, "Using keyboard! Hit esc to pause and see controls.")
+
+    end
+  end
+
+  function scene:gamepadChanged(event)
+    if (event.connectionStateChanged) then
+      if (event.device.isConnected) then
+        print("Device connected")
+      else
+        print("Device disconnected")
+      end
+      self:gamepadCheck()
+    end
   end
 
   function scene:gameLoop()
@@ -608,6 +674,38 @@ function scene:initializeAllKindsOfStuff()
 
     if event.keyName == "escape" and event.phase == "up" then
       pause()
+    end
+
+    if self.gamepad == true and self.device ~= nil then
+      if event.keyName == "button1" or event.keyName == "buttonA" then
+        if event.phase == "down" then
+          self.keydown.s = true
+        elseif event.phase == "up" then
+          self.keydown.s = false
+        end
+      end
+
+      if event.keyName == "button2" or event.keyName == "buttonB" then
+        if event.phase == "down" then
+          self.keydown.d = true
+        elseif event.phase == "up" then
+          self.keydown.d = false
+        end
+      end
+
+      if event.keyName == "button3" or event.keyName == "buttonX" then
+        if event.phase == "down" then
+          self.keydown.a = true
+        elseif event.phase == "up" then
+          self.keydown.a = false
+        end
+      end
+
+      if event.keyName == "buttonStart" then
+        if event.phase == "up" then
+          pause()
+        end
+      end
     end
 
     -- if event.keyName == "x" and event.phase == "up" then
@@ -820,9 +918,21 @@ function scene:create( event )
     Runtime:addEventListener("key", function(event) self:properKeyboard(event) end)
   end
 
+  local inputDevices = system.getInputDevices()
+ 
+  for i = 1,#inputDevices do
+      local device = inputDevices[i]
+      print( device.descriptor )
+  end
+
+  self:gamepadCheck()
+  Runtime:addEventListener("inputDeviceStatus", function(event) self:gamepadChanged(event) end)
+
+  
+
   self.camera:setToTarget(false, self.player.x, self.player.y + self.player.z, self.contentGroup, {self.parallaxBackgroundGroup, self.mainGroup, self.bgGroup, self.foregroundGroup}, {0.2, 1, 1, 1})
 
-  self:debugGrid()
+  -- self:debugGrid()
 
   self.state = "waiting"
 end
@@ -850,6 +960,7 @@ function scene:show( event )
 
   elseif ( phase == "did" ) then
     composer.removeScene("Source.Scenes.prefight")
+    composer.removeScene("Source.Scenes.pause")
     -- Code here runs when the scene is entirely on screen
 
   end

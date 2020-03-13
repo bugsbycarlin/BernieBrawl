@@ -16,7 +16,7 @@ level.__index = level
 -- can't actually backtrack to them anyway.
 -- camera maxes are also set to match.
 local zones = {
-  {min=0, max=1200, type="goons", num=3, pace=4000, max_bads=3},
+  {min=0, max=1200, type="goons", num=0, pace=4000, max_bads=2},
   {min=1200, max=2700, type="goons", num=5, pace=4000, max_bads=3},
   {min=2700, max=4000, type="shop", num=5, arrow={x=2948, y=360}, max_bads=3},
   {min=4000, max=5600, type="goons", num=5, pace=4000, max_bads=3},
@@ -41,11 +41,11 @@ function level:create(game)
   self.game = game
   self.player = game.player
 
-  self.current_zone = 8
+  self.current_zone = 1
   self.player_furthest_x = 0
   self.time_since_last_bad = 0
   self.warren_has_appeared = false
-  self.player_starting_x = 9700
+  self.player_starting_x = 184
 
   self.goon_type = "suit"
 
@@ -486,7 +486,7 @@ function level:checkLevel()
   self.player_furthest_x = math.max(self.player_furthest_x, player.x)
   for i = 1, #fighters do
     if fighters[i].side == "good" then
-      fighters[i].min_x = math.min(10000, self.player_furthest_x - 1000)
+      fighters[i].min_x = math.max(0, math.min(10000, self.player_furthest_x - 1000))
     end
     fighters[i].max_x = zones[self.current_zone].max
   end

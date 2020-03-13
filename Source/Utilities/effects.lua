@@ -68,6 +68,7 @@ function effects:create(top_level_group, foreground_group)
         end
       else
         display.remove(self.effect_list[i].sprite)
+        display.remove(self.effect_list[i])
       end
     end
     self.effect_list = copy_effect_list
@@ -111,6 +112,7 @@ function effects:create(top_level_group, foreground_group)
         table.insert(copy_effect_list, self.effect_list[i])
       else
         display.remove(self.effect_list[i].sprite)
+        display.remove(self.effect_list[i])
       end
     end
     self.effect_list = copy_effect_list
@@ -159,6 +161,41 @@ function effects:create(top_level_group, foreground_group)
     end
 
     self:add(shake)
+  end
+
+  function object:addControllerMessage(group, x, y, duration, message_text)
+    self:removeType("controller_message")
+    local message_group = display.newGroup()
+    group:insert(message_group)
+    message_group.x = x
+    message_group.y = y
+    controller = display.newImageRect(message_group, "Art/controller_2020.png", 64, 64)
+    controller.x = 0
+    controller.y = 0
+    text = display.newText(
+      message_group,
+      message_text,
+      36, 0,
+      "Georgia-Bold", 12)
+    text.anchorX = 0
+    message_group.duration = duration
+    message_group.start_time = system.getTimer()
+    message_group.type = "controller_message"
+
+    function message_group:update()
+      blinking_time = system.getTimer() - self.start_time
+      if math.floor(blinking_time / 200) % 2 == 0 then
+        self.isVisible = false
+      else
+        self.isVisible = true
+      end
+    end
+
+    function message_group:finished()
+      return self.duration > 0 and (system.getTimer() - self.start_time > self.duration)
+    end
+
+    self:add(message_group)
   end
 
   function object:addArrow(group, x, y, size, rotation, duration)
@@ -257,7 +294,7 @@ function effects:create(top_level_group, foreground_group)
     self:add(p)
   end
 
-  projectileManifesto_x_vel = 30
+  projectileManifesto_x_vel = 35
   projectileManifesto_y_vel_max = 2
   function object:addProjectileManifesto(group, originator, x, y, z, xScale)
     local x_vel = projectileManifesto_x_vel * xScale
@@ -266,7 +303,7 @@ function effects:create(top_level_group, foreground_group)
     p.sprite.xScale = xScale / 2
     p.sprite.yScale = 1/2
     p.hit_radius = p.hit_radius / 1.5
-    p.gravity = 1
+    p.gravity = 0.9
     p.rotation_vel = 10 * xScale
     self:add(p)
   end

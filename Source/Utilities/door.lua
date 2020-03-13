@@ -14,16 +14,13 @@ function door:create(group, effects, player, x, y, width, height, duration, alt_
   object.type = "door"
 
   if alt_image == nil then
-    print("Here is the sprite")
     object.sprite = display.newImageRect(group, "Art/door.png", width, height)
   else
     object.sprite = display.newImageRect(group, "Art/" .. alt_image .. ".png", width, height)
   end
 
   object.sprite.x = x + width
-  print(object.sprite.x)
   object.sprite.y = y
-  print(object.sprite.y)
   object.sprite.anchorX = 1
   object.sprite.anchorY = 0
   object.sprite.xScale = 0.001
